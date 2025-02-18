@@ -1,10 +1,7 @@
 const db = require("../models/db");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-<<<<<<< HEAD
-=======
 const axios = require ("axios");
->>>>>>> 5c17eff (🔄 Synced logbook assignments with Moodle and implemented grading sync)
 
 // ✅ Teacher Signup
 const signupTeacher = async (req, res) => {
@@ -155,33 +152,21 @@ const getSubmittedEntries = async (req, res) => {
 
 
 
-<<<<<<< HEAD
-// ✅ Grade an Entry
-=======
 // ✅ Grade an Entry & Sync to Moodle
->>>>>>> 5c17eff (🔄 Synced logbook assignments with Moodle and implemented grading sync)
 const gradeEntry = async (req, res) => {
     try {
         const { entryId, grade, feedback } = req.body;
 
-<<<<<<< HEAD
-        // 🔍 Ensure entry exists
-        const [entryExists] = await db.promise().query("SELECT id FROM logbook_entries WHERE id = ?", [entryId]);
-=======
         // 🔍 Ensure entry exists and fetch student_id, assignment_id, and course_id
         const [entryExists] = await db.promise().query(
             "SELECT student_id, assignment_id, course_id FROM logbook_entries WHERE id = ?", 
             [entryId]
         );
 
->>>>>>> 5c17eff (🔄 Synced logbook assignments with Moodle and implemented grading sync)
         if (entryExists.length === 0) {
             return res.status(404).json({ message: "Entry not found." });
         }
 
-<<<<<<< HEAD
-        // ✅ Update entry with grade and feedback
-=======
         const entry = entryExists[0];
 
         // ✅ Ensure the student exists in Moodle
@@ -199,7 +184,6 @@ const gradeEntry = async (req, res) => {
         const courseId = entry.course_id;  // ✅ Make sure each logbook entry has the correct course ID
 
         // ✅ Update entry with grade and feedback in the logbook
->>>>>>> 5c17eff (🔄 Synced logbook assignments with Moodle and implemented grading sync)
         await db.promise().query(
             `UPDATE logbook_entries 
              SET grade = ?, feedback = ?, status = 'graded' 
@@ -207,12 +191,6 @@ const gradeEntry = async (req, res) => {
             [grade, feedback, entryId]
         );
 
-<<<<<<< HEAD
-        res.status(200).json({ message: "Entry graded successfully." });
-    } catch (error) {
-        console.error("❌ Grading Error:", error);
-        res.status(500).json({ message: "Failed to grade entry.", error: error.message });
-=======
         console.log(`✅ Entry graded successfully for Moodle User ID: ${moodleUserId} | Assignment ID: ${assignmentId}`);
 
         // ✅ Moodle API Setup
@@ -246,7 +224,6 @@ const gradeEntry = async (req, res) => {
     } catch (error) {
         console.error("❌ Grading Error:", error.message);
         res.status(500).json({ message: "Failed to grade entry or sync to Moodle.", error: error.message });
->>>>>>> 5c17eff (🔄 Synced logbook assignments with Moodle and implemented grading sync)
     }
 };
 

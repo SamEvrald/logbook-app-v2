@@ -14,88 +14,6 @@ const generateCaseNumber = async (courseId, courseName) => {
 
 exports.createEntry = async (req, res) => {
   try {
-<<<<<<< HEAD
-    const { moodle_id, courseId, role_in_task, type_of_work, pathology, clinical_info, content, consentForm, work_completed_date, media_link } = req.body;
-
-    if (!moodle_id || !courseId || !work_completed_date) {
-      return res.status(400).json({ message: "❌ Student Moodle ID, Course ID, and Work Completed Date are required." });
-    }
-
-    console.log("🛠️ Received Entry Request:", req.body);
-
-    // ✅ Check if student exists
-    const [userRows] = await db.promise().query("SELECT id FROM users WHERE moodle_id = ?", [moodle_id]);
-
-    if (userRows.length === 0) {
-      return res.status(404).json({ message: "❌ No user found with this Moodle ID." });
-    }
-
-    const studentId = userRows[0].id;
-
-    // ✅ Ensure course exists, otherwise fetch from Moodle
-    let [courseRows] = await db.promise().query("SELECT fullname FROM courses WHERE id = ?", [courseId]);
-
-    if (courseRows.length === 0) {
-      console.log(`⚠️ Course ID ${courseId} not found locally. Fetching from Moodle...`);
-
-      try {
-        const moodleResponse = await axios.get(`${process.env.MOODLE_BASE_URL}/webservice/rest/server.php`, {
-          params: {
-            wstoken: process.env.MOODLE_TOKEN,
-            wsfunction: "core_course_get_courses",
-            moodlewsrestformat: "json",
-          },
-        });
-
-        if (moodleResponse.data && Array.isArray(moodleResponse.data) && moodleResponse.data.length > 0) {
-          console.log("📥 Moodle API Course Response:", moodleResponse.data);
-
-          const foundCourse = moodleResponse.data.find(course => course.id == courseId);
-
-          if (!foundCourse) {
-            console.error(`❌ Course ID ${courseId} not found in Moodle.`);
-            return res.status(400).json({ message: `Course ID ${courseId} does not exist in Moodle.` });
-          }
-
-          console.log(`✅ Course Found: ${foundCourse.fullname}`);
-
-          // ✅ Insert course into local database
-          await db.promise().query(
-            `INSERT INTO courses (id, fullname, shortname) VALUES (?, ?, ?)`,
-            [foundCourse.id, foundCourse.fullname, foundCourse.shortname]
-          );
-
-          courseRows = [{ fullname: foundCourse.fullname }];
-        } else {
-          return res.status(400).json({ message: `❌ Course ID ${courseId} does not exist in Moodle.` });
-        }
-      } catch (error) {
-        console.error("❌ Moodle API Fetch Error:", error.response?.data || error.message);
-        return res.status(500).json({ message: "Failed to fetch course from Moodle.", error: error.message });
-      }
-    }
-
-    const courseName = courseRows[0].fullname;
-
-    // ✅ Generate Case Number using Course Name & Entry Count
-    const caseNumber = await generateCaseNumber(courseId, courseName);
-
-    // ✅ Insert logbook entry
-    console.log(`📝 Creating logbook entry for student ID ${studentId} and course ID ${courseId}`);
-
-    await db.promise().query(
-      `INSERT INTO logbook_entries 
-       (case_number, student_id, course_id, role_in_task, type_of_work, pathology, clinical_info, content, consent_form, work_completed_date, media_link, status) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'submitted')`,
-      [caseNumber, studentId, courseId, role_in_task, type_of_work, pathology, clinical_info, content, consentForm, work_completed_date, media_link]
-    );
-
-    res.status(201).json({ message: "✅ Logbook entry created successfully.", case_number: caseNumber });
-
-  } catch (error) {
-    console.error("❌ Database error:", error);
-    res.status(500).json({ message: "Failed to create entry", error: error.message });
-=======
       const { moodle_id, courseId, role_in_task, type_of_work, pathology, clinical_info, content, consentForm, work_completed_date, media_link } = req.body;
 
       if (!moodle_id || !courseId || !work_completed_date) {
@@ -221,7 +139,6 @@ exports.createEntry = async (req, res) => {
   } catch (error) {
       console.error("❌ Database error:", error);
       res.status(500).json({ message: "Failed to create entry", error: error.message });
->>>>>>> 5c17eff (🔄 Synced logbook assignments with Moodle and implemented grading sync)
   }
 };
 

@@ -86,11 +86,7 @@ const TeacherDashboard = () => {
                             <th>Completion Date</th>
                             <th>Student</th>
                             <th>Course</th>
-<<<<<<< HEAD
-                            <th>Task Type</th>
-=======
                             <th>Type Of Task/Device</th>
->>>>>>> 5c17eff (🔄 Synced logbook assignments with Moodle and implemented grading sync)
                             <th>Description</th>
                             <th>Media</th>
                             <th>Consent</th>
