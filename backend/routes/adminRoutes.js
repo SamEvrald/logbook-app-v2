@@ -8,6 +8,7 @@ const {
     signupAdmin,
     loginAdmin,
     getAdminProfile,
+    getAllEntries, // ✅ Added
 } = require("../controllers/adminController");
 
 const authMiddleware = require("../middleware/authMiddleware");
@@ -21,6 +22,9 @@ router.get("/courses", authMiddleware, roleMiddleware("admin"), getAllCourses);
 
 // ✅ Fetch all teachers
 router.get("/teachers", authMiddleware, roleMiddleware("admin"), getAllTeachers);
+
+// ✅ Fetch all logbook entries (🔄 FIXED)
+router.get("/entries", authMiddleware, roleMiddleware("admin"), getAllEntries);
 
 // ✅ Assign course to teacher
 router.post("/assign-course", authMiddleware, roleMiddleware("admin"), assignCourseToTeacher);

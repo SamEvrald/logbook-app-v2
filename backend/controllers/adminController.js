@@ -55,52 +55,73 @@ exports.getAllCourses = async (req, res) => {
 
 // ✅ Assign a course to a teacher
 exports.assignCourseToTeacher = async (req, res) => {
-    const { teacher_id, course_id } = req.body;
-  
-    console.log("Received assignment request:", { teacher_id, course_id });
-  
-    if (!teacher_id || !course_id) {
-      console.log("Missing teacher_id or course_id");
-      return res.status(400).json({ message: "Teacher ID and Course ID are required." });
-    }
-  
-    try {
-      // ✅ Step 1: Fetch all courses from Moodle
+  const { teacher_id, course_id } = req.body;
+
+  console.log("Received assignment request:", { teacher_id, course_id });
+
+  if (!teacher_id || !course_id) {
+    console.log("❌ Missing teacher_id or course_id");
+    return res.status(400).json({ message: "Teacher ID and Course ID are required." });
+  }
+
+  try {
+    const [existingCourse] = await db.promise().query(
+      "SELECT id FROM courses WHERE id = ?",
+      [course_id]
+    );
+
+    // ✅ If the course does not exist locally, fetch it from Moodle
+    if (existingCourse.length === 0) {
+      console.log(`⚠️ Course ID ${course_id} not found locally. Fetching from Moodle...`);
+
       const moodleUrl = `${process.env.MOODLE_BASE_URL}/webservice/rest/server.php`;
       const token = process.env.MOODLE_TOKEN;
-  
-      const params = {
-        wstoken: token,
-        wsfunction: "core_course_get_courses",
-        moodlewsrestformat: "json",
-      };
-  
-      const response = await axios.get(moodleUrl, { params });
-      const moodleCourses = response.data;
-  
-      // ✅ Step 2: Check if the course exists in Moodle
-      const courseExists = moodleCourses.some(course => course.id == course_id);
-  
-      if (!courseExists) {
-        console.log(`Course ID ${course_id} does not exist in Moodle.`);
+
+      const moodleResponse = await axios.get(moodleUrl, {
+        params: {
+          wstoken: token,
+          wsfunction: "core_course_get_courses",
+          moodlewsrestformat: "json",
+        },
+      });
+
+      const moodleCourses = moodleResponse.data;
+
+      // ✅ Ensure the course exists in Moodle
+      const foundCourse = moodleCourses.find(course => course.id == course_id);
+
+      if (!foundCourse) {
+        console.error(`❌ Course ID ${course_id} does not exist in Moodle.`);
         return res.status(400).json({ message: `Course ID ${course_id} does not exist in Moodle.` });
       }
-  
-      // ✅ Step 3: Assign the course to the teacher (even if not in `courses` table)
+
+      console.log(`✅ Course Found: ${foundCourse.fullname}`);
+
+      // ✅ Insert the course into the local database
       await db.promise().query(
-        `INSERT INTO teacher_courses (teacher_id, course_id) VALUES (?, ?) 
-         ON DUPLICATE KEY UPDATE course_id = VALUES(course_id)`,
-        [teacher_id, course_id]
+        `INSERT INTO courses (id, fullname, shortname) VALUES (?, ?, ?)`,
+        [foundCourse.id, foundCourse.fullname, foundCourse.shortname]
       );
-  
-      console.log("Course assigned successfully!");
-      res.json({ message: "Course assigned successfully" });
-  
-    } catch (error) {
-      console.error("Database error:", error);
-      res.status(500).json({ message: "Failed to assign course", error: error.message });
+
+      console.log(`✅ Course ${foundCourse.fullname} added to local database.`);
     }
-  };
+
+    // ✅ Now that the course exists, assign it to the teacher
+    await db.promise().query(
+      `INSERT INTO teacher_courses (teacher_id, course_id) VALUES (?, ?) 
+       ON DUPLICATE KEY UPDATE course_id = VALUES(course_id)`,
+      [teacher_id, course_id]
+    );
+
+    console.log("✅ Course assigned successfully!");
+    res.json({ message: "Course assigned successfully" });
+
+  } catch (error) {
+    console.error("❌ Database error:", error);
+    res.status(500).json({ message: "Failed to assign course", error: error.message });
+  }
+};
+
   
   
 
@@ -206,5 +227,25 @@ exports.getAllTeachers = async (req, res) => {
       res.status(500).json({ message: "Failed to fetch teachers", error: error.message });
     }
   };
+  // ✅ Get all logbook entries
+exports.getAllEntries = async (req, res) => {
+  try {
+      const [entries] = await db.promise().query(
+          `SELECT le.id, le.case_number, le.entry_date, 
+                  s.username AS student, c.fullname AS course, 
+                  le.type_of_work, le.grade, le.feedback, le.status 
+           FROM logbook_entries le
+           JOIN users s ON le.student_id = s.id
+           JOIN courses c ON le.course_id = c.id
+           ORDER BY le.entry_date DESC`
+      );
+
+      res.json(entries);
+  } catch (error) {
+      console.error("❌ Database error:", error);
+      res.status(500).json({ message: "Failed to fetch logbook entries", error: error.message });
+  }
+};
+
   
   
