@@ -1,0 +1,70 @@
+.role-container {
+    text-align: center;
+    margin-top: 50px;
+    padding: 20px;
+  }
+  
+  h2 {
+    color: #2c3e50;
+    font-size: 24px;
+    font-weight: bold;
+  }
+  
+  .role-buttons {
+    margin-bottom: 15px;
+  }
+  
+  button {
+    padding: 12px 20px;
+    border-radius: 5px;
+    font-size: 16px;
+    border: none;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  
+  .btn-student {
+    background-color: #27ae60;
+    color: white;
+  }
+  
+  .btn-student:hover {
+    background-color: #219150;
+  }
+  
+  .btn-teacher {
+    background-color: #2980b9;
+    color: white;
+  }
+  
+  .btn-teacher:hover {
+    background-color: #216a94;
+  }
+  
+  .btn-signup-teacher {
+    background-color: #f1c40f;
+    color: white;
+  }
+  
+  .btn-signup-teacher:hover {
+    background-color: #d4ac0d;
+  }
+  
+  .btn-admin {
+    background-color: #e74c3c;
+    color: white;
+  }
+  
+  .btn-admin:hover {
+    background-color: #c0392b;
+  }
+  
+  .btn-admin-signup {
+    background-color: #8e44ad;
+    color: white;
+  }
+  
+  .btn-admin-signup:hover {
+    background-color: #732d91;
+  }
+  

@@ -1,36 +1,44 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import "../styles/RoleSelectionPage.css"; // ✅ Import CSS
+import Footer from "../components/Footer"; // ✅ Correctly import Footer component
+import TopBar from "../components/Shared/TopBar"; // ✅ Import TopBar
+
 
 const RoleSelectionPage = () => {
   const navigate = useNavigate();
 
   return (
-    <div style={{ textAlign: "center", marginTop: "50px" }}>
+    <div className="role-container">
+       <TopBar /> {/* ✅ Add TopBar at the Top */}
       <h2>Select Your Role</h2>
       
-      <div style={{ marginBottom: "20px" }}>
-        <button onClick={() => navigate("/login/student")} style={{ margin: "10px", padding: "10px 20px" }}>
+      <div className="role-buttons">
+        <button onClick={() => navigate("/login/student")} className="btn student">
           Login as Student
         </button>
-        <button onClick={() => navigate("/login/teacher")} style={{ margin: "10px", padding: "10px 20px" }}>
+        <button onClick={() => navigate("/login/teacher")} className="btn teacher">
           Login as Teacher
         </button>
       </div>
 
-      <div style={{ marginBottom: "20px" }}>
-        <button onClick={() => navigate("/signup/teacher")} style={{ margin: "10px", padding: "10px 20px" }}>
+      <div className="role-buttons">
+        <button onClick={() => navigate("/signup/teacher")} className="btn signup">
           Signup as Teacher
         </button>
       </div>
 
-      <div style={{ marginBottom: "20px" }}>
-        <button onClick={() => navigate("/login/admin")} style={{ margin: "10px", padding: "10px 20px", backgroundColor: "#e74c3c", color: "white" }}>
+      <div className="role-buttons">
+        <button onClick={() => navigate("/login/admin")} className="btn admin">
           Login as Admin
         </button>
-        <button onClick={() => navigate("/signup/admin")} style={{ margin: "10px", padding: "10px 20px", backgroundColor: "#2ecc71", color: "white" }}>
+        <button onClick={() => navigate("/signup/admin")} className="btn green">
           Signup as Admin
         </button>
       </div>
+
+      {/* ✅ Correct Footer Placement */}
+      <Footer />
     </div>
   );
 };

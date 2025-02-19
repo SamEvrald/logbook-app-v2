@@ -291,4 +291,46 @@ exports.getTeacherDashboard = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch teacher dashboard data.", error: error.message });
   }
 };
+exports.getStudentCourses = async (req, res) => {
+  console.log("✅ API Hit: getStudentCourses");
+  console.log("📌 User Data:", req.user);
+
+  const { moodleId } = req.user;
+  if (!moodleId) {
+      return res.status(400).json({ message: "Moodle ID is missing." });
+  }
+
+  try {
+      console.log("🔍 Fetching enrolled courses for Moodle ID:", moodleId);
+
+      const moodleUrl = `${process.env.MOODLE_BASE_URL}/webservice/rest/server.php`;
+      const token = process.env.MOODLE_TOKEN;
+
+      const response = await axios.get(moodleUrl, {
+          params: {
+              wstoken: token,
+              wsfunction: "core_enrol_get_users_courses",
+              moodlewsrestformat: "json",
+              userid: moodleId,  // ✅ Ensure this value is sent
+          },
+      });
+
+      console.log("📚 Moodle Response:", response.data);
+
+      if (!Array.isArray(response.data)) {
+          return res.status(500).json({ message: "Unexpected response from Moodle." });
+      }
+
+      if (response.data.length === 0) {
+          console.warn(`⚠️ No courses found for Moodle ID: ${moodleId}`);
+      }
+
+      res.json(response.data);
+  } catch (error) {
+      console.error("❌ Error fetching courses from Moodle:", error);
+      res.status(500).json({ message: "Failed to fetch courses from Moodle", error: error.message });
+  }
+};
+
+
 

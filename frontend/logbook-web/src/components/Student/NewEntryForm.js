@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import API from "../../api/api";
 import { useNavigate } from "react-router-dom";
+import Footer from "../Footer";
+
+
 
 const NewEntryForm = () => {
   const navigate = useNavigate();
@@ -180,6 +183,8 @@ const NewEntryForm = () => {
           {loading ? "Submitting..." : "Submit Entry"}
         </button>
       </form>
+       {/* ✅ Correct Footer Placement */}
+       <Footer />
     </div>
   );
 };

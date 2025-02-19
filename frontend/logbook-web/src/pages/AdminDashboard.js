@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import API from "../api/api";
 import { useNavigate } from "react-router-dom";
+import "../styles/AdminDashboard.css"; // Import the new CSS file
+import Footer from "../components/Footer"; // ✅ Correctly import Footer component
+import TopBar from "../components/Shared/TopBar"; // ✅ Import TopBar
 
 const AdminDashboard = () => {
   const [entries, setEntries] = useState([]);
@@ -148,11 +151,12 @@ const AdminDashboard = () => {
   // ✅ Handle Logout
   const handleLogout = () => {
     localStorage.removeItem("token");
-    navigate("/login/admin");
+    navigate("/login");
   };
 
   return (
     <div style={{ maxWidth: "90%", margin: "50px auto", textAlign: "center" }}>
+      <TopBar /> {/* ✅ Add TopBar at the Top */}
       <h2>Admin Dashboard</h2>
 
       <button onClick={handleLogout} style={{ float: "right", padding: "5px 10px", backgroundColor: "red", color: "white" }}>
@@ -253,6 +257,8 @@ const AdminDashboard = () => {
           )}
         </tbody>
       </table>
+      {/* ✅ Correct Footer Placement */}
+      <Footer />
     </div>
   );
 };

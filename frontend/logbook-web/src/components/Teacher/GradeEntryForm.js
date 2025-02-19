@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import API from "../../api/api";
+import Footer from "../Footer";
+
+
 
 const GradeEntryForm = () => {
   const { entryId } = useParams(); // Get entry ID from URL params
@@ -48,6 +51,8 @@ const GradeEntryForm = () => {
 
         <button type="submit">Submit Grade</button>
       </form>
+       {/* ✅ Correct Footer Placement */}
+       <Footer />
     </div>
   );
 };

@@ -12,6 +12,7 @@ import TeacherDashboard from "./pages/TeacherDashboard";
 import NewEntryForm from "./components/Student/NewEntryForm";
 import GradeEntryForm from "./components/Teacher/GradeEntryForm";
 import PrivateRoute from "./components/Shared/PrivateRoute";
+import Footer from "./components/Footer"; // Import Footer component
 
 function App() {
   return (

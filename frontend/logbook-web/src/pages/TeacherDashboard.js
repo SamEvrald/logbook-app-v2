@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../api/api";
+import Footer from "../components/Footer"; // ✅ Correctly import Footer component
+import TopBar from "../components/Shared/TopBar"; // ✅ Import TopBar
 
 const TeacherDashboard = () => {
     const navigate = useNavigate();
@@ -69,6 +71,7 @@ const TeacherDashboard = () => {
     return (
       
         <div style={{ padding: "20px", maxWidth: "1000px", margin: "0 auto" }}>
+            <TopBar /> {/* ✅ Add TopBar at the Top */}
             <h2>Welcome, {teacherName}!</h2>
 
             <h3>Your Courses:</h3>
@@ -128,6 +131,8 @@ const TeacherDashboard = () => {
                     </tbody>
                 </table>
             }
+            {/* ✅ Correct Footer Placement */}
+      <Footer />
         </div>
     );
 };

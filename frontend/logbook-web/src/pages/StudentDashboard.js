@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../api/api";
+import "../styles/StudentDashboard.css";
+import Footer from "../components/Footer"; // ✅ Correctly import Footer component
+import TopBar from "../components/Shared/TopBar"; // ✅ Import TopBar
+
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
@@ -25,6 +29,22 @@ const StudentDashboard = () => {
       navigate("/login");
       return;
     }
+    //fetch student courses
+    const fetchCourses = async () => {
+      try {
+          const token = localStorage.getItem("token");
+          const response = await API.get("/student/courses", {
+              headers: { Authorization: `Bearer ${token}` },
+          });
+  
+          console.log("📚 Courses Fetched from Backend:", response.data);
+          setCourses(response.data); // ✅ Ensure courses are set properly
+      } catch (error) {
+          console.error("❌ Failed to fetch student courses:", error);
+      }
+  };
+  fetchCourses();
+  
 
     // ✅ Fetch student logbook entries using moodle_id
     const fetchEntries = async () => {
@@ -68,6 +88,7 @@ const StudentDashboard = () => {
 
   return (
     <div style={{ padding: "20px", maxWidth: "1000px", margin: "0 auto", position: "relative" }}>
+      <TopBar /> {/* ✅ Add TopBar at the Top */}
       
       {/* ✅ Logout Button */}
       <button
@@ -159,8 +180,11 @@ const StudentDashboard = () => {
           </tbody>
         </table>
       )}
+      {/* ✅ Correct Footer Placement */}
+      <Footer />
     </div>
   );
+  <p>&copy; 2025 All Rights Reserved</p>
 };
 
 export default StudentDashboard;

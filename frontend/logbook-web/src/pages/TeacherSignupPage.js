@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import API from "../api/api";
 import { useNavigate } from "react-router-dom";
+import Footer from "../components/Footer"; // ✅ Correctly import Footer component
+import TopBar from "../components/Shared/TopBar"; // ✅ Import TopBar
 
 const TeacherSignupPage = () => {
   const [formData, setFormData] = useState({ username: "", email: "", password: "" });
@@ -25,6 +27,7 @@ const TeacherSignupPage = () => {
   return (
     <div>
       <h2>Teacher Signup</h2>
+      <TopBar /> {/* ✅ Add TopBar at the Top */}
       <form onSubmit={handleSubmit}>
         {error && <p style={{ color: "red" }}>{error}</p>}
         <input type="text" name="username" value={formData.username} onChange={handleChange} placeholder="Username" required />
@@ -32,6 +35,8 @@ const TeacherSignupPage = () => {
         <input type="password" name="password" value={formData.password} onChange={handleChange} placeholder="Password" required />
         <button type="submit">Sign Up</button>
       </form>
+      {/* ✅ Correct Footer Placement */}
+      <Footer />
     </div>
   );
 };
