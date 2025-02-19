@@ -14,10 +14,10 @@ const generateCaseNumber = async (courseId, courseName) => {
 
 exports.createEntry = async (req, res) => {
   try {
-    const { moodle_id, courseId, role_in_task, type_of_work, pathology, clinical_info, content, consentForm, work_completed_date, media_link } = req.body;
+    const { moodle_id, courseId, assignmentId, role_in_task, type_of_work, pathology, clinical_info, content, consentForm, work_completed_date, media_link } = req.body;
 
-    if (!moodle_id || !courseId || !work_completed_date) {
-      return res.status(400).json({ message: "❌ Student Moodle ID, Course ID, and Work Completed Date are required." });
+    if (!moodle_id || !courseId || !assignmentId || !work_completed_date) {
+      return res.status(400).json({ message: "❌ Student Moodle ID, Course ID, Assignment ID, and Work Completed Date are required." });
     }
 
     console.log("🛠️ Received Entry Request:", req.body);
@@ -31,11 +31,14 @@ exports.createEntry = async (req, res) => {
 
     const studentId = userRows[0].id;
 
-    // ✅ Fetch the assignment ID dynamically from Moodle
-    let [assignmentRows] = await db.promise().query("SELECT moodle_assignment_id FROM assignments WHERE course_id = ?", [courseId]);
+    // ✅ Check if assignment exists in database
+    let [assignmentRows] = await db.promise().query(
+      "SELECT moodle_assignment_id FROM assignments WHERE course_id = ? AND moodle_assignment_id = ?",
+      [courseId, assignmentId]
+    );
 
     if (assignmentRows.length === 0) {
-      console.log(`⚠️ No assignment found for course ID ${courseId}, fetching from Moodle...`);
+      console.log(`⚠️ Assignment ID ${assignmentId} not found locally. Fetching from Moodle...`);
 
       try {
         const moodleResponse = await axios.get(`${process.env.MOODLE_BASE_URL}/webservice/rest/server.php`, {
@@ -43,38 +46,35 @@ exports.createEntry = async (req, res) => {
             wstoken: process.env.MOODLE_TOKEN,
             wsfunction: "mod_assign_get_assignments",
             moodlewsrestformat: "json",
-            [`courseids[0]`]: courseId
+            [`courseids[0]`]: courseId,
           },
         });
 
-        if (moodleResponse.data.courses.length === 0) {
+        if (!moodleResponse.data.courses.length) {
           console.error(`❌ No assignments found in Moodle for course ID ${courseId}.`);
           return res.status(400).json({ message: `No assignments found for course ID ${courseId}.` });
         }
 
         const assignments = moodleResponse.data.courses[0].assignments;
-        if (assignments.length === 0) {
-          console.error(`❌ No assignments available for course ID ${courseId}.`);
-          return res.status(400).json({ message: `No assignments available for course ID ${courseId}.` });
+        const foundAssignment = assignments.find(a => a.id == assignmentId);
+
+        if (!foundAssignment) {
+          console.error(`❌ Assignment ID ${assignmentId} does not exist in Moodle.`);
+          return res.status(400).json({ message: "Selected assignment does not exist in Moodle." });
         }
 
-        const assignment = assignments[0]; // Select the first assignment
-        console.log(`✅ Moodle Assignment Found: ${assignment.name} (ID: ${assignment.id})`);
+        console.log(`✅ Moodle Assignment Found: ${foundAssignment.name} (ID: ${foundAssignment.id})`);
 
-        // ✅ Insert the assignment into the local database
+        // ✅ Insert assignment into local database
         await db.promise().query(
           `INSERT INTO assignments (course_id, assignment_name, moodle_assignment_id) VALUES (?, ?, ?)`,
-          [courseId, assignment.name, assignment.id]
+          [courseId, foundAssignment.name, foundAssignment.id]
         );
-
-        assignmentRows = [{ moodle_assignment_id: assignment.id }];
       } catch (error) {
         console.error("❌ Moodle API Fetch Error:", error.response?.data || error.message);
         return res.status(500).json({ message: "Failed to fetch assignments from Moodle.", error: error.message });
       }
     }
-
-    const assignmentId = assignmentRows[0].moodle_assignment_id;
 
     // ✅ Ensure course exists, otherwise fetch from Moodle
     let [courseRows] = await db.promise().query("SELECT fullname FROM courses WHERE id = ?", [courseId]);
@@ -91,28 +91,26 @@ exports.createEntry = async (req, res) => {
           },
         });
 
-        if (moodleResponse.data && Array.isArray(moodleResponse.data) && moodleResponse.data.length > 0) {
-          console.log("📥 Moodle API Course Response:", moodleResponse.data);
-
-          const foundCourse = moodleResponse.data.find(course => course.id == courseId);
-
-          if (!foundCourse) {
-            console.error(`❌ Course ID ${courseId} not found in Moodle.`);
-            return res.status(400).json({ message: `Course ID ${courseId} does not exist in Moodle.` });
-          }
-
-          console.log(`✅ Course Found: ${foundCourse.fullname}`);
-
-          // ✅ Insert course into local database
-          await db.promise().query(
-            `INSERT INTO courses (id, fullname, shortname) VALUES (?, ?, ?)`,
-            [foundCourse.id, foundCourse.fullname, foundCourse.shortname]
-          );
-
-          courseRows = [{ fullname: foundCourse.fullname }];
-        } else {
+        if (!moodleResponse.data || !Array.isArray(moodleResponse.data) || moodleResponse.data.length === 0) {
           return res.status(400).json({ message: `❌ Course ID ${courseId} does not exist in Moodle.` });
         }
+
+        const foundCourse = moodleResponse.data.find(course => course.id == courseId);
+
+        if (!foundCourse) {
+          console.error(`❌ Course ID ${courseId} not found in Moodle.`);
+          return res.status(400).json({ message: `Course ID ${courseId} does not exist in Moodle.` });
+        }
+
+        console.log(`✅ Course Found: ${foundCourse.fullname}`);
+
+        // ✅ Insert course into local database
+        await db.promise().query(
+          `INSERT INTO courses (id, fullname, shortname) VALUES (?, ?, ?)`,
+          [foundCourse.id, foundCourse.fullname, foundCourse.shortname]
+        );
+
+        courseRows = [{ fullname: foundCourse.fullname }];
       } catch (error) {
         console.error("❌ Moodle API Fetch Error:", error.response?.data || error.message);
         return res.status(500).json({ message: "Failed to fetch course from Moodle.", error: error.message });
@@ -124,14 +122,14 @@ exports.createEntry = async (req, res) => {
     // ✅ Generate Case Number using Course Name & Entry Count
     const caseNumber = await generateCaseNumber(courseId, courseName);
 
-    // ✅ Insert logbook entry with correct `assignment_id`
+    // ✅ Insert logbook entry with correct assignment ID
     console.log(`📝 Creating logbook entry for student ID ${studentId}, Course ID: ${courseId}, Assignment ID: ${assignmentId}`);
 
     await db.promise().query(
       `INSERT INTO logbook_entries 
-           (case_number, student_id, course_id, role_in_task, type_of_work, pathology, clinical_info, content, consent_form, work_completed_date, media_link, status, assignment_id) 
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'submitted', ?)`,
-      [caseNumber, studentId, courseId, role_in_task, type_of_work, pathology, clinical_info, content, consentForm, work_completed_date, media_link, assignmentId]
+           (case_number, student_id, course_id, assignment_id, role_in_task, type_of_work, pathology, clinical_info, content, consent_form, work_completed_date, media_link, status) 
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'submitted')`,
+      [caseNumber, studentId, courseId, assignmentId, role_in_task, type_of_work, pathology, clinical_info, content, consentForm, work_completed_date, media_link]
     );
 
     res.status(201).json({ message: "✅ Logbook entry created successfully.", case_number: caseNumber });
@@ -141,6 +139,7 @@ exports.createEntry = async (req, res) => {
     res.status(500).json({ message: "Failed to create entry", error: error.message });
   }
 };
+
 
 
 // ✅ Fetch all logbook entries for a student
@@ -331,6 +330,50 @@ exports.getStudentCourses = async (req, res) => {
       res.status(500).json({ message: "Failed to fetch courses from Moodle", error: error.message });
   }
 };
+// ✅ Fetch All Assignments for a Course from Moodle
+exports.getAssignmentsFromMoodle = async (req, res) => {
+  const { courseId } = req.params;
+
+  if (!courseId) {
+    return res.status(400).json({ message: "Course ID is required." });
+  }
+
+  console.log(`📡 Fetching assignments from Moodle for Course ID: ${courseId}`);
+
+  try {
+    const moodleResponse = await axios.get(`${process.env.MOODLE_BASE_URL}/webservice/rest/server.php`, {
+      params: {
+        wstoken: process.env.MOODLE_TOKEN, // ✅ Moodle API token
+        wsfunction: "mod_assign_get_assignments", // ✅ Moodle function for assignments
+        moodlewsrestformat: "json",
+        [`courseids[0]`]: courseId, // ✅ Ensure correct parameter format
+      },
+    });
+
+    console.log("📩 Moodle API Response:", moodleResponse.data);
+
+    if (!moodleResponse.data.courses || moodleResponse.data.courses.length === 0) {
+      console.warn(`⚠️ No assignments found in Moodle for Course ID: ${courseId}`);
+      return res.status(404).json({ message: "No assignments found for this course." });
+    }
+
+    const assignments = moodleResponse.data.courses[0].assignments;
+
+    if (!assignments || assignments.length === 0) {
+      console.warn(`⚠️ No assignments available for Course ID: ${courseId}`);
+      return res.status(404).json({ message: "No assignments available for this course." });
+    }
+
+    console.log(`✅ Found ${assignments.length} assignments.`);
+    res.json(assignments);
+  } catch (error) {
+    console.error("❌ Moodle API Fetch Error:", error.response?.data || error.message);
+    res.status(500).json({ message: "Failed to fetch assignments from Moodle.", error: error.message });
+  }
+};
+
+
+
 
 
 

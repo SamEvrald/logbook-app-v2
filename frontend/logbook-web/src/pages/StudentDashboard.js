@@ -4,6 +4,8 @@ import API from "../api/api";
 import "../styles/StudentDashboard.css";
 import Footer from "../components/Footer"; // ✅ Correctly import Footer component
 import TopBar from "../components/Shared/TopBar"; // ✅ Import TopBar
+import { FaBell } from "react-icons/fa"; // ✅ Import Icons
+
 
 
 const StudentDashboard = () => {
@@ -16,6 +18,13 @@ const StudentDashboard = () => {
   const [courses, setCourses] = useState(storedCourses || []);
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const entriesPerPage = 4;
+
+     // ✅ Profile Dropdown
+      const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   useEffect(() => {
     if (!user || !user.moodle_id) {
@@ -86,27 +95,38 @@ const StudentDashboard = () => {
     navigate("/login");
   };
 
+ // ✅ Profile Initials Generator
+ const getProfileInitials = () => {
+  if (!storedUser || !storedUser.username) return "U";
+  const names = storedUser.username.split(" ");
+  return names.length > 1 ? `${names[0][0]}${names[1][0]}`.toUpperCase() : names[0][0].toUpperCase();
+};
+
+   // ✅ Pagination Logic
+   const indexOfLastEntry = currentPage * entriesPerPage;
+   const indexOfFirstEntry = indexOfLastEntry - entriesPerPage;
+   const currentEntries = entries.slice(indexOfFirstEntry, indexOfLastEntry);
+ 
+   const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
   return (
-    <div style={{ padding: "20px", maxWidth: "1000px", margin: "0 auto", position: "relative" }}>
-      <TopBar /> {/* ✅ Add TopBar at the Top */}
-      
-      {/* ✅ Logout Button */}
-      <button
-        onClick={handleLogout}
-        style={{
-          position: "absolute",
-          top: "10px",
-          right: "10px",
-          padding: "10px 15px",
-          backgroundColor: "#e74c3c", // 🔥 Red color for logout
-          color: "white",
-          border: "none",
-          borderRadius: "5px",
-          cursor: "pointer"
-        }}
-      >
-        Logout
-      </button>
+    <div className="student-dashboard">
+      {/* ✅ Top Bar with Profile & Notifications */}
+      <div className="top-bar">
+        <TopBar />
+        <div className="top-right">
+          <FaBell className="icon bell-icon" title="Notifications" />
+          <div className="profile-container" onClick={() => setShowProfileMenu(!showProfileMenu)}>
+            <div className="profile-icon">{getProfileInitials()}</div>
+            {showProfileMenu && (
+              <div className="profile-dropdown">
+                <p>{storedUser.username}</p>
+                <button onClick={handleLogout}>Logout</button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
 
       <h2>Welcome, {user?.fullname || user?.username}!</h2>
 
@@ -137,54 +157,65 @@ const StudentDashboard = () => {
       ) : entries.length === 0 ? (
         <p>No entries found. Click "Create Entry" to submit a new logbook entry.</p>
       ) : (
-        <table border="1" style={{ width: "100%", textAlign: "left", marginTop: "20px", borderCollapse: "collapse" }}>
-          <thead>
-            <tr>
-              <th>Case #</th>
-              <th>Completion Date</th>
-              <th>Type Of Task/Device</th>
-              <th>Pathology</th>
-              <th>Task Description</th>
-              <th>Media</th>
-              <th>Consent</th>
-              <th>Comments</th>
-              <th>Grade</th>
-              <th>Feedback</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {entries.map((entry) => (
-              <tr key={entry.case_number}>
-                <td>{entry.case_number || "Not Assigned"}</td>
-                <td>{entry.work_completed_date || "Not Provided"}</td>
-                <td>{entry.type_of_work || "N/A"}</td>
-                <td>{entry.pathology || "N/A"}</td>
-                <td>{entry.task_description || "N/A"}</td>
-                <td>
-                  {entry.media_link ? (
-                    <a href={entry.media_link} target="_blank" rel="noopener noreferrer">
-                      View Media
-                    </a>
-                  ) : "Not Provided"}
-                </td>
-                <td>{entry.consent_form === "yes" ? "Yes" : "No"}</td>
-                <td>{entry.clinical_info || "Not Provided"}</td>
-                <td>{entry.grade !== null ? entry.grade : "-"}</td>
-                <td>{entry.feedback || "No feedback yet"}</td>
-                <td style={{ fontWeight: "bold", color: entry.status === "graded" ? "green" : "orange" }}>
-                  {entry.status === "graded" ? "Graded" : "Waiting for Grading"}
-                </td>
+        <div className="table-container">
+          <table className="logbook-table">
+            <thead>
+              <tr>
+                <th>Case #</th>
+                <th>Completion Date</th>
+                <th>Type Of Task/Device</th>
+                <th>Pathology</th>
+                <th>Task Description</th>
+                <th>Media</th>
+                <th>Consent</th>
+                <th>Comments</th>
+                <th>Grade</th>
+                <th>Feedback</th>
+                <th>Status</th>
               </tr>
+            </thead>
+            <tbody>
+              {currentEntries.map((entry) => (
+                <tr key={entry.case_number}>
+                  <td>{entry.case_number || "Not Assigned"}</td>
+                  <td>{entry.work_completed_date || "Not Provided"}</td>
+                  <td>{entry.type_of_work || "N/A"}</td>
+                  <td>{entry.pathology || "N/A"}</td>
+                  <td>{entry.task_description || "N/A"}</td>
+                  <td>
+                    {entry.media_link ? (
+                      <a href={entry.media_link} target="_blank" rel="noopener noreferrer">
+                        View Media
+                      </a>
+                    ) : "Not Provided"}
+                  </td>
+                  <td>{entry.consent_form === "yes" ? "Yes" : "No"}</td>
+                  <td>{entry.clinical_info || "Not Provided"}</td>
+                  <td>{entry.grade !== null ? entry.grade : "-"}</td>
+                  <td>{entry.feedback || "No feedback yet"}</td>
+                  <td style={{ fontWeight: "bold", color: entry.status === "graded" ? "green" : "orange" }}>
+                                    {entry.status === "graded" ? "Graded" : "Waiting for Grading"}
+                                </td>
+                  
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {/* ✅ Pagination Controls */}
+          <div className="pagination">
+            {Array.from({ length: Math.ceil(entries.length / entriesPerPage) }, (_, i) => (
+              <button key={i + 1} onClick={() => paginate(i + 1)} className={currentPage === i + 1 ? "active" : ""}>
+                {i + 1}
+              </button>
             ))}
-          </tbody>
-        </table>
+          </div>
+        </div>
       )}
-      {/* ✅ Correct Footer Placement */}
+
       <Footer />
     </div>
   );
-  <p>&copy; 2025 All Rights Reserved</p>
 };
 
 export default StudentDashboard;

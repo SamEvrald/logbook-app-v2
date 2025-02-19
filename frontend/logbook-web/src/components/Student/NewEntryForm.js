@@ -3,8 +3,6 @@ import API from "../../api/api";
 import { useNavigate } from "react-router-dom";
 import Footer from "../Footer";
 
-
-
 const NewEntryForm = () => {
   const navigate = useNavigate();
 
@@ -13,20 +11,25 @@ const NewEntryForm = () => {
   const storedCourse = JSON.parse(localStorage.getItem("selectedCourse"));
   const storedToken = localStorage.getItem("token");
 
-  const [user, setUser] = useState(storedUser);
-  const [course, setCourse] = useState(storedCourse);
-  const [token, setToken] = useState(storedToken);
+  const [user] = useState(storedUser);
+  const [course] = useState(storedCourse);
+  const [token] = useState(storedToken);
+  const [assignments, setAssignments] = useState([]); // ✅ Store multiple assignments
+  const [selectedAssignment, setSelectedAssignment] = useState(""); // ✅ User-selected assignment
+
   const [typeOfWork, setTypeOfWork] = useState("");
   const [roleInTask, setRoleInTask] = useState("leader");
   const [clinicalInfo, setClinicalInfo] = useState("");
   const [pathology, setPathology] = useState("");
   const [consentForm, setConsentForm] = useState("no");
   const [content, setContent] = useState("");
-  const [workCompletedDate, setWorkCompletedDate] = useState(""); // ✅ Work completion date
-  const [mediaLink, setMediaLink] = useState(""); // ✅ Media link instead of file upload
+  const [workCompletedDate, setWorkCompletedDate] = useState("");
+  const [mediaLink, setMediaLink] = useState("");
+
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // ✅ Redirect if user is not logged in
   useEffect(() => {
     if (!user || !user.moodle_id) {
       console.error("❌ User not found. Redirecting to login...");
@@ -45,39 +48,47 @@ const NewEntryForm = () => {
       navigate("/login");
       return;
     }
+
+    // ✅ Fetch assignments for selected course
+    const fetchAssignments = async () => {
+      try {
+        const response = await API.get(`/entries/assignments/${course.id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (response.data.length > 0) {
+          setAssignments(response.data);
+          setSelectedAssignment(response.data[0].id); // ✅ Set default assignment
+        } else {
+          setError("No assignments found for this course.");
+        }
+      } catch (error) {
+        console.error("❌ Failed to fetch assignments:", error);
+        setError("Failed to load assignments. Please try again.");
+      }
+    };
+
+    fetchAssignments();
   }, [user, course, token, navigate]);
 
-  const handleConsentChange = (e) => {
-    setConsentForm(e.target.value);
-  };
-
+  // ✅ Handle Submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
-    if (!user || !user.moodle_id) {
-      setError("❌ Error: Student ID (Moodle ID) is missing.");
-      return;
-    }
-
-    if (!course || !course.id) {
-      setError("❌ Error: Course ID is missing.");
-      return;
-    }
-
-    if (!workCompletedDate) {
-      setError("❌ Error: Work Completed Date is required.");
+    if (!selectedAssignment) {
+      setError("❌ Error: Please select an assignment.");
       return;
     }
 
     const studentMoodleId = user.moodle_id;
     const courseId = course.id;
 
-    console.log("🚀 Preparing entry submission:");
-    console.log("🆔 moodle_id:", studentMoodleId);
-    console.log("📚 courseId:", courseId);
-    console.log("📝 Other Fields:", {
+    console.log("🚀 Preparing entry submission:", {
+      moodle_id: studentMoodleId,
+      courseId,
+      assignmentId: selectedAssignment,
       role_in_task: roleInTask,
       type_of_work: typeOfWork,
       clinical_info: clinicalInfo,
@@ -93,20 +104,19 @@ const NewEntryForm = () => {
         "/entries",
         {
           moodle_id: studentMoodleId,
-          courseId: courseId,
+          courseId,
+          assignmentId: selectedAssignment, // ✅ Pass selected assignment
           role_in_task: roleInTask,
           type_of_work: typeOfWork,
           pathology,
           clinical_info: clinicalInfo,
           content,
           consentForm,
-          work_completed_date: workCompletedDate, // ✅ Manually entered date
-          media_link: mediaLink, // ✅ Media link instead of file upload
+          work_completed_date: workCompletedDate,
+          media_link: mediaLink,
         },
         {
-          headers: {
-            "Authorization": `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
 
@@ -122,10 +132,30 @@ const NewEntryForm = () => {
   };
 
   return (
-    <div style={{ maxWidth: "500px", margin: "50px auto", padding: "20px", border: "1px solid #ccc", borderRadius: "8px" }}>
+    <div style={{ maxWidth: "600px", margin: "50px auto", padding: "20px", border: "1px solid #ccc", borderRadius: "8px" }}>
       <h2>Create Entry for {course?.fullname || "Unknown Course"}</h2>
       {error && <p style={{ color: "red" }}>{error}</p>}
       <form onSubmit={handleSubmit}>
+        {/* ✅ Assignment Selection */}
+        <div>
+          <label>Assignment:</label>
+          <select
+            value={selectedAssignment}
+            onChange={(e) => setSelectedAssignment(e.target.value)}
+            required
+          >
+            {assignments.length > 0 ? (
+              assignments.map((assignment) => (
+                <option key={assignment.id} value={assignment.id}>
+                  {assignment.name}
+                </option>
+              ))
+            ) : (
+              <option disabled>No assignments found</option>
+            )}
+          </select>
+        </div>
+
         <div>
           <label>Type of Task/Device</label>
           <input type="text" value={typeOfWork} onChange={(e) => setTypeOfWork(e.target.value)} required />
@@ -169,11 +199,11 @@ const NewEntryForm = () => {
           <label>Consent Form:</label>
           <div>
             <label>
-              <input type="radio" name="consent" value="yes" checked={consentForm === "yes"} onChange={handleConsentChange} />
+              <input type="radio" name="consent" value="yes" checked={consentForm === "yes"} onChange={() => setConsentForm("yes")} />
               Yes
             </label>
             <label>
-              <input type="radio" name="consent" value="no" checked={consentForm === "no"} onChange={handleConsentChange} />
+              <input type="radio" name="consent" value="no" checked={consentForm === "no"} onChange={() => setConsentForm("no")} />
               No
             </label>
           </div>
@@ -183,8 +213,9 @@ const NewEntryForm = () => {
           {loading ? "Submitting..." : "Submit Entry"}
         </button>
       </form>
-       {/* ✅ Correct Footer Placement */}
-       <Footer />
+
+      {/* ✅ Correct Footer Placement */}
+      <Footer />
     </div>
   );
 };

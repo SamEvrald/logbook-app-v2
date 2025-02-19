@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const multer = require("multer");
 
-const { createEntry, getStudentEntries, getSubmittedEntries, gradeEntry, updateEntryStatus, getTeacherDashboard } = require("../controllers/entryController");
+const { createEntry, getStudentEntries, getSubmittedEntries, gradeEntry, updateEntryStatus, getTeacherDashboard, getAssignmentsFromMoodle } = require("../controllers/entryController");
 const authMiddleware = require("../middleware/authMiddleware");
 const roleMiddleware = require("../middleware/roleMiddleware");
 
@@ -27,5 +27,8 @@ router.post("/grade", authMiddleware, roleMiddleware("teacher"), gradeEntry);
 
 // ✅ Update the status of an entry (Student submits an entry)
 router.post("/update-status", authMiddleware, roleMiddleware("student"), updateEntryStatus);
+
+// ✅ Fetch assignments from Moodle dynamically
+router.get("/assignments/:courseId", getAssignmentsFromMoodle);
 
 module.exports = router;

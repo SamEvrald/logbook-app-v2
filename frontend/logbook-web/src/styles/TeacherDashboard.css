@@ -1,5 +1,5 @@
 /* ✅ General Styles */
-.admin-dashboard {
+.teacher-dashboard {
     max-width: 90%;
     margin: 50px auto;
     padding: 20px;
@@ -10,7 +10,7 @@
 }
 
 /* ✅ Page Title */
-.admin-dashboard h2 {
+.teacher-dashboard h2 {
     text-align: center;
     color: #2c3e50;
     font-size: 28px;
@@ -18,7 +18,7 @@
 }
 
 /* ✅ Logout Button */
-.admin-dashboard .logout-btn {
+.teacher-dashboard .logout-btn {
     float: right;
     padding: 8px 15px;
     background-color: #e74c3c;
@@ -30,12 +30,12 @@
     transition: 0.3s ease-in-out;
 }
 
-.admin-dashboard .logout-btn:hover {
+.teacher-dashboard .logout-btn:hover {
     background-color: #c0392b;
 }
 
 /* ✅ Courses Section */
-.admin-dashboard .courses-container {
+.teacher-dashboard .courses-container {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -46,7 +46,7 @@
     margin-bottom: 20px;
 }
 
-.admin-dashboard select {
+.teacher-dashboard select {
     padding: 8px;
     border: 1px solid #ddd;
     border-radius: 5px;
@@ -54,14 +54,14 @@
 }
 
 /* ✅ Search Box */
-.admin-dashboard .search-box {
+.teacher-dashboard .search-box {
     display: flex;
     align-items: center;
     justify-content: center;
     margin-bottom: 20px;
 }
 
-.admin-dashboard input[type="text"] {
+.teacher-dashboard input[type="text"] {
     padding: 8px;
     border: 1px solid #ccc;
     border-radius: 5px;
@@ -70,7 +70,7 @@
 }
 
 /* ✅ Logbook Table */
-.admin-dashboard table {
+.teacher-dashboard table {
     width: 100%;
     border-collapse: collapse;
     background: white;
@@ -79,30 +79,30 @@
     box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.1);
 }
 
-.admin-dashboard th,
-.admin-dashboard td {
+.teacher-dashboard th,
+.teacher-dashboard td {
     padding: 12px;
     text-align: left;
     border-bottom: 1px solid #ddd;
 }
 
-.admin-dashboard th {
+.teacher-dashboard th {
     background: #2c3e50;
     color: white;
     font-weight: bold;
     text-transform: uppercase;
 }
 
-.admin-dashboard td {
+.teacher-dashboard td {
     color: #333;
 }
 
-.admin-dashboard tr:hover {
+.teacher-dashboard tr:hover {
     background: #f1f1f1;
 }
 
 /* ✅ Grade & View Buttons */
-.admin-dashboard button {
+.teacher-dashboard button {
     padding: 6px 12px;
     border: none;
     border-radius: 5px;
@@ -111,26 +111,26 @@
     transition: 0.3s ease-in-out;
 }
 
-.admin-dashboard .grade-btn {
+.teacher-dashboard .grade-btn {
     background-color: #27ae60;
     color: white;
 }
 
-.admin-dashboard .grade-btn:hover {
+.teacher-dashboard .grade-btn:hover {
     background-color: #219150;
 }
 
 /* ✅ Status Colors */
-.admin-dashboard .status {
+.teacher-dashboard .status {
     font-weight: bold;
     text-transform: uppercase;
 }
 
-.admin-dashboard .status-graded {
+.teacher-dashboard .status-graded {
     color: green;
 }
 
-.admin-dashboard .status-pending {
+.teacher-dashboard .status-pending {
     color: orange;
 }
 
@@ -225,18 +225,16 @@
     min-width: 150px;
 }
 
-/* Example CSS for profile-dropdown */
-.profile-dropdown {
-    position: absolute;
-    top: 50px;
-    right: 0;
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-    padding: 10px;
-    text-align: center;
-    min-width: 150px;
-  }
+.profile-dropdown button {
+    background: #e74c3c;
+    color: white;
+    padding: 6px;
+    border: none;
+    width: 100%;
+    margin-top: 5px;
+    cursor: pointer;
+    border-radius: 5px;
+}
 
 .profile-dropdown button:hover {
     background: #c0392b;

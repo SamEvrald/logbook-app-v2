@@ -1,11 +1,16 @@
 import React, { useState, useEffect } from "react";
-import API from "../api/api";
 import { useNavigate } from "react-router-dom";
-import "../styles/AdminDashboard.css"; // Import the new CSS file
-import Footer from "../components/Footer"; // ✅ Correctly import Footer component
+import API from "../api/api";
+import { FaBell } from "react-icons/fa"; // ✅ Import Notification Icon
+import "../styles/AdminDashboard.css"; // ✅ Import CSS
+import Footer from "../components/Footer"; // ✅ Import Footer
 import TopBar from "../components/Shared/TopBar"; // ✅ Import TopBar
 
 const AdminDashboard = () => {
+  const navigate = useNavigate();
+  const token = localStorage.getItem("token");
+  const storedUser = localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")) : null
+
   const [entries, setEntries] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [courses, setCourses] = useState([]);
@@ -15,30 +20,33 @@ const AdminDashboard = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("entry_date");
   const [message, setMessage] = useState("");
-  const navigate = useNavigate();
+
+  // ✅ Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const entriesPerPage = 6;
+  const [showProfileMenu, setShowProfileMenu] = useState(false); // ✅ Profile Dropdown
 
   useEffect(() => {
+    if (!token) {
+      console.error("❌ No token found. Redirecting to login...");
+      navigate("/login/admin");
+      return;
+    }
+
     fetchEntries();
     fetchTeachers();
     fetchCourses();
   }, []);
 
+  
+
   // ✅ Fetch Logbook Entries
   const fetchEntries = async () => {
     try {
-      const token = localStorage.getItem("token");
-
-      if (!token) {
-        console.error("❌ No token found. Redirecting to login...");
-        navigate("/login/admin");
-        return;
-      }
-
       const response = await API.get("/admin/entries", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      console.log("✅ Entries Response:", response.data);
       setEntries(response.data);
       setFilteredEntries(response.data);
     } catch (error) {
@@ -50,7 +58,6 @@ const AdminDashboard = () => {
   // ✅ Fetch Teachers
   const fetchTeachers = async () => {
     try {
-      const token = localStorage.getItem("token");
       const response = await API.get("/admin/teachers", {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -65,7 +72,6 @@ const AdminDashboard = () => {
   // ✅ Fetch Courses
   const fetchCourses = async () => {
     try {
-      const token = localStorage.getItem("token");
       const response = await API.get("/admin/courses", {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -85,21 +91,19 @@ const AdminDashboard = () => {
     }
 
     try {
-      const token = localStorage.getItem("token"); // ✅ Retrieve token
       await API.post(
         "/admin/assign-course",
         { teacher_id: selectedTeacher, course_id: selectedCourse },
-        { headers: { Authorization: `Bearer ${token}` } } // ✅ Send token
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      setMessage("Course assigned successfully!");
+      setMessage("✅ Course assigned successfully!");
       fetchTeachers(); // ✅ Refresh teacher list
     } catch (error) {
-      console.error("Failed to assign course:", error);
-      setMessage("Failed to assign course.");
+      console.error("❌ Failed to assign course:", error);
+      setMessage("❌ Failed to assign course.");
     }
   };
-
 
   // ✅ Handle Search
   const handleSearch = (query) => {
@@ -126,104 +130,84 @@ const AdminDashboard = () => {
     setFilteredEntries(sorted);
   };
 
-  // ✅ Handle Filtering by Teacher
-  const handleFilterTeacher = (teacherId) => {
-    setSelectedTeacher(teacherId);
-    if (!teacherId) {
-      setFilteredEntries(entries);
-      return;
-    }
-    const filtered = entries.filter((entry) => entry.teacher_id === parseInt(teacherId));
-    setFilteredEntries(filtered);
-  };
+    // // ✅ Logout Function
+    const handleLogout = () => {
+      localStorage.removeItem("user");
+      localStorage.removeItem("courses");
+      localStorage.removeItem("token");
+      navigate("/login");
+    };
 
-  // ✅ Handle Filtering by Course
-  const handleFilterCourse = (courseId) => {
-    setSelectedCourse(courseId);
-    if (!courseId) {
-      setFilteredEntries(entries);
-      return;
-    }
-    const filtered = entries.filter((entry) => entry.course_id === parseInt(courseId));
-    setFilteredEntries(filtered);
-  };
+  // ✅ Pagination Logic
+  const indexOfLastEntry = currentPage * entriesPerPage;
+  const indexOfFirstEntry = indexOfLastEntry - entriesPerPage;
+  const currentEntries = filteredEntries.slice(indexOfFirstEntry, indexOfLastEntry);
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-  // ✅ Handle Logout
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/login");
-  };
+ // Generate Profile Initials
+const getProfileInitials = () => {
+  if (!storedUser || !storedUser.username) return "A";
+  const names = storedUser.username.split(" ");
+  return names.length > 1
+    ? `${names[0][0]}${names[1][0]}`.toUpperCase()
+    : names[0][0].toUpperCase();
+};
 
   return (
-    <div style={{ maxWidth: "90%", margin: "50px auto", textAlign: "center" }}>
-      <TopBar /> {/* ✅ Add TopBar at the Top */}
+    <div className="admin-dashboard">
+      {/* ✅ Top Bar with Profile & Notifications */}
+      <div className="top-bar">
+        <TopBar />
+        <div className="top-right">
+          <FaBell className="icon bell-icon" title="Notifications" />
+          <div className="profile-container" onClick={() => setShowProfileMenu(!showProfileMenu)}>
+  <div className="profile-icon">{getProfileInitials()}</div>
+  {showProfileMenu && storedUser && (
+    <div className="profile-dropdown">
+      <p>{storedUser.username}</p>
+      <button onClick={handleLogout}>Logout</button>
+    </div>
+  )}
+</div>
+        </div>
+      </div>
+
       <h2>Admin Dashboard</h2>
 
-      <button onClick={handleLogout} style={{ float: "right", padding: "5px 10px", backgroundColor: "red", color: "white" }}>
-        Logout
-      </button>
-
-      {/* ✅ Search, Filters, & Assign Courses */}
-      <div style={{ marginBottom: "20px" }}>
-        <input
-          type="text"
-          placeholder="Search by Case #, Student..."
-          value={searchQuery}
-          onChange={(e) => handleSearch(e.target.value)}
-          style={{ padding: "5px", width: "250px", marginRight: "10px" }}
-        />
-
-        <select onChange={(e) => handleSort(e.target.value)} value={sortBy} style={{ padding: "5px", marginRight: "10px" }}>
+      {/* ✅ Search & Sorting */}
+      <div className="search-filter-container">
+        <input type="text" placeholder="Search by Case #, Student..." value={searchQuery} onChange={(e) => handleSearch(e.target.value)} />
+        <select onChange={(e) => handleSort(e.target.value)} value={sortBy}>
           <option value="entry_date">Sort by Entry Date</option>
           <option value="grade">Sort by Grade</option>
         </select>
+      </div>
 
-       
-
-        <button onClick={handleAssignCourse} style={{ marginTop: "10px", padding: "10px", backgroundColor: "blue", color: "white" }}>
-        Assign Course
-      </button>
-
-      {/* ✅ Success/Error Message */}
-      {message && <p style={{ color: message.includes("Failed") ? "red" : "green" }}>{message}</p>}
-    </div>
-
-    {/* ✅ Teacher Selection */}
-    <div>
-        <label>Select Teacher:</label>
+      {/* ✅ Assign Course to Teacher */}
+      <div className="assign-section">
         <select value={selectedTeacher} onChange={(e) => setSelectedTeacher(e.target.value)}>
-          <option value="">-- Select a Teacher --</option>
-          {Array.isArray(teachers) && teachers.length > 0 ? (
-            teachers.map((teacher) => (
-              <option key={teacher.id} value={teacher.id}>
-                {teacher.username} ({teacher.email})
-              </option>
-            ))
-          ) : (
-            <option disabled>No teachers available</option> // ✅ Handle empty teacher list
-          )}
+          <option value="">-- Select Teacher --</option>
+          {teachers.map((teacher) => (
+            <option key={teacher.id} value={teacher.id}>
+              {teacher.username}
+            </option>
+          ))}
         </select>
-      </div>
 
-      {/* ✅ Course Selection */}
-      <div>
-        <label>Select Course:</label>
         <select value={selectedCourse} onChange={(e) => setSelectedCourse(e.target.value)}>
-          <option value="">-- Select a Course --</option>
-          {Array.isArray(courses) && courses.length > 0 ? (
-            courses.map((course) => (
-              <option key={course.id} value={course.id}>
-                {course.fullname}
-              </option>
-            ))
-          ) : (
-            <option disabled>No courses available</option> // ✅ Handle empty course list
-          )}
+          <option value="">-- Select Course --</option>
+          {courses.map((course) => (
+            <option key={course.id} value={course.id}>
+              {course.fullname}
+            </option>
+          ))}
         </select>
+
+        <button onClick={handleAssignCourse}>Assign Course</button>
       </div>
 
-      {/* ✅ Logbook Entries Table */}
-      <table border="1" cellPadding="5" style={{ width: "100%", borderCollapse: "collapse" }}>
+      {/* ✅ Logbook Table */}
+      <table>
         <thead>
           <tr>
             <th>Case #</th>
@@ -237,27 +221,30 @@ const AdminDashboard = () => {
           </tr>
         </thead>
         <tbody>
-          {filteredEntries.length > 0 ? (
-            filteredEntries.map((entry) => (
-              <tr key={entry.id}>
-                <td>{entry.case_number}</td>
-                <td>{new Date(entry.entry_date).toLocaleDateString()}</td>
-                <td>{entry.student}</td>
-                <td>{entry.course}</td>
-                <td>{entry.type_of_work}</td>
-                <td>{entry.grade !== null ? entry.grade : "N/A"}</td>
-                <td>{entry.feedback || "No feedback"}</td>
-                <td style={{ fontWeight: "bold", color: entry.status === "graded" ? "green" : "orange" }}>
-                                    {entry.status === "graded" ? "Graded" : "Waiting for Grading"}
-                                </td>
-              </tr>
-            ))
-          ) : (
-            <tr><td colSpan="8">No entries found.</td></tr>
-          )}
+          {currentEntries.map((entry) => (
+            <tr key={entry.id}>
+              <td>{entry.case_number}</td>
+              <td>{new Date(entry.entry_date).toLocaleDateString()}</td>
+              <td>{entry.student}</td>
+              <td>{entry.course}</td>
+              <td>{entry.type_of_work}</td>
+              <td>{entry.grade || "N/A"}</td>
+              <td>{entry.feedback || "No feedback"}</td>
+              <td style={{ fontWeight: "bold", color: entry.status === "graded" ? "green" : "orange" }}>
+                  {entry.status === "graded" ? "Graded" : "Waiting for Grading"}
+                </td>
+            </tr>
+          ))}
         </tbody>
       </table>
-      {/* ✅ Correct Footer Placement */}
+
+      {/* ✅ Pagination */}
+      <div className="pagination">
+        {Array.from({ length: Math.ceil(filteredEntries.length / entriesPerPage) }, (_, i) => (
+          <button key={i + 1} onClick={() => paginate(i + 1)}>{i + 1}</button>
+        ))}
+      </div>
+
       <Footer />
     </div>
   );
