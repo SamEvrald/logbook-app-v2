@@ -25,7 +25,8 @@ const TeacherSignupPage = () => {
   };
 
   return (
-    <div>
+    
+      <div style={{ maxWidth: "400px", margin: "50px auto" }}>
       <h2>Teacher Signup</h2>
       <TopBar /> {/* ✅ Add TopBar at the Top */}
       <form onSubmit={handleSubmit}>

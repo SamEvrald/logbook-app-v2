@@ -20,24 +20,49 @@ const AdminDashboard = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("entry_date");
   const [message, setMessage] = useState("");
-
+  const [moodleInstances, setMoodleInstances] = useState([]); // ✅ Store Moodle instances
+  const [selectedMoodleInstance, setSelectedMoodleInstance] = useState(""); // ✅ Track selected Moodle instance
+  
   // ✅ Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const entriesPerPage = 6;
   const [showProfileMenu, setShowProfileMenu] = useState(false); // ✅ Profile Dropdown
 
+
+
+  const fetchMoodleInstances = async () => {
+    try {
+      console.log("🔍 Fetching Moodle instances...");
+      const response = await API.get("/moodle/instances", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+  
+      console.log("✅ Moodle Instances Fetched:", response.data);
+      setMoodleInstances(response.data);
+    } catch (error) {
+      console.error("❌ Failed to fetch Moodle instances:", error.response?.data || error.message);
+    }
+  };
+  
   useEffect(() => {
     if (!token) {
       console.error("❌ No token found. Redirecting to login...");
       navigate("/login/admin");
       return;
     }
-
+  
     fetchEntries();
     fetchTeachers();
-    fetchCourses();
-  }, []);
-
+    fetchMoodleInstances();
+  }, [token, navigate]);
+  
+  // ✅ Fetch courses whenever selected Moodle instance changes
+  useEffect(() => {
+    if (selectedMoodleInstance) {
+      fetchCourses(selectedMoodleInstance);
+    }
+  }, [selectedMoodleInstance]);
+  
   
 
   // ✅ Fetch Logbook Entries
@@ -70,41 +95,85 @@ const AdminDashboard = () => {
   };
 
   // ✅ Fetch Courses
-  const fetchCourses = async () => {
+  const fetchCourses = async (moodleInstanceId) => {
+    if (!moodleInstanceId) {
+      console.warn("⚠️ No Moodle instance selected. Skipping course fetch.");
+      setCourses([]);
+      return;
+    }
+  
     try {
-      const response = await API.get("/admin/courses", {
+      console.log(`🔍 Fetching courses for Moodle Instance ID: ${moodleInstanceId}`);
+  
+      const response = await API.get(`/admin/courses?moodle_instance_id=${moodleInstanceId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
-      setCourses(Array.isArray(response.data) ? response.data : []);
+  
+      if (!response.data || typeof response.data !== "object") {
+        console.error("❌ Invalid courses response:", response.data);
+        setCourses([]);
+        return;
+      }
+  
+      // ✅ Extract courses from response (check if API is returning a nested structure)
+      const extractedCourses = Object.values(response.data).flat();
+  
+      if (!Array.isArray(extractedCourses) || extractedCourses.length === 0) {
+        console.warn("⚠️ No courses available for this Moodle instance.");
+        setCourses([]);
+        return;
+      }
+  
+      setCourses(extractedCourses);
+      console.log(`✅ Courses fetched successfully:`, extractedCourses);
     } catch (error) {
-      console.error("Failed to fetch courses:", error);
+      console.error("❌ Failed to fetch courses:", error.response?.data || error.message);
       setCourses([]);
     }
   };
+  
+  
+  
+  
+  
 
   // ✅ Assign Course to Teacher
-  const handleAssignCourse = async () => {
-    if (!selectedTeacher || !selectedCourse) {
-      setMessage("Please select both a teacher and a course.");
-      return;
-    }
+// ✅ Assign Course to Teacher
+const handleAssignCourse = async () => {
+  if (!selectedTeacher || !selectedCourse || !selectedMoodleInstance) {
+    setMessage("❌ Please select a teacher, course, and Moodle instance.");
+    return;
+  }
 
-    try {
-      await API.post(
-        "/admin/assign-course",
-        { teacher_id: selectedTeacher, course_id: selectedCourse },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+  try {
+    await API.post(
+      "/admin/assign-course",
+      { teacher_id: selectedTeacher, course_id: selectedCourse, moodle_instance_id: selectedMoodleInstance },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
 
-      setMessage("✅ Course assigned successfully!");
-      fetchTeachers(); // ✅ Refresh teacher list
-    } catch (error) {
-      console.error("❌ Failed to assign course:", error);
-      setMessage("❌ Failed to assign course.");
-    }
-  };
+    setMessage("✅ Course assigned successfully!");
 
+    // ✅ Reset fields after success
+    setSelectedTeacher("");
+    setSelectedCourse("");
+    setSelectedMoodleInstance("");
+
+    // ✅ Refresh the teacher list
+    fetchTeachers();
+
+    // ✅ Automatically clear the message after 3 seconds
+    setTimeout(() => setMessage(""), 3000);
+  } catch (error) {
+    console.error("❌ Failed to assign course:", error);
+    setMessage("❌ Failed to assign course. Please try again.");
+    
+    // ✅ Automatically clear the message after 3 seconds
+    setTimeout(() => setMessage(""), 3000);
+  }
+};
+
+  
   // ✅ Handle Search
   const handleSearch = (query) => {
     setSearchQuery(query);
@@ -183,6 +252,47 @@ const getProfileInitials = () => {
         </select>
       </div>
 
+
+
+      <div>
+  <label>Select Moodle Instance:</label>
+  <select
+    value={selectedMoodleInstance}
+    onChange={(e) => {
+      setSelectedMoodleInstance(e.target.value);
+      fetchCourses(e.target.value); // ✅ Fetch courses when Moodle instance changes
+    }}
+  >
+    <option value="">-- Select Moodle Instance --</option>
+    {moodleInstances.map((instance) => (
+      <option key={instance.id} value={instance.id}>
+        {instance.name} ({instance.base_url})
+      </option>
+    ))}
+  </select>
+</div>
+
+<div>
+  <label>Select Course:</label>
+  {courses.length > 0 ? (
+    <select value={selectedCourse} onChange={(e) => setSelectedCourse(e.target.value)}>
+      <option value="">-- Select Course --</option>
+      {courses.map((course) => (
+        <option key={course.id} value={course.id}>
+          {course.fullname || course.shortname}
+        </option>
+      ))}
+    </select>
+  ) : (
+    <p style={{ color: "red" }}>❌ No courses available for this Moodle instance.</p>
+  )}
+</div>
+
+
+{/* ✅ Display Success/Error Message */}
+{message && <p style={{ color: message.startsWith("✅") ? "green" : "red", fontWeight: "bold" }}>{message}</p>}
+
+
       {/* ✅ Assign Course to Teacher */}
       <div className="assign-section">
         <select value={selectedTeacher} onChange={(e) => setSelectedTeacher(e.target.value)}>
@@ -192,15 +302,7 @@ const getProfileInitials = () => {
               {teacher.username}
             </option>
           ))}
-        </select>
-
-        <select value={selectedCourse} onChange={(e) => setSelectedCourse(e.target.value)}>
-          <option value="">-- Select Course --</option>
-          {courses.map((course) => (
-            <option key={course.id} value={course.id}>
-              {course.fullname}
-            </option>
-          ))}
+        
         </select>
 
         <button onClick={handleAssignCourse}>Assign Course</button>
@@ -208,35 +310,53 @@ const getProfileInitials = () => {
 
       {/* ✅ Logbook Table */}
       <table>
-        <thead>
-          <tr>
-            <th>Case #</th>
-            <th>Entry Date</th>
-            <th>Student</th>
-            <th>Course</th>
-            <th>Task Type</th>
-            <th>Grade</th>
-            <th>Feedback</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {currentEntries.map((entry) => (
-            <tr key={entry.id}>
-              <td>{entry.case_number}</td>
-              <td>{new Date(entry.entry_date).toLocaleDateString()}</td>
-              <td>{entry.student}</td>
-              <td>{entry.course}</td>
-              <td>{entry.type_of_work}</td>
-              <td>{entry.grade || "N/A"}</td>
-              <td>{entry.feedback || "No feedback"}</td>
-              <td style={{ fontWeight: "bold", color: entry.status === "graded" ? "green" : "orange" }}>
-                  {entry.status === "graded" ? "Graded" : "Waiting for Grading"}
-                </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+  <thead>
+    <tr>
+      <th>Case #</th>
+      <th>Entry Date</th>
+      <th>Student</th>
+      <th>Course</th>
+      <th>Task Type</th>
+      <th>Media</th> {/* ✅ New Column */}
+      <th>Grade</th>
+      <th>Feedback</th>
+      <th>Status</th>
+      
+    </tr>
+  </thead>
+  <tbody>
+    {currentEntries.map((entry) => (
+      <tr key={entry.id}>
+        <td>{entry.case_number}</td>
+        <td>{new Date(entry.entry_date).toLocaleDateString()}</td>
+        <td>{entry.student}</td>
+        <td>{entry.course}</td>
+        <td>{entry.type_of_work}</td>
+        <td>
+  {entry.media_link && entry.media_link !== "/uploads/" ? (
+    <a
+      href={`http://localhost:5000${entry.media_link}`} 
+      target="_blank" 
+      rel="noopener noreferrer"
+    >
+      View Media
+    </a>
+  ) : "Not Provided"}
+</td>
+
+
+
+        <td>{entry.grade || "N/A"}</td>
+        <td>{entry.feedback || "No feedback"}</td>
+        <td style={{ fontWeight: "bold", color: entry.status === "graded" ? "green" : "orange" }}>
+          {entry.status === "graded" ? "Graded" : "Waiting for Grading"}
+        </td>
+      
+      </tr>
+    ))}
+  </tbody>
+</table>
+
 
       {/* ✅ Pagination */}
       <div className="pagination">

@@ -1,16 +1,36 @@
+
 const db = require("../models/db");
 const jwt = require("jsonwebtoken");
 const axios = require("axios");
 
 exports.login = async (req, res) => {
-  const { username, password } = req.body;
+  const { username, password, moodle_instance_id } = req.body;  // ✅ Ensure moodle_instance_id is received
 
   try {
     console.log(`🔍 Attempting Moodle login for: ${username}`);
+    console.log(`🌍 Selected Moodle Instance ID: ${moodle_instance_id}`);
 
-    // ✅ Step 1: Authenticate with Moodle
-    const tokenResponse = await axios.get(`${process.env.MOODLE_BASE_URL}/login/token.php`, {
-      params: { username, password, service: process.env.MOODLE_SERVICE },
+    if (!moodle_instance_id) {
+      console.error("❌ Moodle instance ID not provided.");
+      return res.status(400).json({ message: "Moodle instance ID is required." });
+    }
+
+    // ✅ Fetch the correct Moodle instance from the database
+    const [instanceRows] = await db.promise().query("SELECT * FROM moodle_instances WHERE id = ?", [moodle_instance_id]);
+
+    if (instanceRows.length === 0) {
+      console.error("❌ Moodle instance not found in database.");
+      return res.status(404).json({ message: "Moodle instance not found." });
+    }
+
+    const moodleInstance = instanceRows[0];
+
+    console.log(`🌍 Moodle Base URL: ${moodleInstance.base_url}`);
+    console.log(`🔑 Moodle API Token: ${moodleInstance.api_token}`);
+
+    // ✅ Authenticate with Moodle
+    const tokenResponse = await axios.get(`${moodleInstance.base_url}/login/token.php`, {
+      params: { username, password, service: "moodle_mobile_app" }, // ✅ No need for process.env
     });
 
     if (!tokenResponse.data.token) {
@@ -20,8 +40,8 @@ exports.login = async (req, res) => {
 
     const moodleToken = tokenResponse.data.token;
 
-    // ✅ Step 2: Fetch User Info from Moodle
-    const userInfoResponse = await axios.get(`${process.env.MOODLE_BASE_URL}/webservice/rest/server.php`, {
+    // ✅ Fetch User Info from Moodle
+    const userInfoResponse = await axios.get(`${moodleInstance.base_url}/webservice/rest/server.php`, {
       params: {
         wstoken: moodleToken,
         wsfunction: "core_webservice_get_site_info",
@@ -37,21 +57,7 @@ exports.login = async (req, res) => {
 
     console.log(`✅ Moodle User ID: ${userInfo.userid}`);
 
-    // ✅ Step 3: Fetch User Courses
-    const coursesResponse = await axios.get(`${process.env.MOODLE_BASE_URL}/webservice/rest/server.php`, {
-      params: {
-        wstoken: moodleToken,
-        wsfunction: "core_enrol_get_users_courses",
-        userid: userInfo.userid,
-        moodlewsrestformat: "json",
-      },
-    });
-
-    const courses = coursesResponse.data;
-
-    console.log(`📚 Fetched ${courses.length} enrolled courses.`);
-
-    // ✅ Step 4: Save/Update User in Database
+    // ✅ Save/Update User in Database
     const user = {
       username: userInfo.username,
       fullname: userInfo.fullname,
@@ -60,25 +66,31 @@ exports.login = async (req, res) => {
     };
 
     await db.promise().query(
-      `INSERT INTO users (username, role, moodle_id) 
-       VALUES (?, ?, ?) 
-       ON DUPLICATE KEY UPDATE username = VALUES(username)`,
-      [user.username, user.role, user.moodle_id]
+      `INSERT INTO users (username, role, moodle_id, moodle_instance_id) 
+       VALUES (?, ?, ?, ?) 
+       ON DUPLICATE KEY UPDATE username = VALUES(username), moodle_instance_id = VALUES(moodle_instance_id)`,
+      [user.username, user.role, user.moodle_id, moodle_instance_id]
     );
-    
-    // ✅ Step 5: Generate JWT Token
-    const token = jwt.sign(
-      { moodle_id: user.moodle_id, username: user.username, role: "student" },
-      process.env.JWT_SECRET,
-      { expiresIn: "1d" }
-    );
+
+    // ✅ Generate JWT Token (Ensure token contains moodle_instance_id)
+    const tokenPayload = { 
+      moodle_id: user.moodle_id, 
+      username: user.username, 
+      role: "student", 
+      moodle_instance_id 
+    };
+
+    console.log("🛠️ JWT Token Payload:", tokenPayload);
+
+    const token = jwt.sign(tokenPayload, process.env.JWT_SECRET, { expiresIn: "1d" });
 
     // ✅ Send Response
     res.status(200).json({
       message: "Login successful",
       user: { username: user.username, fullname: user.fullname, moodle_id: user.moodle_id, role: "student" },
       token,
-      courses,
+      courses: [],
+      moodle_instance_id,  // ✅ Return moodle_instance_id in response
     });
 
   } catch (err) {
@@ -86,6 +98,9 @@ exports.login = async (req, res) => {
     res.status(500).json({ message: "Failed to authenticate with Moodle", error: err.message });
   }
 };
+
+
+
 
 // ✅ Teacher Login via Manual Credentials
 exports.teacherLogin = async (req, res) => {

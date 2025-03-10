@@ -2,16 +2,32 @@ const express = require("express");
 const router = express.Router();
 const multer = require("multer");
 
-const { createEntry, getStudentEntries, getSubmittedEntries, gradeEntry, updateEntryStatus, getTeacherDashboard, getAssignmentsFromMoodle } = require("../controllers/entryController");
+const {
+  createEntry,
+  getStudentEntries,
+  getSubmittedEntries,
+  gradeEntry,
+  updateEntryStatus,
+  getTeacherDashboard,
+  getAssignmentsFromMoodle,
+} = require("../controllers/entryController");
+
 const authMiddleware = require("../middleware/authMiddleware");
 const roleMiddleware = require("../middleware/roleMiddleware");
 
-// ✅ Setup Multer for File Uploads
-const storage = multer.memoryStorage();
+// ✅ Setup Multer for File Uploads (Save to "uploads/" Folder)
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/"); // ✅ Ensure "uploads/" exists
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + "-" + file.originalname); // ✅ Unique filenames
+  },
+});
 const upload = multer({ storage });
 
-// ✅ Student creates a logbook entry
-router.post("/", authMiddleware, roleMiddleware("student"), upload.array("files", 5), createEntry);
+// ✅ Student creates a logbook entry (Now supports file upload)
+router.post("/", authMiddleware, roleMiddleware("student"), upload.single("media_file"), createEntry);
 
 // ✅ Fetch all logbook entries for a specific student
 router.get("/student/:moodle_id", authMiddleware, roleMiddleware("student"), getStudentEntries);
@@ -29,6 +45,6 @@ router.post("/grade", authMiddleware, roleMiddleware("teacher"), gradeEntry);
 router.post("/update-status", authMiddleware, roleMiddleware("student"), updateEntryStatus);
 
 // ✅ Fetch assignments from Moodle dynamically
-router.get("/assignments/:courseId", getAssignmentsFromMoodle);
+router.get("/assignments/:courseId", authMiddleware, getAssignmentsFromMoodle);
 
 module.exports = router;

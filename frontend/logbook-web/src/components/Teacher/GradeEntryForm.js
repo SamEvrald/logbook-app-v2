@@ -3,8 +3,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import API from "../../api/api";
 import Footer from "../Footer";
 
-
-
 const GradeEntryForm = () => {
   const { entryId } = useParams(); // Get entry ID from URL params
   const navigate = useNavigate();
@@ -19,14 +17,18 @@ const GradeEntryForm = () => {
     try {
       const token = localStorage.getItem("token");
 
-      await API.post(
+      const response = await API.post(
         "/teachers/grade",
         { entryId, grade, feedback },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      setMessage("✅ Entry graded successfully!");
-      setTimeout(() => navigate("/teacher"), 2000); // Redirect after grading
+      if (response.status === 200) {
+        setMessage("✅ Entry graded successfully!");
+        setTimeout(() => navigate("/teacher"), 2000); // Redirect after grading
+      } else {
+        throw new Error("Unexpected response status");
+      }
     } catch (error) {
       console.error("❌ Failed to grade entry:", error.response?.data || error.message);
       setMessage("❌ Failed to submit grade.");
@@ -51,10 +53,9 @@ const GradeEntryForm = () => {
 
         <button type="submit">Submit Grade</button>
       </form>
-       {/* ✅ Correct Footer Placement */}
-       <Footer />
+      <Footer />
     </div>
   );
 };
 
-export default GradeEntryForm; // ✅ Ensure Default Export
+export default GradeEntryForm;

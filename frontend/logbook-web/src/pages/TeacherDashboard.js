@@ -183,12 +183,17 @@ const TeacherDashboard = () => {
                 <td>{entry.type_of_work}</td>
                 <td>{entry.task_description || "No Description"}</td>
                 <td>
-                  {entry.media_link ? (
-                    <a href={entry.media_link} target="_blank" rel="noopener noreferrer">
-                      View Media
-                    </a>
-                  ) : "Not Provided"}
-                </td>
+  {entry.media_link && entry.media_link !== "/uploads/" ? (
+    <a
+      href={`http://localhost:5000${entry.media_link}`} 
+      target="_blank" 
+      rel="noopener noreferrer"
+    >
+      View Media
+    </a>
+  ) : "Not Provided"}
+</td>
+
                 <td>{entry.consent_form === "yes" ? "Yes" : "No"}</td>
                 <td>{entry.clinical_info || "No Info"}</td>
                 <td>{entry.grade !== null ? entry.grade : "-"}</td>

@@ -1,13 +1,18 @@
+
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const multer = require("multer");
 const bodyParser = require("body-parser");
+const path = require("path");
 
 const authRoutes = require("./routes/authRoutes");
 const entryRoutes = require("./routes/entryRoutes");
 const teacherRoutes = require("./routes/teacherRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const studentRoutes = require("./routes/studentRoutes");
+const moodleRoutes = require("./routes/moodleRoutes"); // ✅ Import the Moodle routes
+
 
 dotenv.config();
 const app = express();
@@ -27,6 +32,11 @@ app.use("/auth", authRoutes);
 app.use("/entries", entryRoutes);
 app.use("/teachers", teacherRoutes);
 app.use("/admin", adminRoutes);
+app.use("/student", studentRoutes);
+// ✅ Use the Moodle routes
+app.use("/moodle", moodleRoutes);
+app.use("/uploads", express.static(path.join(__dirname, "uploads"))); 
+
 
 // ✅ Global Error Handler
 app.use((err, req, res, next) => {

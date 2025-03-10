@@ -151,39 +151,34 @@ const getSubmittedEntries = async (req, res) => {
 };
 
 
-
-// ✅ Grade an Entry & Sync to Moodle
+/// ✅ Grade an Entry & Sync to Moodle
 const gradeEntry = async (req, res) => {
     try {
         const { entryId, grade, feedback } = req.body;
 
-        // 🔍 Ensure entry exists and fetch student_id, assignment_id, and course_id
-        const [entryExists] = await db.promise().query(
-            "SELECT student_id, assignment_id, course_id FROM logbook_entries WHERE id = ?", 
+        if (!entryId || grade === undefined) {
+            return res.status(400).json({ message: "Entry ID and grade are required." });
+        }
+
+        // 🔍 Fetch entry details
+        const [entryRows] = await db.promise().query(
+            `SELECT le.student_id, le.assignment_id, le.moodle_instance_id, u.moodle_id 
+             FROM logbook_entries le
+             JOIN users u ON le.student_id = u.id
+             WHERE le.id = ?`,
             [entryId]
         );
 
-        if (entryExists.length === 0) {
-            return res.status(404).json({ message: "Entry not found." });
+        if (entryRows.length === 0) {
+            return res.status(404).json({ message: "Logbook entry not found." });
         }
 
-        const entry = entryExists[0];
+        const entry = entryRows[0];
+        const moodleUserId = entry.moodle_id;
+        const assignmentId = entry.assignment_id;
+        const moodleInstanceId = entry.moodle_instance_id;
 
-        // ✅ Ensure the student exists in Moodle
-        const [studentData] = await db.promise().query(
-            "SELECT moodle_id FROM users WHERE id = ?", 
-            [entry.student_id]
-        );
-
-        if (studentData.length === 0 || !studentData[0].moodle_id) {
-            return res.status(404).json({ message: "Student not found in Moodle." });
-        }
-
-        const moodleUserId = studentData[0].moodle_id;
-        const assignmentId = entry.assignment_id;  // ✅ Make sure each logbook entry has the correct assignment ID
-        const courseId = entry.course_id;  // ✅ Make sure each logbook entry has the correct course ID
-
-        // ✅ Update entry with grade and feedback in the logbook
+        // ✅ Update entry with grade & feedback
         await db.promise().query(
             `UPDATE logbook_entries 
              SET grade = ?, feedback = ?, status = 'graded' 
@@ -193,41 +188,59 @@ const gradeEntry = async (req, res) => {
 
         console.log(`✅ Entry graded successfully for Moodle User ID: ${moodleUserId} | Assignment ID: ${assignmentId}`);
 
-        // ✅ Moodle API Setup
-        const moodleUrl = "https://logbookapp.moodlecloud.com/webservice/rest/server.php";
-        const moodleToken = "1c2a4f33970358fde28a3fe4225691b1"; // Use your actual token
+        // ✅ Fetch Moodle instance details
+        const [instanceRows] = await db.promise().query(
+            "SELECT base_url, api_token FROM moodle_instances WHERE id = ?", 
+            [moodleInstanceId]
+        );
 
-        // ✅ Send grade to Moodle
-        const moodleResponse = await axios.post(moodleUrl, null, {
-            params: {
-                wstoken: moodleToken,
-                wsfunction: "mod_assign_save_grade",
-                moodlewsrestformat: "json",
-                assignmentid: assignmentId, // ✅ Now dynamic per entry
-                userid: moodleUserId, // ✅ Correct Moodle User ID
-                grade: grade,
-                attemptnumber: -1,
-                addattempt: 0,
-                workflowstate: "graded",
-                applytoall: 0
-            }
-        });
-
-        console.log("✅ Moodle Response:", moodleResponse.data);
-
-        if (moodleResponse.data.errorcode) {
-            throw new Error(`Moodle API Error: ${moodleResponse.data.message}`);
+        if (instanceRows.length === 0) {
+            return res.status(404).json({ message: "Moodle instance not found." });
         }
 
-        res.status(200).json({ message: "Entry graded and synced to Moodle successfully." });
+        const moodleInstance = instanceRows[0];
+        const moodleUrl = moodleInstance.base_url;
+        const moodleToken = moodleInstance.api_token;
+
+        console.log(`🌍 Moodle URL: ${moodleUrl}`);
+        console.log(`🔑 Moodle API Token: ${moodleToken}`);
+
+        // ✅ Send grade to Moodle using `mod_assign_save_grade`
+        console.log(`🚀 Sending grade ${grade} to Moodle for Assignment ID: ${assignmentId}`);
+
+        const moodleGradeResponse = await axios.post(
+            `${moodleUrl}/webservice/rest/server.php`,
+            null,
+            {
+                params: {
+                    wstoken: moodleToken,
+                    wsfunction: "mod_assign_save_grade",  // ✅ Correct Moodle function
+                    moodlewsrestformat: "json",
+                    assignmentid: assignmentId,
+                    userid: moodleUserId,
+                    grade: parseFloat(grade),
+                    attemptnumber: -1,
+                    addattempt: 0,
+                    workflowstate: "graded",
+                    applytoall: 0,
+                },
+            }
+        );
+
+        console.log("✅ Moodle Grade Response:", moodleGradeResponse.data);
+
+        if (moodleGradeResponse.data?.exception) {
+            console.error("❌ Moodle API Error:", moodleGradeResponse.data.message);
+            return res.status(400).json({ message: `Moodle API Error: ${moodleGradeResponse.data.message}` });
+        }
+
+        res.status(200).json({ message: "✅ Grade successfully saved and synced to Moodle." });
 
     } catch (error) {
         console.error("❌ Grading Error:", error.message);
         res.status(500).json({ message: "Failed to grade entry or sync to Moodle.", error: error.message });
     }
 };
-
-
 // ✅ Export All Functions
 module.exports = {
     signupTeacher,
