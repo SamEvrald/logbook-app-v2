@@ -11,6 +11,7 @@ const {
 const authMiddleware = require("../middleware/authMiddleware");
 const roleMiddleware = require("../middleware/roleMiddleware");
 
+
 // ✅ Teacher Signup
 router.post("/signup", signupTeacher);
 
@@ -25,5 +26,9 @@ router.get("/:teacherEmail/entries", authMiddleware, roleMiddleware("teacher"), 
 
 // ✅ Grade an Entry
 router.post("/grade", authMiddleware, roleMiddleware("teacher"), gradeEntry);
+
+
+
+
 
 module.exports = router;

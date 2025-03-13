@@ -28,7 +28,7 @@ const AdminSignupPage = () => {
   return (
     <div style={{ maxWidth: "400px", margin: "50px auto" }}>
       <TopBar /> {/* ✅ Add TopBar at the Top */}
-      <h2>Admin Signup</h2>
+      <h2>Create Admin Account</h2>
       <form onSubmit={handleSignup}>
         {error && <p style={{ color: "red" }}>{error}</p>}
         <div>

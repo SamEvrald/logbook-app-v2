@@ -18,6 +18,9 @@ const TeacherDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [selectedCourse, setSelectedCourse] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [expandedCourse, setExpandedCourse] = useState(null);
+const [students, setStudents] = useState({});
+
 
   // ✅ Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -37,6 +40,30 @@ const TeacherDashboard = () => {
     }
     fetchDashboard();
   }, [storedUser, token, navigate]);
+
+  const fetchStudentsForCourse = async (courseId) => {
+    if (expandedCourse === courseId) {
+      setExpandedCourse(null); // 🔄 Collapse if already expanded
+      return;
+    }
+  
+    try {
+      const response = await API.get(`/teachers/course/${courseId}/students`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+  
+      setStudents((prev) => ({
+        ...prev,
+        [courseId]: response.data.students || [],
+      }));
+  
+      setExpandedCourse(courseId); // ✅ Expand Course
+    } catch (error) {
+      console.error("❌ Failed to fetch students:", error.response?.data || error.message);
+    }
+  };
+  
+  
 
   const fetchDashboard = async () => {
     try {
@@ -124,6 +151,47 @@ const TeacherDashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* ✅ Main Layout: Side Panel + Content */}
+      <div className="dashboard-layout">
+        {/* ✅ Side Panel */}
+        <div className="side-panel">
+          <h3>📚 My Courses</h3>
+          {courses.length > 0 ? (
+            <ul className="course-list">
+              {courses.map((course) => (
+                <li key={course.id} className="course-item">
+                  <button
+                    onClick={() => fetchStudentsForCourse(course.id)}
+                    className="course-btn"
+                  >
+                    {course.fullname} {expandedCourse === course.id ? "▲" : "▼"}
+                  </button>
+
+                  {/* ✅ Show Students When Course is Expanded */}
+                  {expandedCourse === course.id && (
+                    <ul className="student-list">
+                      {students[course.id]?.length > 0 ? (
+                        students[course.id].map((student) => (
+                          <li key={student.id} className="student-item">
+                            {student.username}
+                          </li>
+                        ))
+                      ) : (
+                        <p className="no-students">No students enrolled.</p>
+                      )}
+                    </ul>
+                  )}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>No courses assigned.</p>
+          )}
+        </div>
+        </div>
+
+
 
       <h2>Welcome, {teacherName}!</h2>
 

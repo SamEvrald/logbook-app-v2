@@ -25,8 +25,8 @@ const AdminLoginPage = () => {
     }
   };
 
-  return (
-    <div style={{ maxWidth: "400px", margin: "50px auto" }}>
+  return (<div style={{ maxWidth: "400px", margin: "50px auto" }}>
+    
       <TopBar /> {/* ✅ Add TopBar at the Top */}
       <h2>Admin Login</h2>
       <form onSubmit={handleLogin}>

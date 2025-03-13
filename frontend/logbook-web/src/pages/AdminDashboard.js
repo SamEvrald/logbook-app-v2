@@ -206,6 +206,7 @@ const handleAssignCourse = async () => {
       localStorage.removeItem("token");
       navigate("/login");
     };
+    
 
   // ✅ Pagination Logic
   const indexOfLastEntry = currentPage * entriesPerPage;
@@ -229,15 +230,23 @@ const getProfileInitials = () => {
         <TopBar />
         <div className="top-right">
           <FaBell className="icon bell-icon" title="Notifications" />
-          <div className="profile-container" onClick={() => setShowProfileMenu(!showProfileMenu)}>
-  <div className="profile-icon">{getProfileInitials()}</div>
-  {showProfileMenu && storedUser && (
-    <div className="profile-dropdown">
-      <p>{storedUser.username}</p>
-      <button onClick={handleLogout}>Logout</button>
+          <div className="profile-container">
+    <div 
+      className="profile-icon" 
+      onClick={() => setShowProfileMenu((prev) => !prev)} // ✅ Toggle Dropdown on Click
+    >
+      {getProfileInitials()}
     </div>
-  )}
-</div>
+
+    {/* ✅ Profile Dropdown */}
+    {showProfileMenu && (
+      <div className="profile-dropdown">
+        <p>{storedUser?.username}</p>
+        <button onClick={handleLogout}>Logout</button>
+      </div>
+    )}
+  </div>
+
         </div>
       </div>
 
@@ -251,8 +260,6 @@ const getProfileInitials = () => {
           <option value="grade">Sort by Grade</option>
         </select>
       </div>
-
-
 
       <div>
   <label>Select Moodle Instance:</label>
@@ -307,6 +314,18 @@ const getProfileInitials = () => {
 
         <button onClick={handleAssignCourse}>Assign Course</button>
       </div>
+      <div>
+   {/* ✅ Button to Navigate to Teacher Signup Page */}
+   <div className="teacher-signup-button">
+      <button onClick={() => navigate("/signup/teacher")}>
+        ➕ Create Teacher
+      </button>
+      {/* ✅ Button to Navigate to Admin Signup Page */}
+    <button onClick={() => navigate("/signup/admin")}>
+      🛠️ Create Admin
+    </button>
+    </div>
+</div>
 
       {/* ✅ Logbook Table */}
       <table>

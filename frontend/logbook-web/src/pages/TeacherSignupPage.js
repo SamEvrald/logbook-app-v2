@@ -18,7 +18,7 @@ const TeacherSignupPage = () => {
     try {
       await API.post("/teachers/signup", formData);
       alert("Signup successful. You can now log in.");
-      navigate("/login/teacher");
+      navigate("/admin");
     } catch (err) {
       setError("Signup failed. Try again.");
     }
@@ -27,7 +27,7 @@ const TeacherSignupPage = () => {
   return (
     
       <div style={{ maxWidth: "400px", margin: "50px auto" }}>
-      <h2>Teacher Signup</h2>
+      <h2>Create Teacher Account</h2>
       <TopBar /> {/* ✅ Add TopBar at the Top */}
       <form onSubmit={handleSubmit}>
         {error && <p style={{ color: "red" }}>{error}</p>}

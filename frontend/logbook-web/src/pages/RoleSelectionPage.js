@@ -22,19 +22,19 @@ const RoleSelectionPage = () => {
         </button>
       </div>
 
-      <div className="role-buttons">
+      {/* <div className="role-buttons">
         <button onClick={() => navigate("/signup/teacher")} className="btn signup">
           Signup as Teacher
         </button>
-      </div>
+      </div> */}
 
       <div className="role-buttons">
         <button onClick={() => navigate("/login/admin")} className="btn admin">
           Login as Admin
         </button>
-        <button onClick={() => navigate("/signup/admin")} className="btn green">
+        {/* <button onClick={() => navigate("/signup/admin")} className="btn green">
           Signup as Admin
-        </button>
+        </button> */}
       </div>
 
       {/* ✅ Correct Footer Placement */}
