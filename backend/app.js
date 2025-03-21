@@ -35,7 +35,7 @@ app.use("/admin", adminRoutes);
 app.use("/student", studentRoutes);
 // ✅ Use the Moodle routes
 app.use("/moodle", moodleRoutes);
-app.use("/uploads", express.static(path.join(__dirname, "uploads"))); 
+
 
 
 // ✅ Global Error Handler

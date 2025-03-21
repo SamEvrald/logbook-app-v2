@@ -18,9 +18,42 @@ const TeacherDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [selectedCourse, setSelectedCourse] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [expandedCourse, setExpandedCourse] = useState(null);
-const [students, setStudents] = useState({});
+    const [selectedStatus, setSelectedStatus] = useState(""); // 🔥 Fixed: Defined selectedStatus
+    const [sortBy, setSortBy] = useState("entry_date"); // 🔥 Fixed: Defined sortBy
 
+
+  // ✅ Handle Search & Filtering
+  useEffect(() => {
+    let filtered = entries;
+
+    if (searchQuery) {
+      filtered = filtered.filter(
+        (entry) =>
+          entry.case_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          entry.student_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          entry.course_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          entry.type_of_work.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    if (selectedCourse) {
+      filtered = filtered.filter((entry) => entry.course_id === parseInt(selectedCourse));
+    }
+
+    if (selectedStatus) {
+      filtered = filtered.filter((entry) => entry.status === selectedStatus);
+    }
+
+    // ✅ Sorting
+    filtered.sort((a, b) => {
+      if (sortBy === "entry_date") return new Date(b.work_completed_date) - new Date(a.work_completed_date);
+      if (sortBy === "grade") return (b.grade || 0) - (a.grade || 0);
+      if (sortBy === "status") return a.status.localeCompare(b.status);
+      return 0;
+    });
+
+    setFilteredEntries(filtered);
+  }, [searchQuery, selectedCourse, selectedStatus, sortBy, entries]);
 
   // ✅ Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -41,28 +74,7 @@ const [students, setStudents] = useState({});
     fetchDashboard();
   }, [storedUser, token, navigate]);
 
-  const fetchStudentsForCourse = async (courseId) => {
-    if (expandedCourse === courseId) {
-      setExpandedCourse(null); // 🔄 Collapse if already expanded
-      return;
-    }
-  
-    try {
-      const response = await API.get(`/teachers/course/${courseId}/students`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-  
-      setStudents((prev) => ({
-        ...prev,
-        [courseId]: response.data.students || [],
-      }));
-  
-      setExpandedCourse(courseId); // ✅ Expand Course
-    } catch (error) {
-      console.error("❌ Failed to fetch students:", error.response?.data || error.message);
-    }
-  };
-  
+ 
   
 
   const fetchDashboard = async () => {
@@ -89,9 +101,26 @@ const [students, setStudents] = useState({});
     }
   };
 
-  const handleGradeEntry = (entryId) => {
-    navigate(`/teacher/grade/${entryId}`);
-  };
+//   const handleGradeEntry = async (entryId) => {
+//     try {
+//         const response = await API.post("/teachers/grade", { entryId });
+
+//         if (response.data.message === "This entry has already been graded.") {
+//             alert("⚠️ This entry has already been graded.");
+//             return;
+//         }
+
+//         alert("✅ Grade submitted successfully!");
+//         fetchDashboard(); // Refresh the list of entries
+//     } catch (error) {
+//         console.error("❌ This entry has already been graded.", error.response?.data || error.message);
+//         alert("❌ This entry has already been graded.");
+//     }
+// };
+
+const handleGradeEntry = (entryId) => {
+  navigate(`/teacher/grade/${entryId}`);
+};
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -152,54 +181,16 @@ const [students, setStudents] = useState({});
         </div>
       </div>
 
-      {/* ✅ Main Layout: Side Panel + Content */}
-      <div className="dashboard-layout">
-        {/* ✅ Side Panel */}
-        <div className="side-panel">
-          <h3>📚 My Courses</h3>
-          {courses.length > 0 ? (
-            <ul className="course-list">
-              {courses.map((course) => (
-                <li key={course.id} className="course-item">
-                  <button
-                    onClick={() => fetchStudentsForCourse(course.id)}
-                    className="course-btn"
-                  >
-                    {course.fullname} {expandedCourse === course.id ? "▲" : "▼"}
-                  </button>
-
-                  {/* ✅ Show Students When Course is Expanded */}
-                  {expandedCourse === course.id && (
-                    <ul className="student-list">
-                      {students[course.id]?.length > 0 ? (
-                        students[course.id].map((student) => (
-                          <li key={student.id} className="student-item">
-                            {student.username}
-                          </li>
-                        ))
-                      ) : (
-                        <p className="no-students">No students enrolled.</p>
-                      )}
-                    </ul>
-                  )}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p>No courses assigned.</p>
-          )}
-        </div>
-        </div>
-
 
 
       <h2>Welcome, {teacherName}!</h2>
 
-      <div className="filters">
+     {/* ✅ Enhanced Filters */}
+     <div className="filters">
         {/* ✅ Course Filter */}
         {courses.length > 0 && (
-          <select value={selectedCourse} onChange={(e) => handleFilterCourse(e.target.value)}>
-            <option value="">-- All Courses --</option>
+          <select value={selectedCourse} onChange={(e) => setSelectedCourse(e.target.value)}>
+            <option value="">-- Filter by Course --</option>
             {courses.map((course) => (
               <option key={course.id} value={course.id}>
                 {course.fullname}
@@ -208,12 +199,26 @@ const [students, setStudents] = useState({});
           </select>
         )}
 
+        {/* ✅ Status Filter */}
+        <select value={selectedStatus} onChange={(e) => setSelectedStatus(e.target.value)}>
+          <option value="">-- Filter by Status --</option>
+          <option value="submitted">Submitted</option>
+          <option value="graded">Graded</option>
+        </select>
+
+        {/* ✅ Sorting Options */}
+        <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+          <option value="entry_date">Sort by Date</option>
+          <option value="grade">Sort by Grade</option>
+          <option value="status">Sort by Status</option>
+        </select>
+
         {/* ✅ Search Box */}
         <input
           type="text"
-          placeholder="Search by Case # or Student..."
+          placeholder=""
           value={searchQuery}
-          onChange={(e) => handleSearch(e.target.value)}
+          onChange={(e) => setSearchQuery(e.target.value)}
         />
       </div>
 
@@ -251,16 +256,15 @@ const [students, setStudents] = useState({});
                 <td>{entry.type_of_work}</td>
                 <td>{entry.task_description || "No Description"}</td>
                 <td>
-  {entry.media_link && entry.media_link !== "/uploads/" ? (
-    <a
-      href={`http://localhost:5000${entry.media_link}`} 
-      target="_blank" 
-      rel="noopener noreferrer"
-    >
+  {entry.media_link ? (
+    <a href={entry.media_link} target="_blank" rel="noopener noreferrer">
       View Media
     </a>
-  ) : "Not Provided"}
+  ) : (
+    "Not Provided"
+  )}
 </td>
+
 
                 <td>{entry.consent_form === "yes" ? "Yes" : "No"}</td>
                 <td>{entry.clinical_info || "No Info"}</td>

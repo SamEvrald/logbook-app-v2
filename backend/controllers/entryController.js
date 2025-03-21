@@ -1,8 +1,11 @@
 const axios = require("axios");
 const db = require("../models/db");
 const multer = require("multer"); // ✅ Import Multer
-const path = require("path"); // ✅ Import Path module
-const fs = require("fs"); // ✅ Ensure 'uploads/' exists
+// const path = require("path"); // ✅ Import Path module
+// const fs = require("fs"); // ✅ Ensure 'uploads/' exists
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
+const cloudinary = require("../utils/cloudinary"); // or define here if not using separate file
+
 
 
 // Function to generate a case number based on the course
@@ -17,16 +20,18 @@ const generateCaseNumber = async (courseId, courseName) => {
 };
 
 // ✅ Set up storage engine
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/"); // ✅ Ensure this folder exists
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname)); // ✅ Unique filenames
+// ✅ Set up Cloudinary storage
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "logbook-entries",
+    resource_type: "auto",
+    public_id: (req, file) => `${Date.now()}-${file.originalname}`,
   },
 });
 
 const upload = multer({ storage });
+exports.upload = upload;
 
 exports.createEntry = async (req, res) => {
   try {
@@ -45,7 +50,14 @@ exports.createEntry = async (req, res) => {
       moodle_instance_id,
     } = req.body;
 
-    const mediaFile = req.file ? `/uploads/${req.file.filename}` : null; // ✅ Store uploaded file path
+    // const mediaFile = req.file ? `/uploads/${req.file.filename}` : null; // ✅ Store uploaded file path
+
+    const mediaFile = req.file?.path || null;
+    console.log("📁 Uploaded file info:", req.file);
+
+
+
+    
 
     if (!moodle_id || !courseId || !assignmentId || !work_completed_date || !moodle_instance_id) {
       console.error("❌ Missing required fields:", { moodle_id, courseId, assignmentId, work_completed_date, moodle_instance_id });
@@ -247,6 +259,84 @@ exports.getSubmittedEntries = async (req, res) => {
 };
 
 // ✅ Grade an Entry (Teacher)
+// exports.gradeEntry = async (req, res) => {
+//   try {
+//     // ✅ Fetch all graded entries that are not yet synced
+//     const [gradedEntries] = await db.promise().query(
+//       `SELECT le.id, le.grade, le.assignment_id, le.student_id, u.moodle_id, le.course_id, le.moodle_instance_id
+//        FROM logbook_entries le
+//        JOIN users u ON le.student_id = u.id
+//        WHERE le.status = 'graded'`
+//     );
+
+//     if (gradedEntries.length === 0) {
+//       console.log("✅ No unsynced graded entries found.");
+//       return res.json({ message: "✅ All grades are already synced to Moodle." });
+//     }
+
+//     // ✅ Fetch Moodle Instance
+//     const [instanceRows] = await db.promise().query("SELECT * FROM moodle_instances");
+
+//     if (instanceRows.length === 0) {
+//       return res.status(404).json({ message: "❌ No Moodle instance found." });
+//     }
+
+//     const moodleInstance = instanceRows[0];
+
+//     console.log(`🌍 Moodle URL: ${moodleInstance.base_url}`);
+//     console.log(`🔑 Moodle API Token: ${moodleInstance.api_token}`);
+
+//     // ✅ Prepare Grade Payload for Moodle
+//     let gradesPayload = gradedEntries.map(entry => ({
+//       userid: entry.moodle_id,
+//       grade: entry.grade,
+//       attemptnumber: -1,
+//       addattempt: 0,
+//       workflowstate: "graded",
+//       applytoall: 0
+//     }));
+
+//     let assignmentIds = [...new Set(gradedEntries.map(entry => entry.assignment_id))]; // Get unique assignment IDs
+
+//     for (let assignmentId of assignmentIds) {
+//       let gradesForAssignment = gradesPayload.filter(g => g.assignmentid === assignmentId);
+
+//       // ✅ Send the Grade to Moodle
+//       const moodleGradeResponse = await axios.post(
+//         `${moodleInstance.base_url}/webservice/rest/server.php`,
+//         null, // No request body
+//         {
+//           params: {
+//             wstoken: moodleInstance.api_token,
+//             wsfunction: "mod_assign_save_grades",
+//             moodlewsrestformat: "json",
+//             assignmentid: assignmentId,
+//             grades: JSON.stringify(gradesForAssignment),
+//           },
+//         }
+//       );
+
+//       console.log(`✅ Moodle Grade Response for Assignment ${assignmentId}:`, moodleGradeResponse.data);
+
+//       if (moodleGradeResponse.data?.exception) {
+//         console.error(`❌ Moodle API Error for Assignment ${assignmentId}:`, moodleGradeResponse.data.message);
+//         continue; // Skip this assignment and proceed with others
+//       }
+
+//       // ✅ Mark Entries as Synced in Local Database
+//       await db.promise().query(
+//         `UPDATE logbook_entries SET status = 'synced' WHERE assignment_id = ?`,
+//         [assignmentId]
+//       );
+//     }
+
+//     res.json({ message: "✅ All grades synced successfully." });
+
+//   } catch (error) {
+//     console.error("❌ Grade Syncing Error:", error.message);
+//     res.status(500).json({ message: "❌ Failed to sync grades", error: error.message });
+//   }
+// };
 exports.gradeEntry = async (req, res) => {
   try {
     // ✅ Fetch all graded entries that are not yet synced

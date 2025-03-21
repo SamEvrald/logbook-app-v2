@@ -352,16 +352,15 @@ const getProfileInitials = () => {
         <td>{entry.course}</td>
         <td>{entry.type_of_work}</td>
         <td>
-  {entry.media_link && entry.media_link !== "/uploads/" ? (
-    <a
-      href={`http://localhost:5000${entry.media_link}`} 
-      target="_blank" 
-      rel="noopener noreferrer"
-    >
+  {entry.media_link ? (
+    <a href={entry.media_link} target="_blank" rel="noopener noreferrer">
       View Media
     </a>
-  ) : "Not Provided"}
+  ) : (
+    "Not Provided"
+  )}
 </td>
+
 
 
 

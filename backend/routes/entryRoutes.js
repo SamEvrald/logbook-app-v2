@@ -10,24 +10,17 @@ const {
   updateEntryStatus,
   getTeacherDashboard,
   getAssignmentsFromMoodle,
+  upload, // ✅ Import upload from controller
 } = require("../controllers/entryController");
+
 
 const authMiddleware = require("../middleware/authMiddleware");
 const roleMiddleware = require("../middleware/roleMiddleware");
 
-// ✅ Setup Multer for File Uploads (Save to "uploads/" Folder)
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/"); // ✅ Ensure "uploads/" exists
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + "-" + file.originalname); // ✅ Unique filenames
-  },
-});
-const upload = multer({ storage });
-
 // ✅ Student creates a logbook entry (Now supports file upload)
+// ✅ Use Cloudinary upload middleware
 router.post("/", authMiddleware, roleMiddleware("student"), upload.single("media_file"), createEntry);
+
 
 // ✅ Fetch all logbook entries for a specific student
 router.get("/student/:moodle_id", authMiddleware, roleMiddleware("student"), getStudentEntries);

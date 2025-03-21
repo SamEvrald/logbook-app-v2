@@ -359,6 +359,12 @@ const StudentDashboard = () => {
 
       <h2>Welcome, {user?.fullname || user?.username}!</h2>
 
+      <div className="instructions">
+        <button onClick={() => navigate("/instructions")} > 
+          Logbook Entry Instructions
+        </button>
+      </div>
+
       {/* ✅ Display Enrolled Courses */}
       <h3>Your Courses:</h3>
       {courses.length === 0 ? (
@@ -412,12 +418,15 @@ const StudentDashboard = () => {
                   <td>{entry.pathology || "N/A"}</td>
                   <td>{entry.task_description || "N/A"}</td>
                   <td>
-                    {entry.media_link ? (
-                      <a href={entry.media_link} target="_blank" rel="noopener noreferrer">
-                        View Media
-                      </a>
-                    ) : "Not Provided"}
-                  </td>
+  {entry.media_link ? (
+    <a href={entry.media_link} target="_blank" rel="noopener noreferrer">
+      View Media
+    </a>
+  ) : (
+    "Not Provided"
+  )}
+</td>
+
                   <td>{entry.consent_form === "yes" ? "Yes" : "No"}</td>
                   <td>{entry.clinical_info || "Not Provided"}</td>
                   <td>{entry.grade !== null ? entry.grade : "-"}</td>
