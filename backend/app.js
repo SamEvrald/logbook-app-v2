@@ -22,7 +22,11 @@ const storage = multer.memoryStorage(); // Stores files in memory
 const upload = multer({ storage });
 
 // ✅ Middleware
-app.use(cors());
+app.use(cors({
+    origin: ["https://logbook-app-v2-ubcj.vercel.app", "http://localhost:3000"],
+    credentials: true,
+  }));
+  
 app.use(express.json()); // Parse JSON requests
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded requests
 app.use(bodyParser.json()); // Fallback for JSON parsing
