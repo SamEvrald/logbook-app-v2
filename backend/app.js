@@ -23,7 +23,7 @@ const upload = multer({ storage });
 
 // ✅ Middleware
 app.use(cors({
-    origin: ["https://logbook-app-v2-ubcj.vercel.app", "http://localhost:3000"],
+    origin: ["http://localhost:3000"],
     credentials: true,
   }));
   

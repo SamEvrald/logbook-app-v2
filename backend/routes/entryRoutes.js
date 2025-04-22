@@ -19,7 +19,8 @@ const roleMiddleware = require("../middleware/roleMiddleware");
 
 // ✅ Student creates a logbook entry (Now supports file upload)
 // ✅ Use Cloudinary upload middleware
-router.post("/", authMiddleware, roleMiddleware("student"), upload.single("media_file"), createEntry);
+router.post("/", authMiddleware, roleMiddleware("student"), upload.array("media_files", 5), createEntry);
+
 
 
 // ✅ Fetch all logbook entries for a specific student

@@ -52,8 +52,9 @@ exports.createEntry = async (req, res) => {
 
     // const mediaFile = req.file ? `/uploads/${req.file.filename}` : null; // ✅ Store uploaded file path
 
-    const mediaFile = req.file?.path || null;
-    console.log("📁 Uploaded file info:", req.file);
+    const mediaFiles = req.files ? req.files.map(file => file.path) : [];
+    console.log("📁 Uploaded files info:", req.files); // ✅ Shows all uploaded files
+
 
 
 
@@ -179,15 +180,17 @@ exports.createEntry = async (req, res) => {
     // ✅ Insert Logbook Entry
     await db.promise().query(
       `INSERT INTO logbook_entries 
-           (case_number, student_id, course_id, assignment_id, type_of_work, pathology, clinical_info, content, consent_form, work_completed_date, media_link, moodle_instance_id, status) 
+       (case_number, student_id, course_id, assignment_id, type_of_work, pathology, clinical_info, content, consent_form, work_completed_date, media_link, moodle_instance_id, status) 
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'submitted')`,
       [
         caseNumber, studentId, courseId, assignmentId, type_of_work, pathology || null,
-        clinical_info || null, content, consentForm, work_completed_date, mediaFile, parseInt(moodle_instance_id)
+        clinical_info || null, content, consentForm, work_completed_date,
+        JSON.stringify(mediaFiles), parseInt(moodle_instance_id)
       ]
     );
+    
 
-    res.status(201).json({ message: "✅ Logbook entry created successfully.", case_number: caseNumber, mediaFile });
+    res.status(201).json({ message: "✅ Logbook entry created successfully.", case_number: caseNumber, mediaFiles });
 
   } catch (error) {
     console.error("❌ Database error:", error);
@@ -257,86 +260,6 @@ exports.getSubmittedEntries = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch submitted entries.", error: error.message });
   }
 };
-
-// ✅ Grade an Entry (Teacher)
-// exports.gradeEntry = async (req, res) => {
-//   try {
-//     // ✅ Fetch all graded entries that are not yet synced
-//     const [gradedEntries] = await db.promise().query(
-//       `SELECT le.id, le.grade, le.assignment_id, le.student_id, u.moodle_id, le.course_id, le.moodle_instance_id
-//        FROM logbook_entries le
-//        JOIN users u ON le.student_id = u.id
-//        WHERE le.status = 'graded'`
-//     );
-
-//     if (gradedEntries.length === 0) {
-//       console.log("✅ No unsynced graded entries found.");
-//       return res.json({ message: "✅ All grades are already synced to Moodle." });
-//     }
-
-//     // ✅ Fetch Moodle Instance
-//     const [instanceRows] = await db.promise().query("SELECT * FROM moodle_instances");
-
-//     if (instanceRows.length === 0) {
-//       return res.status(404).json({ message: "❌ No Moodle instance found." });
-//     }
-
-//     const moodleInstance = instanceRows[0];
-
-//     console.log(`🌍 Moodle URL: ${moodleInstance.base_url}`);
-//     console.log(`🔑 Moodle API Token: ${moodleInstance.api_token}`);
-
-//     // ✅ Prepare Grade Payload for Moodle
-//     let gradesPayload = gradedEntries.map(entry => ({
-//       userid: entry.moodle_id,
-//       grade: entry.grade,
-//       attemptnumber: -1,
-//       addattempt: 0,
-//       workflowstate: "graded",
-//       applytoall: 0
-//     }));
-
-//     let assignmentIds = [...new Set(gradedEntries.map(entry => entry.assignment_id))]; // Get unique assignment IDs
-
-//     for (let assignmentId of assignmentIds) {
-//       let gradesForAssignment = gradesPayload.filter(g => g.assignmentid === assignmentId);
-
-//       // ✅ Send the Grade to Moodle
-//       const moodleGradeResponse = await axios.post(
-//         `${moodleInstance.base_url}/webservice/rest/server.php`,
-//         null, // No request body
-//         {
-//           params: {
-//             wstoken: moodleInstance.api_token,
-//             wsfunction: "mod_assign_save_grades",
-//             moodlewsrestformat: "json",
-//             assignmentid: assignmentId,
-//             grades: JSON.stringify(gradesForAssignment),
-//           },
-//         }
-//       );
-
-//       console.log(`✅ Moodle Grade Response for Assignment ${assignmentId}:`, moodleGradeResponse.data);
-
-//       if (moodleGradeResponse.data?.exception) {
-//         console.error(`❌ Moodle API Error for Assignment ${assignmentId}:`, moodleGradeResponse.data.message);
-//         continue; // Skip this assignment and proceed with others
-//       }
-
-//       // ✅ Mark Entries as Synced in Local Database
-//       await db.promise().query(
-//         `UPDATE logbook_entries SET status = 'synced' WHERE assignment_id = ?`,
-//         [assignmentId]
-//       );
-//     }
-
-//     res.json({ message: "✅ All grades synced successfully." });
-
-//   } catch (error) {
-//     console.error("❌ Grade Syncing Error:", error.message);
-//     res.status(500).json({ message: "❌ Failed to sync grades", error: error.message });
-//   }
-// };
 exports.gradeEntry = async (req, res) => {
   try {
     // ✅ Fetch all graded entries that are not yet synced

@@ -57,7 +57,7 @@ const TeacherDashboard = () => {
 
   // ✅ Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const entriesPerPage = 4;
+  const entriesPerPage = 6;
 
   // ✅ Profile Dropdown
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -256,14 +256,40 @@ const handleGradeEntry = (entryId) => {
                 <td>{entry.type_of_work}</td>
                 <td>{entry.task_description || "No Description"}</td>
                 <td>
-  {entry.media_link ? (
-    <a href={entry.media_link} target="_blank" rel="noopener noreferrer">
-      View Media
-    </a>
-  ) : (
-    "Not Provided"
-  )}
+  {(() => {
+    if (!entry.media_link) return "Not Provided";
+
+    let mediaArray = [];
+
+    try {
+      mediaArray = JSON.parse(entry.media_link);
+    } catch {
+      mediaArray = [entry.media_link]; // fallback to string as single file
+    }
+
+    if (mediaArray.length === 1) {
+      return (
+        <a href={mediaArray[0]} target="_blank" rel="noopener noreferrer">
+          File
+        </a>
+      );
+    }
+
+    return (
+      <div className="dropdown">
+        {/* <button className="dropdown-button">View Files ({mediaArray.length}) ⬇</button> */}
+        <div className="dropdown-content">
+          {mediaArray.map((url, idx) => (
+            <a key={idx} href={url} target="_blank" rel="noopener noreferrer">
+              File {idx + 1}
+            </a>
+          ))}
+        </div>
+      </div>
+    );
+  })()}
 </td>
+
 
 
                 <td>{entry.consent_form === "yes" ? "Yes" : "No"}</td>

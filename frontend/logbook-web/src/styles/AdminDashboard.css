@@ -7,6 +7,8 @@
     background: #f9f9f9;
     border-radius: 10px;
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    overflow: visible; /* ✅ allow dropdown to overflow */
+  position: relative; /* ✅ needed for absolute positioning context */
 }
 
 /* ✅ Page Title */
@@ -101,6 +103,11 @@
     background: #f1f1f1;
 }
 
+.admin-dashboard tr {
+    overflow: visible;
+    height: auto; /* don't force height that might cut dropdown */
+  }
+  
 /* ✅ Grade & View Buttons */
 .admin-dashboard button {
     padding: 6px 12px;
@@ -242,3 +249,162 @@
     background: #c0392b;
 }
 
+/* ✅ Align Program + Course Section */
+.admin-dashboard .courses-container {
+    flex-wrap: wrap;
+    gap: 15px;
+  }
+  
+  .admin-dashboard .courses-container select,
+  .admin-dashboard .courses-container button {
+    margin: 5px 0;
+  }
+  
+  /* ✅ Fix label + select alignment */
+  .admin-dashboard label {
+    display: inline-block;
+    margin-bottom: 6px;
+    font-weight: bold;
+    color: #2c3e50;
+  }
+  
+  /* ✅ Align error message with select */
+  .admin-dashboard .courses-container .course-error {
+    color: #e74c3c;
+    font-weight: bold;
+    margin-top: -10px;
+    margin-bottom: 10px;
+  }
+  
+  /* ✅ Adjust button spacing */
+  .admin-dashboard .courses-container button {
+    margin-left: 10px;
+  }
+  
+  /* ✅ Better spacing for search + sort */
+  .admin-dashboard .search-box {
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  
+  .admin-dashboard .search-box input[type="text"],
+  .admin-dashboard .search-box select {
+    flex: 1;
+    min-width: 200px;
+  }
+  
+  /* ✅ Media column link spacing */
+  .admin-dashboard td a {
+    margin-right: 6px;
+    color: #2980b9;
+    text-decoration: none;
+  }
+  
+  .admin-dashboard td a:hover {
+    text-decoration: underline;
+  }
+  
+  /* ✅ Dropdown file links (Admin/Student Dashboard) */
+  .dropdown-container {
+    position: relative;
+    display: inline-block;
+  }
+  
+  .dropdown-button {
+    background-color: #27ae60;
+    color: white;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  
+  .dropdown-button:hover {
+    background-color: #27ae60;
+  }
+  
+  .dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: white;
+    border-radius: 6px;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.1);
+    padding: 8px 12px;
+    z-index: 1;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  
+  .dropdown-container:hover .dropdown-content {
+    display: block;
+    opacity: 1;
+  transform: translateY(0);
+  }
+  
+  .dropdown-content a {
+    display: block;
+    padding: 6px 0;
+    color: #2c3e50;
+  }
+  .admin-dashboard td {
+    color: #333;
+    vertical-align: middle; /* ✅ Aligns all cell contents centrally */
+    padding: 12px;
+  }
+/* ✅ Compact Row Height Without Reducing Font Size */
+.admin-dashboard th,
+.admin-dashboard td {
+  padding-top: 4px;
+  padding-bottom: 4px;
+  padding-left: 8px;
+  padding-right: 8px;
+  line-height: 1.1;         /* Tighter vertical spacing */
+  vertical-align: middle;   /* Align everything nicely in the center */
+  height: 30px;             /* Explicit row height */
+}
+.dropdown-container {
+    position: relative;
+    display: inline-block;
+  }
+  
+  .dropdown-button {
+    background-color: #27ae60;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+    min-width: 90px;
+  }
+  
+  .dropdown-button:hover {
+    background-color: #219150;
+  }
+  
+  .dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: white;
+    border-radius: 6px;
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.1);
+    padding: 8px 12px;
+    min-width: 160px;
+    z-index: 1;
+  }
+  
+  .dropdown-container:hover .dropdown-content {
+    display: block;
+  }
+  
+  /* ⬆ Show above when close to bottom */
+  .dropdown-container.upward .dropdown-content {
+    bottom: 100%;
+    top: auto;
+  }
+  

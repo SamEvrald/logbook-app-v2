@@ -94,12 +94,12 @@ const StudentLoginPage = () => {
 
         {/* ✅ Moodle Instance Selection */}
         <div>
-          <label>Select Moodle Instance:</label>
+          <label>Select Program:</label>
           <select value={selectedInstance} onChange={(e) => setSelectedInstance(e.target.value)} required>
-            <option value="">Select Instance</option>
+            <option value="">Select Program</option>
             {moodleInstances.map((instance) => (
               <option key={instance.id} value={instance.base_url}>
-                {instance.name} ({instance.base_url})
+                {instance.name}
               </option>
             ))}
           </select>
