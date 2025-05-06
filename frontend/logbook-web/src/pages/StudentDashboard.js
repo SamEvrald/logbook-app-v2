@@ -131,11 +131,10 @@ const StudentDashboard = () => {
       <h2>Welcome, {user?.fullname || user?.username}!</h2>
 
       <div className="instructions">
-        <button onClick={() => navigate("/instructions")} > 
-          Logbook Entry Instructions
-        </button>
-      </div>
-
+  <button onClick={() => window.open("https://shorturl.at/JAddI", "_blank")}>
+    Logbook Entry Instructions
+  </button>
+</div>
       {/* ✅ Display Enrolled Courses */}
       <h3>Your Courses:</h3>
       {courses.length === 0 ? (
