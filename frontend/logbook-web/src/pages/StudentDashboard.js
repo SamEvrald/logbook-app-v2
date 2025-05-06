@@ -130,11 +130,16 @@ const StudentDashboard = () => {
 
       <h2>Welcome, {user?.fullname || user?.username}!</h2>
 
-      <div className="instructions">
-  <button onClick={() => window.open("https://shorturl.at/JAddI", "_blank")}>
-    Logbook Instructions
-  </button>
+   <div className="instructions">
+  <a 
+    href="https://shorturl.at/JAddI" 
+    target="_blank" 
+    rel="noopener noreferrer"
+  >
+    <button>Logbook Instructions</button>
+  </a>
 </div>
+
       {/* ✅ Display Enrolled Courses */}
       <h3>Your Courses:</h3>
       {courses.length === 0 ? (
