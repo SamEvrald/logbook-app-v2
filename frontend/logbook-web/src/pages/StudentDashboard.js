@@ -132,7 +132,7 @@ const StudentDashboard = () => {
 
       <div className="instructions">
   <button onClick={() => window.open("https://shorturl.at/JAddI", "_blank")}>
-    Logbook Entry Instructions
+    Logbook Instructions
   </button>
 </div>
       {/* ✅ Display Enrolled Courses */}
