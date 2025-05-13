@@ -133,15 +133,16 @@ const getSubmittedEntries = async (req, res) => {
         const [entries] = await db.promise().query(
             `SELECT le.id, le.case_number, le.student_id, le.type_of_work, le.pathology, 
                     le.content AS task_description, le.consent_form, le.work_completed_date, 
-                    le.media_link, le.grade, le.feedback, le.status,
+                    le.media_link, le.grade, le.feedback, le.status, le.allow_resubmit,  -- ✅ Here
                     u.username AS student_name, c.fullname AS course_name
              FROM logbook_entries le
              JOIN users u ON le.student_id = u.id 
              JOIN courses c ON le.course_id = c.id
-             WHERE le.course_id IN (?) AND le.status IN ('submitted', 'graded') -- 🔥 FIXED: Now includes graded entries
+             WHERE le.course_id IN (?) AND le.status IN ('submitted', 'graded')
              ORDER BY le.status DESC, le.work_completed_date DESC`,
             [courseIds]
-        );
+          );
+          
 
         res.status(200).json({ entries });
     } catch (error) {
