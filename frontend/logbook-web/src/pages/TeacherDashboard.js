@@ -284,24 +284,28 @@ const handleGradeEntry = (entryId) => {
     if (!entry.media_link) return "Not Provided";
 
     let mediaArray = [];
-
     try {
       mediaArray = JSON.parse(entry.media_link);
     } catch {
-      mediaArray = [entry.media_link]; // fallback to string as single file
-    }
-
-    if (mediaArray.length === 1) {
-      return (
-        <a href={mediaArray[0]} target="_blank" rel="noopener noreferrer">
-          File
-        </a>
-      );
+      mediaArray = [entry.media_link]; // fallback if it's not JSON
     }
 
     return (
-      <div className="dropdown">
-        {/* <button className="dropdown-button">View Files ({mediaArray.length}) ⬇</button> */}
+      <div
+        className="dropdown-container"
+        ref={(el) => {
+          if (el) {
+            const rect = el.getBoundingClientRect();
+            const windowHeight = window.innerHeight;
+            if (rect.bottom + 150 > windowHeight) {
+              el.classList.add("upward");
+            } else {
+              el.classList.remove("upward");
+            }
+          }
+        }}
+      >
+        <button className="dropdown-button">View Files</button>
         <div className="dropdown-content">
           {mediaArray.map((url, idx) => (
             <a key={idx} href={url} target="_blank" rel="noopener noreferrer">
@@ -313,7 +317,6 @@ const handleGradeEntry = (entryId) => {
     );
   })()}
 </td>
-
 
 
                 <td>{entry.consent_form === "yes" ? "Yes" : "No"}</td>
