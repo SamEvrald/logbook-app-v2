@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const multer = require("multer");
 
+
 const {
   createEntry,
   getStudentEntries,
@@ -16,6 +17,7 @@ const {
 
 const authMiddleware = require("../middleware/authMiddleware");
 const roleMiddleware = require("../middleware/roleMiddleware");
+
 
 // ✅ Student creates a logbook entry (Now supports file upload)
 // ✅ Use Cloudinary upload middleware
