@@ -5,10 +5,17 @@ import Footer from "../components/Footer";
 import TopBar from "../components/Shared/TopBar";
 import { FaBell } from "react-icons/fa"; // ✅ Import Icons
 import "../styles/TeacherDashboard.css";
+import { useCallback, useMemo } from "react";
+
+
 
 const TeacherDashboard = () => {
   const navigate = useNavigate();
-  const storedUser = localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")) : null;
+  const storedUser = useMemo(() => {
+    const user = localStorage.getItem("user");
+    return user ? JSON.parse(user) : null;
+  }, []);
+  
   const token = localStorage.getItem("token");
 
   const [teacherName] = useState(storedUser?.username || "Unknown");
@@ -62,44 +69,41 @@ const TeacherDashboard = () => {
   // ✅ Profile Dropdown
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
-  useEffect(() => {
-    if (!storedUser || storedUser.role !== "teacher") {
-      navigate("/login/teacher");
-      return;
-    }
-    if (!token) {
-      navigate("/login/teacher");
-      return;
-    }
-    fetchDashboard();
-  }, [storedUser, token, navigate]);
 
- 
+  // ✅ 1. Define fetchDashboard first
+const fetchDashboard = useCallback(async () => {
+  try {
+    const coursesResponse = await API.get(`/teachers/${storedUser.email}/courses`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    setCourses(coursesResponse.data.courses || []);
+
+    const entriesResponse = await API.get(`/teachers/${storedUser.email}/entries`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    setEntries(entriesResponse.data.entries || []);
+    setFilteredEntries(entriesResponse.data.entries || []);
+  } catch (error) {
+    console.error("❌ Failed to fetch teacher dashboard:", error.response?.data || error.message);
+    if (error.response?.status === 401) {
+      navigate("/login/teacher");
+    }
+  } finally {
+    setLoading(false);
+  }
+}, [storedUser?.email, token, navigate]);
+
+// ✅ 2. Then use it in useEffect
+useEffect(() => {
+  if (!storedUser || storedUser.role !== "teacher" || !token) {
+    navigate("/login/teacher");
+    return;
+  }
+
+  fetchDashboard();
+}, [fetchDashboard, storedUser, token, navigate]);
+
   
-
-  const fetchDashboard = async () => {
-    try {
-      // ✅ Fetch teacher's courses
-      const coursesResponse = await API.get(`/teachers/${storedUser.email}/courses`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setCourses(coursesResponse.data.courses || []);
-
-      // ✅ Fetch teacher's submitted entries
-      const entriesResponse = await API.get(`/teachers/${storedUser.email}/entries`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setEntries(entriesResponse.data.entries || []);
-      setFilteredEntries(entriesResponse.data.entries || []);
-    } catch (error) {
-      console.error("❌ Failed to fetch teacher dashboard:", error.response?.data || error.message);
-      if (error.response?.status === 401) {
-        navigate("/login/teacher");
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
 
 //   const handleGradeEntry = async (entryId) => {
 //     try {
@@ -126,6 +130,26 @@ const handleGradeEntry = (entryId) => {
     localStorage.removeItem("token");
     navigate("/login");
   };
+
+  const allowResubmission = async (entryId) => {
+    try {
+      const confirm = window.confirm("Are you sure you want to allow resubmission for this entry?");
+      if (!confirm) return;
+  
+      await API.put(`/teachers/entries/${entryId}/allow-resubmit`, null, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      
+  
+      alert("✅ Resubmission allowed.");
+      await fetchDashboard(); // in `allowResubmission` or grade handlers
+
+    } catch (error) {
+      console.error("❌ Failed to allow resubmission:", error.response?.data || error.message);
+      alert("❌ Failed to allow resubmission.");
+    }
+  };
+  
 
   // ✅ Profile Initials Generator
   const getProfileInitials = () => {
@@ -300,8 +324,18 @@ const handleGradeEntry = (entryId) => {
                   {entry.status === "graded" ? "Graded" : "Waiting for Grading"}
                 </td>
                 <td>
-                  <button className="grade-btn" onClick={() => handleGradeEntry(entry.id)}>Grade</button>
-                </td>
+  <button className="grade-btn" onClick={() => handleGradeEntry(entry.id)}>Grade</button>
+  {entry.status === "graded" && !entry.allow_resubmit && (
+    <button
+      className="grade-btn"
+      style={{ backgroundColor: "#2980b9", marginTop: "5px" }}
+      onClick={() => allowResubmission(entry.id)}
+    >
+      Allow Resubmit
+    </button>
+  )}
+</td>
+
               </tr>
             ))}
           </tbody>
