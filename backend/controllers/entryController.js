@@ -33,6 +33,8 @@ const storage = new CloudinaryStorage({
 const upload = multer({ storage });
 exports.upload = upload;
 
+
+
 exports.createEntry = async (req, res) => {
   try {
     console.log("📌 Received Entry Submission:", req.body);
@@ -73,6 +75,27 @@ exports.createEntry = async (req, res) => {
       return res.status(404).json({ message: "❌ No user found with this Moodle ID." });
     }
     const studentId = userRows[0].id;
+
+    // ✅ Prevent duplicate submissions unless resubmission is allowed
+const [existingEntries] = await db.promise().query(
+  `SELECT * FROM logbook_entries 
+   WHERE student_id = ? AND assignment_id = ? AND moodle_instance_id = ? 
+   ORDER BY entry_date DESC LIMIT 1`,
+  [studentId, assignmentId, moodle_instance_id]
+);
+
+if (existingEntries.length > 0) {
+  const latestEntry = existingEntries[0];
+
+  if (latestEntry.status === "graded" && !latestEntry.allow_resubmit) {
+    return res.status(400).json({ message: "❌ This entry is graded and locked. Resubmission is not allowed unless permitted by the teacher." });
+  }
+
+  if (latestEntry.status === "submitted") {
+    return res.status(400).json({ message: "❌ You already submitted this entry and it's awaiting grading." });
+  }
+}
+
 
     // ✅ Ensure course exists
     let [courseRows] = await db.promise().query("SELECT * FROM courses WHERE id = ? AND moodle_instance_id = ?", [courseId, moodle_instance_id]);
@@ -173,6 +196,29 @@ exports.createEntry = async (req, res) => {
         return res.status(500).json({ message: "❌ Failed to fetch assignments from Moodle.", error: error.message });
       }
     }
+    // ✅ Check if entry already exists for this student + course + assignment
+const [existingRows] = await db.promise().query(
+  `SELECT * FROM logbook_entries 
+   WHERE student_id = ? AND course_id = ? AND assignment_id = ?`,
+  [studentId, courseId, assignmentId]
+);
+
+if (existingRows.length > 0) {
+  const existingEntry = existingRows[0];
+  if (!existingEntry.allow_resubmit) {
+    return res.status(400).json({
+      message: "❌ You already submitted this entry. Wait for your teacher to allow a resubmission.",
+    });
+  } else {
+    // ✅ Optionally delete the previous entry if overwrite is expected
+    await db.promise().query(
+      `DELETE FROM logbook_entries 
+       WHERE id = ?`,
+      [existingEntry.id]
+    );
+  }
+}
+
 
     // ✅ Generate Case Number
     const caseNumber = await generateCaseNumber(courseId, courseName);
@@ -200,6 +246,23 @@ exports.createEntry = async (req, res) => {
 
 // ✅ Export `upload` middleware for handling file uploads
 exports.upload = upload;
+
+exports.allowResubmit = async (req, res) => {
+  try {
+    const [result] = await db
+      .promise()
+      .query("UPDATE logbook_entries SET allow_resubmit = 1 WHERE id = ?", [req.params.id]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Entry not found." });
+    }
+
+    res.json({ message: "Resubmission allowed." });
+  } catch (err) {
+    console.error("❌ Error in allowResubmit:", err.message);
+    res.status(500).json({ error: "Failed to allow resubmission." });
+  }
+};
 
 
 // ✅ Fetch all logbook entries for a student
