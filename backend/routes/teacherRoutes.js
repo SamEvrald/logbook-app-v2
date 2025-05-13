@@ -7,10 +7,14 @@ const {
   gradeEntry,
   getTeacherCourses,
 } = require("../controllers/teacherController");
+const { allowResubmit } = require("../controllers/entryController"); // ✅ Make sure it's imported
+
 
 const authMiddleware = require("../middleware/authMiddleware");
 const roleMiddleware = require("../middleware/roleMiddleware");
 
+// ✅ Allow resubmission for an entry (Teacher action)
+router.put("/entries/:id/allow-resubmit", authMiddleware, roleMiddleware("teacher"), allowResubmit);
 
 // ✅ Teacher Signup
 router.post("/signup", signupTeacher);
