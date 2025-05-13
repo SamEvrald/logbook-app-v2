@@ -130,15 +130,12 @@ const StudentDashboard = () => {
 
       <h2>Welcome, {user?.fullname || user?.username}!</h2>
 
-   <div className="instructions">
-  <a 
-    href="https://shorturl.at/JAddI" 
-    target="_blank" 
-    rel="noopener noreferrer"
-  >
-    <button>Logbook Instructions</button>
-  </a>
+      <div className="instructions">
+  <button onClick={() => window.open("https://shorturl.at/JAddI", "_blank")}>
+    Logbook Entry Instructions
+  </button>
 </div>
+
 
       {/* ✅ Display Enrolled Courses */}
       <h3>Your Courses:</h3>
@@ -239,7 +236,11 @@ const StudentDashboard = () => {
                   <td>{entry.grade !== null ? entry.grade : "-"}</td>
                   <td>{entry.feedback || "No feedback yet"}</td>
                   <td style={{ fontWeight: "bold", color: entry.status === "graded" ? "green" : "orange" }}>
-                                    {entry.status === "graded" ? "Graded" : "Waiting for Grading"}
+                  {entry.status === "graded"
+  ? entry.allow_resubmit
+    ? "Graded - You may resubmit"
+    : "Graded"
+  : "Waiting for Grading"}
                                 </td>
                   
                 </tr>
