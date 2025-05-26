@@ -43,21 +43,44 @@ const TeacherDashboard = () => {
       );
     }
 
-    if (selectedCourse) {
-      filtered = filtered.filter((entry) => entry.course_id === parseInt(selectedCourse));
-    }
+  if (selectedCourse) {
+  filtered = filtered.filter((entry) => 
+    String(entry.course_id) === String(selectedCourse)
+  );
+}
+
 
     if (selectedStatus) {
       filtered = filtered.filter((entry) => entry.status === selectedStatus);
     }
 
     // ✅ Sorting
-    filtered.sort((a, b) => {
-      if (sortBy === "entry_date") return new Date(b.work_completed_date) - new Date(a.work_completed_date);
-      if (sortBy === "grade") return (b.grade || 0) - (a.grade || 0);
-      if (sortBy === "status") return a.status.localeCompare(b.status);
-      return 0;
-    });
+   filtered.sort((a, b) => {
+  // Sort by Date (newest first)
+  if (sortBy === "entry_date") {
+    const dateA = a.work_completed_date ? new Date(a.work_completed_date) : new Date(0);
+    const dateB = b.work_completed_date ? new Date(b.work_completed_date) : new Date(0);
+    return dateB - dateA; // Newest first
+  }
+
+  // Sort by Grade (highest first)
+  if (sortBy === "grade") {
+    const gradeA = parseFloat(a.grade) || 0;
+    const gradeB = parseFloat(b.grade) || 0;
+    return gradeB - gradeA; // Highest first
+  }
+
+  // Sort by Status (submitted first, then graded)
+  if (sortBy === "status") {
+    // Custom order - submitted comes before graded
+    if (a.status === b.status) return 0;
+    if (a.status === "submitted") return -1;
+    if (b.status === "submitted") return 1;
+    return a.status.localeCompare(b.status);
+  }
+
+  return 0;
+});
 
     setFilteredEntries(filtered);
   }, [searchQuery, selectedCourse, selectedStatus, sortBy, entries]);
@@ -171,14 +194,16 @@ const handleGradeEntry = (entryId) => {
 
   // ✅ Handle Filtering by Course
   const handleFilterCourse = (courseId) => {
-    setSelectedCourse(courseId);
-    if (!courseId) {
-      setFilteredEntries(entries);
-      return;
-    }
-    const filtered = entries.filter((entry) => entry.course_id === parseInt(courseId));
-    setFilteredEntries(filtered);
-  };
+  setSelectedCourse(courseId);
+  if (!courseId) {
+    setFilteredEntries(entries);
+    return;
+  }
+  const filtered = entries.filter((entry) => 
+    String(entry.course_id) === String(courseId)
+  );
+  setFilteredEntries(filtered);
+};
 
   // ✅ Pagination Logic
   const indexOfLastEntry = currentPage * entriesPerPage;
@@ -215,18 +240,19 @@ const handleGradeEntry = (entryId) => {
         {courses.length > 0 && (
           <select value={selectedCourse} onChange={(e) => setSelectedCourse(e.target.value)}>
             <option value="">-- Filter by Course --</option>
-            {courses.map((course) => (
-              <option key={course.id} value={course.id}>
-                {course.fullname}
-              </option>
-            ))}
+            {[...new Map(courses.map(course => [course.id, course])).values()].map(course => (
+  <option key={course.id} value={course.id}>
+    {course.fullname}
+  </option>
+))}
+
           </select>
         )}
 
         {/* ✅ Status Filter */}
         <select value={selectedStatus} onChange={(e) => setSelectedStatus(e.target.value)}>
           <option value="">-- Filter by Status --</option>
-          <option value="submitted">Submitted</option>
+          <option value="submitted">Not Graded</option>
           <option value="graded">Graded</option>
         </select>
 
