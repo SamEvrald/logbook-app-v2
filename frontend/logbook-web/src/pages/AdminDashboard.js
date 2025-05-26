@@ -187,17 +187,38 @@ const handleAssignCourse = async () => {
 
   // ✅ Handle Sorting
   const handleSort = (criteria) => {
-    setSortBy(criteria);
-    const sorted = [...filteredEntries].sort((a, b) => {
-      if (criteria === "entry_date") {
-        return new Date(b.entry_date) - new Date(a.entry_date);
-      } else if (criteria === "grade") {
-        return b.grade - a.grade;
-      }
-      return 0;
-    });
-    setFilteredEntries(sorted);
-  };
+  setSortBy(criteria);
+  
+  const sorted = [...filteredEntries].sort((a, b) => {
+    // Sort by entry date (newest first)
+    if (criteria === "entry_date") {
+      const dateA = a.entry_date ? new Date(a.entry_date) : new Date(0);
+      const dateB = b.entry_date ? new Date(b.entry_date) : new Date(0);
+      return dateB - dateA;
+    }
+    
+    // Sort by grade (highest first)
+    if (criteria === "grade") {
+      const gradeA = parseFloat(a.grade) || 0;
+      const gradeB = parseFloat(b.grade) || 0;
+      return gradeB - gradeA;
+    }
+    
+    // Sort by student name (A-Z)
+    if (criteria === "student") {
+      // Handle missing student names by putting them last
+      if (!a.student && !b.student) return 0;
+      if (!a.student) return 1;
+      if (!b.student) return -1;
+      
+      return a.student.localeCompare(b.student);
+    }
+    
+    return 0;
+  });
+  
+  setFilteredEntries(sorted);
+};
 
     // // ✅ Logout Function
     const handleLogout = () => {
@@ -258,6 +279,7 @@ const getProfileInitials = () => {
         <select onChange={(e) => handleSort(e.target.value)} value={sortBy}>
           <option value="entry_date">Sort by Entry Date</option>
           <option value="grade">Sort by Grade</option>
+          <option value="student">Sort by Student (A-Z)</option>
         </select>
       </div>
 
@@ -371,9 +393,9 @@ const getProfileInitials = () => {
             const windowHeight = window.innerHeight;
             if (rect.bottom + 150 > windowHeight) {
               el.classList.add("upward");
-            }// } else {
-            //   el.classList.remove("upward");
-            // }
+            } else {
+              el.classList.remove("upward");
+            }
           }
         }}
       >
