@@ -194,16 +194,20 @@ const handleGradeEntry = (entryId) => {
   };
 
   // ✅ Handle Filtering by Course
-  const handleFilterCourse = (courseId) => {
+//   const handleFilterCourse = (courseId) => {
+//   setSelectedCourse(courseId);
+//   if (!courseId) {
+//     setFilteredEntries(entries);
+//     return;
+//   }
+//   const filtered = entries.filter((entry) => 
+//     String(entry.course_id) === String(courseId)
+//   );
+//   setFilteredEntries(filtered);
+// };
+
+const handleFilterCourse = (courseId) => {
   setSelectedCourse(courseId);
-  if (!courseId) {
-    setFilteredEntries(entries);
-    return;
-  }
-  const filtered = entries.filter((entry) => 
-    String(entry.course_id) === String(courseId)
-  );
-  setFilteredEntries(filtered);
 };
 
   // ✅ Pagination Logic
