@@ -239,7 +239,8 @@ const handleGradeEntry = (entryId) => {
      <div className="filters">
         {/* ✅ Course Filter */}
         {courses.length > 0 && (
-          <select value={selectedCourse} onChange={(e) => setSelectedCourse(e.target.value)}>
+          <select value={selectedCourse} onChange={(e) => handleFilterCourse(e.target.value)}>
+
             <option value="">-- Filter by Course --</option>
             {[...new Map(courses.map(course => [course.id, course])).values()].map(course => (
   <option key={course.id} value={course.id}>
