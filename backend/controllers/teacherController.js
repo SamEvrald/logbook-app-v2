@@ -133,7 +133,7 @@ const getSubmittedEntries = async (req, res) => {
         const [entries] = await db.promise().query(
             `SELECT le.id, le.case_number, le.student_id, le.type_of_work, le.pathology, 
                     le.content AS task_description, le.consent_form, le.work_completed_date, 
-                    le.media_link, le.grade, le.feedback, le.status, le.allow_resubmit,  -- ✅ Here
+                    le.media_link, le.grade, le.feedback, le.status, le.allow_resubmit, le.course_id,  -- ✅ Here
                     u.username AS student_name, c.fullname AS course_name
              FROM logbook_entries le
              JOIN users u ON le.student_id = u.id 
