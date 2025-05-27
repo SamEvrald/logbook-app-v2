@@ -85,15 +85,15 @@ const TeacherDashboard = () => {
     setFilteredEntries(filtered);
   }, [searchQuery, selectedCourse, selectedStatus, sortBy, entries]);
 
-  // ✅ Pagination state
+  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const entriesPerPage = 6;
 
-  // ✅ Profile Dropdown
+  // Profile Dropdown
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
 
-  // ✅ 1. Define fetchDashboard first
+  // 1. Define fetchDashboard first
 const fetchDashboard = useCallback(async () => {
   try {
     const coursesResponse = await API.get(`/teachers/${storedUser.email}/courses`, {
@@ -116,7 +116,7 @@ const fetchDashboard = useCallback(async () => {
   }
 }, [storedUser?.email, token, navigate]);
 
-// ✅ 2. Then use it in useEffect
+// 2. Then use it in useEffect
 useEffect(() => {
   if (!storedUser || storedUser.role !== "teacher" || !token) {
     navigate("/login/teacher");
