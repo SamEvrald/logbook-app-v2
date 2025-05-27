@@ -124,8 +124,18 @@ useEffect(() => {
     return;
   }
 
-  fetchDashboard();
+  const loadData = async () => {
+    await fetchDashboard();
+
+    // 🟢 Expose to browser console for debugging
+    window.entries = entries;
+    window.courses = courses;
+    console.log("✅ window.entries & window.courses now accessible in console.");
+  };
+
+  loadData();
 }, [fetchDashboard, storedUser, token, navigate]);
+
 
   
 
