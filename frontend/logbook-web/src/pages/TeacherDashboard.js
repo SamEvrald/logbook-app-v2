@@ -104,6 +104,7 @@ const fetchDashboard = useCallback(async () => {
     const entriesResponse = await API.get(`/teachers/${storedUser.email}/entries`, {
       headers: { Authorization: `Bearer ${token}` },
     });
+    console.log("✅ Entries Response:", entriesResponse.data.entries);
     setEntries(entriesResponse.data.entries || []);
     setFilteredEntries(entriesResponse.data.entries || []);
   } catch (error) {
