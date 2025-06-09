@@ -101,48 +101,103 @@ const getTeacherCourses = async (req, res) => {
 };
 
 // ✅ Fetch Submitted Entries for Assigned Courses
+// const getSubmittedEntries = async (req, res) => {
+//     try {
+//         const { teacherEmail } = req.params;
+
+//         // 🔍 Get teacher ID
+//         const [teacher] = await db.promise().query(
+//             "SELECT id FROM teachers WHERE email = ?",
+//             [teacherEmail]
+//         );
+
+//         if (teacher.length === 0) {
+//             return res.status(404).json({ message: "Teacher not found" });
+//         }
+
+//         const teacherId = teacher[0].id;
+
+//         // 🔍 Get courses assigned to this teacher
+//         const [assignedCourses] = await db.promise().query(
+//             "SELECT course_id FROM teacher_courses WHERE teacher_id = ?",
+//             [teacherId]
+//         );
+
+//         if (assignedCourses.length === 0) {
+//             return res.json({ message: "No courses assigned to this teacher.", entries: [] });
+//         }
+
+//         const courseIds = assignedCourses.map(course => course.course_id);
+
+//         // 🔍 Get submitted AND graded logbook entries
+//         const [entries] = await db.promise().query(
+//             `SELECT le.id, le.case_number, le.student_id, le.type_of_work, le.pathology, 
+//                     le.content AS task_description, le.consent_form, le.work_completed_date, 
+//                     le.media_link, le.grade, le.feedback, le.status, le.allow_resubmit, le.course_id,  -- ✅ Here
+//                     u.username AS student_name, c.fullname AS course_name
+//              FROM logbook_entries le
+//              JOIN users u ON le.student_id = u.id 
+//              JOIN courses c ON le.course_id = c.id
+//              WHERE le.course_id IN (?) AND le.status IN ('submitted', 'graded')
+//              ORDER BY le.status DESC, le.work_completed_date DESC`,
+//             [courseIds]
+//           );
+          
+
+//         res.status(200).json({ entries });
+//     } catch (error) {
+//         console.error("❌ Fetch Entries Error:", error);
+//         res.status(500).json({ message: "Failed to fetch submitted entries.", error: error.message });
+//     }
+// };
+
+  // teacherController.js
+
 const getSubmittedEntries = async (req, res) => {
     try {
-        const { teacherEmail } = req.params;
+        const { teacherEmail } = req.params; // Or req.user.email if using auth middleware
+        console.log(`DEBUG: Attempting to fetch entries for teacherEmail: ${teacherEmail}`);
 
-        // 🔍 Get teacher ID
         const [teacher] = await db.promise().query(
             "SELECT id FROM teachers WHERE email = ?",
             [teacherEmail]
         );
 
         if (teacher.length === 0) {
+            console.log(`DEBUG: Teacher with email ${teacherEmail} not found.`);
             return res.status(404).json({ message: "Teacher not found" });
         }
-
         const teacherId = teacher[0].id;
 
-        // 🔍 Get courses assigned to this teacher
         const [assignedCourses] = await db.promise().query(
             "SELECT course_id FROM teacher_courses WHERE teacher_id = ?",
             [teacherId]
         );
 
         if (assignedCourses.length === 0) {
+            console.log(`DEBUG: No courses assigned to teacher ID: ${teacherId}.`);
             return res.json({ message: "No courses assigned to this teacher.", entries: [] });
         }
 
         const courseIds = assignedCourses.map(course => course.course_id);
+        console.log("DEBUG: Course IDs for this teacher:", courseIds);
 
-        // 🔍 Get submitted AND graded logbook entries
         const [entries] = await db.promise().query(
-            `SELECT le.id, le.case_number, le.student_id, le.type_of_work, le.pathology, 
-                    le.content AS task_description, le.consent_form, le.work_completed_date, 
-                    le.media_link, le.grade, le.feedback, le.status, le.allow_resubmit, le.course_id,  -- ✅ Here
+            `SELECT le.id, le.case_number, le.student_id, le.type_of_work, le.pathology,
+                    le.content AS task_description, le.consent_form, le.work_completed_date,
+                    le.media_link, le.grade, le.feedback, le.status, le.allow_resubmit, le.course_id,
+                    le.teacher_media_link,  -- ✅ Include this column
                     u.username AS student_name, c.fullname AS course_name
              FROM logbook_entries le
-             JOIN users u ON le.student_id = u.id 
+             JOIN users u ON le.student_id = u.id
              JOIN courses c ON le.course_id = c.id
-             WHERE le.course_id IN (?) AND le.status IN ('submitted', 'graded')
+             WHERE le.course_id IN (?) AND le.status IN ('submitted', 'graded', 'synced') -- ✅ Include 'synced' here if teachers should see them
              ORDER BY le.status DESC, le.work_completed_date DESC`,
             [courseIds]
           );
-          
+
+        console.log("DEBUG: Final entries fetched:", entries);
+        console.log(`DEBUG: Number of entries fetched: ${entries.length}`);
 
         res.status(200).json({ entries });
     } catch (error) {
@@ -151,22 +206,44 @@ const getSubmittedEntries = async (req, res) => {
     }
 };
 
-  
-  
-
 
 /// ✅ Grade an Entry & Sync to Moodle
 const gradeEntry = async (req, res) => {
     try {
         const { entryId, grade, feedback } = req.body;
+        let teacher_media_link = null; // Initialize to null
 
-        if (!entryId || grade === undefined) {
+        // Input validation for required fields
+        if (!entryId || grade === undefined || grade === null || grade === "") {
+            // Added explicit checks for null and empty string for grade
             return res.status(400).json({ message: "Entry ID and grade are required." });
         }
 
-        // 🔍 Fetch entry details
+        // --- Start: Handle Teacher Media Upload ---
+        if (req.file) {
+            try {
+                // Ensure the dataUri parser is correctly formatting the file
+                const fileUri = dataUri(req).content;
+                const result = await cloudinary.uploader.upload(fileUri, {
+                    folder: "teacher_feedback_media", // Organize uploads in a specific folder
+                    resource_type: "auto", // Automatically detect image/video
+                });
+                teacher_media_link = result.secure_url;
+                console.log("✅ Teacher media uploaded to Cloudinary:", teacher_media_link);
+            } catch (uploadError) {
+                console.error("❌ Cloudinary Upload Error for teacher media:", uploadError);
+                // Decide how to handle upload errors:
+                // Option 1: Log the error and continue without the media link.
+                // Option 2: Return an error to the client immediately.
+                // For this example, we log and continue, allowing the grade to be saved.
+                // The `teacher_media_link` will remain `null`.
+            }
+        }
+        // --- End: Handle Teacher Media Upload ---
+
+        // 🔍 Fetch entry details (student_id, assignment_id, moodle_instance_id, moodle_id)
         const [entryRows] = await db.promise().query(
-            `SELECT le.student_id, le.assignment_id, le.moodle_instance_id, u.moodle_id 
+            `SELECT le.student_id, le.assignment_id, le.moodle_instance_id, u.moodle_id
              FROM logbook_entries le
              JOIN users u ON le.student_id = u.id
              WHERE le.id = ?`,
@@ -182,24 +259,26 @@ const gradeEntry = async (req, res) => {
         const assignmentId = entry.assignment_id;
         const moodleInstanceId = entry.moodle_instance_id;
 
-        // ✅ Update entry with grade & feedback
+        // ✅ Update entry in local database with grade, feedback, and teacher_media_link
+        // Ensure 'status' is set to 'graded' as per your ENUM definition
         await db.promise().query(
-            `UPDATE logbook_entries 
-             SET grade = ?, feedback = ?, status = 'graded' 
+            `UPDATE logbook_entries
+             SET grade = ?, feedback = ?, teacher_media_link = ?, status = 'graded'
              WHERE id = ?`,
-            [grade, feedback, entryId]
+            [grade, feedback, teacher_media_link, entryId]
         );
 
-        console.log(`✅ Entry graded successfully for Moodle User ID: ${moodleUserId} | Assignment ID: ${assignmentId}`);
+        console.log(`✅ Entry updated in local DB (graded) for Entry ID: ${entryId}`);
 
-        // ✅ Fetch Moodle instance details
+        // ✅ Fetch Moodle instance details (base_url, api_token)
         const [instanceRows] = await db.promise().query(
-            "SELECT base_url, api_token FROM moodle_instances WHERE id = ?", 
+            "SELECT base_url, api_token FROM moodle_instances WHERE id = ?",
             [moodleInstanceId]
         );
 
         if (instanceRows.length === 0) {
-            return res.status(404).json({ message: "Moodle instance not found." });
+            console.warn(`⚠️ Moodle instance not found for ID: ${moodleInstanceId}. Skipping Moodle sync.`);
+            return res.status(200).json({ message: "✅ Grade successfully saved locally. Moodle sync skipped (instance not found)." });
         }
 
         const moodleInstance = instanceRows[0];
@@ -207,42 +286,48 @@ const gradeEntry = async (req, res) => {
         const moodleToken = moodleInstance.api_token;
 
         console.log(`🌍 Moodle URL: ${moodleUrl}`);
-        console.log(`🔑 Moodle API Token: ${moodleToken}`);
+        // console.log(`🔑 Moodle API Token: ${moodleToken}`); // Avoid logging sensitive tokens in production
 
         // ✅ Send grade to Moodle using `mod_assign_save_grade`
-        console.log(`🚀 Sending grade ${grade} to Moodle for Assignment ID: ${assignmentId}`);
+        console.log(`🚀 Sending grade ${grade} to Moodle for Moodle User ID: ${moodleUserId} | Assignment ID: ${assignmentId}`);
 
         const moodleGradeResponse = await axios.post(
             `${moodleUrl}/webservice/rest/server.php`,
-            null,
+            null, // No request body needed for params
             {
                 params: {
                     wstoken: moodleToken,
-                    wsfunction: "mod_assign_save_grade",  // ✅ Correct Moodle function
+                    wsfunction: "mod_assign_save_grade",
                     moodlewsrestformat: "json",
                     assignmentid: assignmentId,
                     userid: moodleUserId,
-                    grade: parseFloat(grade),
-                    attemptnumber: -1,
-                    addattempt: 0,
-                    workflowstate: "graded",
-                    applytoall: 0,
+                    grade: parseFloat(grade), // Ensure grade is a float for Moodle
+                    attemptnumber: -1,       // Grade the latest attempt
+                    addattempt: 0,           // Do not add a new attempt
+                    workflowstate: "graded", // Set submission status to graded
+                    applytoall: 0,           // Apply only to this submission
                 },
             }
         );
 
         console.log("✅ Moodle Grade Response:", moodleGradeResponse.data);
 
+        // Check for Moodle API errors
         if (moodleGradeResponse.data?.exception) {
             console.error("❌ Moodle API Error:", moodleGradeResponse.data.message);
-            return res.status(400).json({ message: `Moodle API Error: ${moodleGradeResponse.data.message}` });
+            // Optionally, you might want to revert the local grade or mark it as "sync_failed"
+            return res.status(400).json({ message: `Moodle API Error: ${moodleGradeResponse.data.message}`, error: moodleGradeResponse.data.message });
         }
 
-        res.status(200).json({ message: "✅ Grade successfully saved and synced to Moodle." });
+        res.status(200).json({ message: "✅ Grade successfully saved locally and synced to Moodle." });
 
     } catch (error) {
-        console.error("❌ Grading Error:", error.message);
-        res.status(500).json({ message: "Failed to grade entry or sync to Moodle.", error: error.message });
+        // Log the full error object for better debugging
+        console.error("❌ Grading Error (Full Details):", error);
+        res.status(500).json({
+            message: "Failed to grade entry or sync to Moodle.",
+            error: error.response?.data || error.message // Provide more specific error from axios if available
+        });
     }
 };
 // ✅ Export All Functions
