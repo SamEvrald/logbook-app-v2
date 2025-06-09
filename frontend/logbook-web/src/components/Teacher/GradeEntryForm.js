@@ -11,10 +11,10 @@ const GradeEntryForm = () => {
   const [feedback, setFeedback] = useState("");
   const [message, setMessage] = useState("");
   const [mediaFile, setMediaFile] = useState(null);
-  if (!entryId || !grade) {
-  setMessage("❌ Entry ID and grade are required.");
-  return;
-}
+//   if (!entryId || !grade) {
+//   setMessage("❌ Entry ID and grade are required.");
+//   return;
+// }
 
 
   const handleSubmit = async (e) => {
