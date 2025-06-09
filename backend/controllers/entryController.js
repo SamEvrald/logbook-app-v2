@@ -224,10 +224,10 @@ if (existingRows.length > 0) {
     const caseNumber = await generateCaseNumber(courseId, courseName);
 
     // ✅ Insert Logbook Entry
-    await db.promise().query(
+   await db.promise().query(
       `INSERT INTO logbook_entries 
        (case_number, student_id, course_id, assignment_id, type_of_work, pathology, clinical_info, content, consent_form, work_completed_date, media_link, moodle_instance_id, status) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'submitted')`,
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft')`, // <-- CHANGE THIS LINE
       [
         caseNumber, studentId, courseId, assignmentId, type_of_work, pathology || null,
         clinical_info || null, content, consentForm, work_completed_date,
@@ -235,10 +235,8 @@ if (existingRows.length > 0) {
       ]
     );
     
-
-    res.status(201).json({ message: "✅ Logbook entry created successfully.", case_number: caseNumber, mediaFiles });
-
-  } catch (error) {
+    res.status(201).json({ message: "✅ Logbook entry created successfully as draft.", case_number: caseNumber, mediaFiles });
+} catch (error) {
     console.error("❌ Database error:", error);
     res.status(500).json({ message: "Failed to create entry", error: error.message });
   }
@@ -313,7 +311,7 @@ exports.getSubmittedEntries = async (req, res) => {
 
   try {
     const [entries] = await db.promise().query(
-      `SELECT * FROM logbook_entries WHERE course_id = ? AND status = 'submitted'`,
+      `SELECT * FROM logbook_entries WHERE course_id = ? AND status = 'submitted'`, // <-- only 'submitted'
       [courseId]
     );
 
@@ -502,13 +500,20 @@ exports.gradeEntry = async (req, res) => {
 
 // ✅ Update Entry Status (Student submits logbook entry)
 exports.updateEntryStatus = async (req, res) => {
-  const { entryId, status } = req.body;
+  const { entryId, status } = req.body; // status should be 'submitted' from frontend
 
   if (!entryId || !status) {
     return res.status(400).json({ message: "Entry ID and status are required." });
   }
 
   try {
+    // Add validation to ensure students can only change to 'submitted'
+    if (status !== 'submitted') {
+        return res.status(403).json({ message: "Invalid status update. Students can only change status to 'submitted'." });
+    }
+
+    // You might also want to add `AND student_id = ? AND status = 'draft'` for security
+    // to prevent students from submitting other students' entries or already submitted/graded ones.
     await db.promise().query(
       `UPDATE logbook_entries SET status = ? WHERE id = ?`,
       [status, entryId]
@@ -734,4 +739,6 @@ exports.getAssignmentsFromMoodle = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch assignments from Moodle.", error: error.message });
   }
 };
+
+
 
