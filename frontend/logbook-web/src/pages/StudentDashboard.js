@@ -1,116 +1,219 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../api/api";
-import "../styles/StudentDashboard.css";
-import Footer from "../components/Footer"; // ✅ Correctly import Footer component
-import TopBar from "../components/Shared/TopBar"; // ✅ Import TopBar
+import Footer from "../components/Footer";
+import TopBar from "../components/Shared/TopBar";
 import { FaBell } from "react-icons/fa"; // ✅ Import Icons
+import "../styles/TeacherDashboard.css";
+import { useCallback, useMemo } from "react";
 
 
 
-const StudentDashboard = () => {
+const TeacherDashboard = () => {
   const navigate = useNavigate();
-  const storedUser = JSON.parse(localStorage.getItem("user"));
-  const storedCourses = JSON.parse(localStorage.getItem("courses"));
+  const storedUser = useMemo(() => {
+    const user = localStorage.getItem("user");
+    return user ? JSON.parse(user) : null;
+  }, []);
+  
   const token = localStorage.getItem("token");
 
-  const [user, setUser] = useState(storedUser);
-  const [courses, setCourses] = useState(storedCourses || []);
+  const [teacherName] = useState(storedUser?.username || "Unknown");
+  const [courses, setCourses] = useState([]);
   const [entries, setEntries] = useState([]);
+  const [filteredEntries, setFilteredEntries] = useState([]);
   const [loading, setLoading] = useState(true);
-  
-    // Pagination state
-    const [currentPage, setCurrentPage] = useState(1);
-    const entriesPerPage = 6;
+  const [selectedCourse, setSelectedCourse] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+    const [selectedStatus, setSelectedStatus] = useState(""); // 🔥 Fixed: Defined selectedStatus
+    const [sortBy, setSortBy] = useState("entry_date"); // 🔥 Fixed: Defined sortBy
 
-     // ✅ Profile Dropdown
-      const [showProfileMenu, setShowProfileMenu] = useState(false);
 
+  // ✅ Handle Search & Filtering
   useEffect(() => {
-    if (!user || !user.moodle_id) {
-      console.error("User not found. Redirecting to login...");
-      navigate("/login");
-      return;
+    let filtered = entries;
+
+    if (searchQuery) {
+      filtered = filtered.filter(
+        (entry) =>
+          entry.case_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          entry.student_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          entry.course_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          entry.type_of_work.toLowerCase().includes(searchQuery.toLowerCase())
+      );
     }
 
-    if (!token) {
-      console.error("No token found. Redirecting to login...");
-      navigate("/login");
-      return;
+  if (selectedCourse) {
+  filtered = filtered.filter((entry) => 
+    String(entry.course_id) === String(selectedCourse)
+  );
+}
+
+
+    if (selectedStatus) {
+      filtered = filtered.filter((entry) => entry.status === selectedStatus);
     }
-    //fetch student courses
-    const fetchCourses = async () => {
-      try {
-          const token = localStorage.getItem("token");
-          const response = await API.get("/student/courses", {
-              headers: { Authorization: `Bearer ${token}` },
-          });
+
+    // ✅ Sorting
+   filtered.sort((a, b) => {
+  // Sort by Date (newest first)
+  if (sortBy === "entry_date") {
+    const dateA = a.work_completed_date ? new Date(a.work_completed_date) : new Date(0);
+    const dateB = b.work_completed_date ? new Date(b.work_completed_date) : new Date(0);
+    return dateB - dateA; // Newest first
+  }
+
+  // Sort by Grade (highest first)
+  if (sortBy === "grade") {
+    const gradeA = parseFloat(a.grade) || 0;
+    const gradeB = parseFloat(b.grade) || 0;
+    return gradeB - gradeA; // Highest first
+  }
+
+  // Sort by Status (submitted first, then graded)
+  if (sortBy === "status") {
+    // Custom order - submitted comes before graded
+    if (a.status === b.status) return 0;
+    if (a.status === "submitted") return -1;
+    if (b.status === "submitted") return 1;
+    return a.status.localeCompare(b.status);
+  }
+
+  return 0;
+});
+
+    setFilteredEntries(filtered);
+  }, [searchQuery, selectedCourse, selectedStatus, sortBy, entries]);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const entriesPerPage = 6;
+
+  // Profile Dropdown
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+
+
+  // 1. Define fetchDashboard first
+const fetchDashboard = useCallback(async () => {
+  try {
+    const coursesResponse = await API.get(`/teachers/${storedUser.email}/courses`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    setCourses(coursesResponse.data.courses || []);
+
+    const entriesResponse = await API.get(`/teachers/${storedUser.email}/entries`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    console.log("✅ Entries Response:", entriesResponse.data.entries);
+    setEntries(entriesResponse.data.entries || []);
+    setFilteredEntries(entriesResponse.data.entries || []);
+  } catch (error) {
+    console.error("❌ Failed to fetch teacher dashboard:", error.response?.data || error.message);
+    if (error.response?.status === 401) {
+      navigate("/login/teacher");
+    }
+  } finally {
+    setLoading(false);
+  }
+}, [storedUser?.email, token, navigate]);
+
+// 2. Then use it in useEffect
+useEffect(() => {
+  if (!storedUser || storedUser.role !== "teacher" || !token) {
+    navigate("/login/teacher");
+    return;
+  }
+
+  fetchDashboard();
+}, [fetchDashboard, storedUser, token, navigate]);
+
   
-          console.log("📚 Courses Fetched from Backend:", response.data);
-          setCourses(response.data); // ✅ Ensure courses are set properly
-      } catch (error) {
-          console.error("❌ Failed to fetch student courses:", error);
-      }
-  };
-  fetchCourses();
-  
 
-    // ✅ Fetch student logbook entries using moodle_id
-    const fetchEntries = async () => {
-      try {
-        const response = await API.get(`/entries/student/${user.moodle_id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setEntries(response.data);
-      } catch (error) {
-        console.error("❌ Failed to fetch entries:", error.response?.data || error.message);
-        if (error.response?.status === 401) {
-          navigate("/login");
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
+//   const handleGradeEntry = async (entryId) => {
+//     try {
+//         const response = await API.post("/teachers/grade", { entryId });
 
-    fetchEntries();
-  }, [user, token, navigate]);
+//         if (response.data.message === "This entry has already been graded.") {
+//             alert("⚠️ This entry has already been graded.");
+//             return;
+//         }
 
-  const handleCreateEntry = (course) => {
-    if (!user || !course) {
-      alert("User or course data is missing");
-      return;
-    }
+//         alert("✅ Grade submitted successfully!");
+//         fetchDashboard(); // Refresh the list of entries
+//     } catch (error) {
+//         console.error("❌ This entry has already been graded.", error.response?.data || error.message);
+//         alert("❌ This entry has already been graded.");
+//     }
+// };
 
-    localStorage.setItem("user", JSON.stringify(user));
-    localStorage.setItem("selectedCourse", JSON.stringify(course));
+const handleGradeEntry = (entryId) => {
+  navigate(`/teacher/grade/${entryId}`);
+};
 
-    navigate("/student/new-entry");
-  };
-
-  // ✅ Logout Function
   const handleLogout = () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("courses");
     localStorage.removeItem("token");
     navigate("/login");
   };
 
- // ✅ Profile Initials Generator
- const getProfileInitials = () => {
-  if (!storedUser || !storedUser.username) return "U";
-  const names = storedUser.username.split(" ");
-  return names.length > 1 ? `${names[0][0]}${names[1][0]}`.toUpperCase() : names[0][0].toUpperCase();
+  const allowResubmission = async (entryId) => {
+    try {
+      const confirm = window.confirm("Are you sure you want to allow resubmission for this entry?");
+      if (!confirm) return;
+  
+      await API.put(`/teachers/entries/${entryId}/allow-resubmit`, null, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      
+  
+      alert("✅ Resubmission allowed.");
+      await fetchDashboard(); // in `allowResubmission` or grade handlers
+
+    } catch (error) {
+      console.error("❌ Failed to allow resubmission:", error.response?.data || error.message);
+      alert("❌ Failed to allow resubmission.");
+    }
+  };
+  
+
+  // ✅ Profile Initials Generator
+  const getProfileInitials = () => {
+    if (!storedUser || !storedUser.username) return "U";
+    const names = storedUser.username.split(" ");
+    return names.length > 1 ? `${names[0][0]}${names[1][0]}`.toUpperCase() : names[0][0].toUpperCase();
+  };
+
+  // ✅ Handle Search
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+    const filtered = entries.filter(
+      (entry) =>
+        entry.case_number.toLowerCase().includes(query.toLowerCase()) ||
+        entry.student_name.toLowerCase().includes(query.toLowerCase())
+    );
+    setFilteredEntries(filtered);
+  };
+
+  // ✅ Handle Filtering by Course
+  const handleFilterCourse = (courseId) => {
+  setSelectedCourse(courseId);
+  if (!courseId) {
+    setFilteredEntries(entries);
+    return;
+  }
+  const filtered = entries.filter((entry) => 
+    String(entry.course_id) === String(courseId)
+  );
+  setFilteredEntries(filtered);
 };
 
-   // ✅ Pagination Logic
-   const indexOfLastEntry = currentPage * entriesPerPage;
-   const indexOfFirstEntry = indexOfLastEntry - entriesPerPage;
-   const currentEntries = entries.slice(indexOfFirstEntry, indexOfLastEntry);
- 
-   const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  // ✅ Pagination Logic
+  const indexOfLastEntry = currentPage * entriesPerPage;
+  const indexOfFirstEntry = indexOfLastEntry - entriesPerPage;
+  const currentEntries = filteredEntries.slice(indexOfFirstEntry, indexOfLastEntry);
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   return (
-    <div className="student-dashboard">
+    <div className="teacher-dashboard">
       {/* ✅ Top Bar with Profile & Notifications */}
       <div className="top-bar">
         <TopBar />
@@ -128,68 +231,83 @@ const StudentDashboard = () => {
         </div>
       </div>
 
-      <h2>Welcome, {user?.fullname || user?.username}!</h2>
-
-      <div className="instructions">
-  <button onClick={() => window.open("https://shorturl.at/JAddI", "_blank")}>
-    Logbook Entry Instructions
-  </button>
-</div>
 
 
-      {/* ✅ Display Enrolled Courses */}
-      <h3>Your Courses:</h3>
-      {courses.length === 0 ? (
-        <p>You are not enrolled in any courses.</p>
-      ) : (
-        <ul>
-          {courses.map((course) => (
-            <li key={course.id} style={{ marginBottom: "10px" }}>
-              <strong>{course.fullname}</strong> (ID: {course.id})
-              <button
-                style={{ marginLeft: "10px" }}
-                onClick={() => handleCreateEntry(course)}
-              >
-                Create Entry
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
+      <h2>Welcome, {teacherName}!</h2>
 
-      {/* ✅ Display Logbook Entries */}
-      <h3>Your Logbook Entries:</h3>
+     {/* ✅ Enhanced Filters */}
+     <div className="filters">
+        {/* ✅ Course Filter */}
+        {courses.length > 0 && (
+          <select value={selectedCourse} onChange={(e) => handleFilterCourse(e.target.value)}>
+
+            <option value="">-- Filter by Course --</option>
+            {[...new Map(courses.map(course => [course.id, course])).values()].map(course => (
+  <option key={course.id} value={course.id}>
+    {course.fullname}
+  </option>
+))}
+
+          </select>
+        )}
+
+        {/* ✅ Status Filter */}
+        <select value={selectedStatus} onChange={(e) => setSelectedStatus(e.target.value)}>
+          <option value="">-- Filter by Status --</option>
+          <option value="submitted">Not Graded</option>
+          <option value="graded">Graded</option>
+        </select>
+
+        {/* ✅ Sorting Options */}
+        <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+          <option value="entry_date">Sort by Date</option>
+          <option value="grade">Sort by Grade</option>
+          <option value="status">Sort by Status</option>
+        </select>
+
+        {/* ✅ Search Box */}
+        <input
+          type="text"
+          placeholder=""
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
+
+      <h3>Submitted Logbook Entries:</h3>
       {loading ? (
-        <p>Loading entries...</p>
-      ) : entries.length === 0 ? (
-        <p>No entries found. Click "Create Entry" to submit a new logbook entry.</p>
+        <p>Loading...</p>
+      ) : currentEntries.length === 0 ? (
+        <p>No entries found.</p>
       ) : (
-        <div className="table-container">
-          <table className="logbook-table">
-            <thead>
-              <tr>
-                <th>Case #</th>
-                <th>Completion Date</th>
-                <th>Type Of Task/Device</th>
-                <th>Pathology</th>
-                <th>Task Description</th>
-                <th>Media</th>
-                <th>Consent</th>
-                <th>Comments</th>
-                <th>Grade</th>
-                <th>Feedback</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {currentEntries.map((entry) => (
-                <tr key={entry.case_number}>
-                  <td>{entry.case_number || "Not Assigned"}</td>
-                  <td>{entry.work_completed_date || "Not Provided"}</td>
-                  <td>{entry.type_of_work || "N/A"}</td>
-                  <td>{entry.pathology || "N/A"}</td>
-                  <td>{entry.task_description || "N/A"}</td>
-                  <td>
+        <table>
+          <thead>
+            <tr>
+              <th>Case #</th>
+              <th>Completion Date</th>
+              <th>Student</th>
+              <th>Course</th>
+              <th>Type Of Task/Device</th>
+              <th>Description</th>
+              <th>Media</th>
+              <th>Consent</th>
+              <th>Comments</th>
+              <th>Grade</th>
+              <th>Feedback</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {currentEntries.map((entry) => (
+              <tr key={entry.id}>
+                <td>{entry.case_number || "Not Assigned"}</td>
+                <td>{entry.work_completed_date ? new Date(entry.work_completed_date).toLocaleDateString("en-GB") : "Not Provided"}</td>
+                <td>{entry.student_name || "Unknown"}</td>
+                <td>{entry.course_name || `Course ID ${entry.course_id}`}</td>
+                <td>{entry.type_of_work}</td>
+                <td>{entry.task_description || "No Description"}</td>
+                <td>
   {(() => {
     if (!entry.media_link) return "Not Provided";
 
@@ -229,39 +347,67 @@ const StudentDashboard = () => {
 </td>
 
 
+                <td>{entry.consent_form === "yes" ? "Yes" : "No"}</td>
+                <td>{entry.clinical_info || "No Info"}</td>
+                <td>{entry.grade !== null ? entry.grade : "-"}</td>
+               <td className="feedback-cell">
+  {(() => {
+    if (!entry.feedback) return "No feedback yet";
 
+    const mediaRegex = /\[View Teacher Media\]\((https:\/\/res\.cloudinary\.com\/.+?)\)/;
+    const match = entry.feedback.match(mediaRegex);
 
-                  <td>{entry.consent_form === "yes" ? "Yes" : "No"}</td>
-                  <td>{entry.clinical_info || "Not Provided"}</td>
-                  <td>{entry.grade !== null ? entry.grade : "-"}</td>
-                  <td>{entry.feedback || "No feedback yet"}</td>
-                  <td style={{ fontWeight: "bold", color: entry.status === "graded" ? "green" : "orange" }}>
-                  {entry.status === "graded"
-  ? entry.allow_resubmit
-    ? "Graded - You may resubmit"
-    : "Graded"
-  : "Waiting for Grading"}
-                                </td>
-                  
-                </tr>
-              ))}
-            </tbody>
-          </table>
+    if (match) {
+      const feedbackText = entry.feedback.replace(mediaRegex, "").trim();
+      const mediaUrl = match[1];
 
-          {/* ✅ Pagination Controls */}
-          <div className="pagination">
-            {Array.from({ length: Math.ceil(entries.length / entriesPerPage) }, (_, i) => (
-              <button key={i + 1} onClick={() => paginate(i + 1)} className={currentPage === i + 1 ? "active" : ""}>
-                {i + 1}
-              </button>
-            ))}
-          </div>
+      return (
+        <div>
+          <p>{feedbackText}</p>
+          <a href={mediaUrl} target="_blank" rel="noopener noreferrer">
+            <button className="view-file-btn">View File</button>
+          </a>
         </div>
+      );
+    }
+
+    return entry.feedback;
+  })()}
+</td>
+
+
+                <td style={{ fontWeight: "bold", color: entry.status === "graded" ? "green" : "orange" }}>
+                  {entry.status === "graded" ? "Graded" : "Waiting for Grading"}
+                </td>
+                <td>
+  <button className="grade-btn" onClick={() => handleGradeEntry(entry.id)}>Grade</button>
+  {entry.status === "graded" && !entry.allow_resubmit && (
+    <button
+      className="grade-btn"
+      style={{ backgroundColor: "#2980b9", marginTop: "5px" }}
+      onClick={() => allowResubmission(entry.id)}
+    >
+      Allow Resubmit
+    </button>
+  )}
+</td>
+
+              </tr>
+            ))}
+          </tbody>
+        </table>
       )}
+
+      {/* ✅ Pagination */}
+      <div className="pagination">
+        {Array.from({ length: Math.ceil(filteredEntries.length / entriesPerPage) }, (_, i) => (
+          <button key={i + 1} onClick={() => paginate(i + 1)}>{i + 1}</button>
+        ))}
+      </div>
 
       <Footer />
     </div>
   );
 };
 
-export default StudentDashboard;
+export default TeacherDashboard;
