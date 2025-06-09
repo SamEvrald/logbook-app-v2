@@ -194,20 +194,16 @@ const handleGradeEntry = (entryId) => {
   };
 
   // ✅ Handle Filtering by Course
-//   const handleFilterCourse = (courseId) => {
-//   setSelectedCourse(courseId);
-//   if (!courseId) {
-//     setFilteredEntries(entries);
-//     return;
-//   }
-//   const filtered = entries.filter((entry) => 
-//     String(entry.course_id) === String(courseId)
-//   );
-//   setFilteredEntries(filtered);
-// };
-
-const handleFilterCourse = (courseId) => {
+  const handleFilterCourse = (courseId) => {
   setSelectedCourse(courseId);
+  if (!courseId) {
+    setFilteredEntries(entries);
+    return;
+  }
+  const filtered = entries.filter((entry) => 
+    String(entry.course_id) === String(courseId)
+  );
+  setFilteredEntries(filtered);
 };
 
   // ✅ Pagination Logic
@@ -354,7 +350,32 @@ const handleFilterCourse = (courseId) => {
                 <td>{entry.consent_form === "yes" ? "Yes" : "No"}</td>
                 <td>{entry.clinical_info || "No Info"}</td>
                 <td>{entry.grade !== null ? entry.grade : "-"}</td>
-                <td>{entry.feedback || "No feedback yet"}</td>
+               <td className="feedback-cell">
+  {(() => {
+    if (!entry.feedback) return "No feedback yet";
+
+    const mediaRegex = /\[View Teacher Media\]\((https:\/\/res\.cloudinary\.com\/.+?)\)/;
+    const match = entry.feedback.match(mediaRegex);
+
+    if (match) {
+      const feedbackText = entry.feedback.replace(mediaRegex, "").trim();
+      const mediaUrl = match[1];
+
+      return (
+        <div>
+          <p>{feedbackText}</p>
+          <a href={mediaUrl} target="_blank" rel="noopener noreferrer">
+            <button className="view-file-btn">View File</button>
+          </a>
+        </div>
+      );
+    }
+
+    return entry.feedback;
+  })()}
+</td>
+
+
                 <td style={{ fontWeight: "bold", color: entry.status === "graded" ? "green" : "orange" }}>
                   {entry.status === "graded" ? "Graded" : "Waiting for Grading"}
                 </td>
