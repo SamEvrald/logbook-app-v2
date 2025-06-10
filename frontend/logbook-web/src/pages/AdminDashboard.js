@@ -592,7 +592,7 @@ const getProfileInitials = () => {
             if (match && match[1]) window.open(match[1], "_blank");
           }}
         >
-          🎥 View File
+          View File
         </button>
       </div>
     )}
