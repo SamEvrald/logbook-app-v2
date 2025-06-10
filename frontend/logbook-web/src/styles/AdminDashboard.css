@@ -1,410 +1,679 @@
-/* ✅ General Styles */
+/* ========================================= */
+/* ✅ Admin Dashboard Layout & Panels */
+/* ========================================= */
+
 .admin-dashboard {
-    max-width: 90%;
-    margin: 50px auto;
-    padding: 20px;
-    font-family: "Arial", sans-serif;
-    background: #f9f9f9;
-    border-radius: 10px;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-    overflow: visible; /* ✅ allow dropdown to overflow */
-  position: relative; /* ✅ needed for absolute positioning context */
+  display: flex;
+  flex-direction: column; /* Stacks top-bar, h2, and panels vertically */
+  min-height: 100vh; /* Ensures dashboard takes full viewport height */
+  font-family: "Arial", sans-serif;
+  background: #f9f9f9;
+  position: relative; /* Needed for absolute positioning context */
 }
 
-/* ✅ Page Title */
-.admin-dashboard h2 {
-    text-align: center;
-    color: #2c3e50;
-    font-size: 28px;
-    margin-bottom: 20px;
+/* Top Bar (styles for elements directly within AdminDashboard's top-bar div) */
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background-color: #f8f8f8;
+  border-bottom: 1px solid #eee;
+  width: 100%; /* Ensure it spans full width */
+  box-sizing: border-box; /* Include padding in width */
 }
 
-/* ✅ Logout Button */
-.admin-dashboard .logout-btn {
-    float: right;
-    padding: 8px 15px;
-    background-color: #e74c3c;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: 0.3s ease-in-out;
-}
-
-.admin-dashboard .logout-btn:hover {
-    background-color: #c0392b;
-}
-
-/* ✅ Courses Section */
-.admin-dashboard .courses-container {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: white;
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
-    margin-bottom: 20px;
-}
-
-.admin-dashboard select {
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    width: 200px;
-}
-
-/* ✅ Search Box */
-.admin-dashboard .search-box {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 20px;
-}
-
-.admin-dashboard input[type="text"] {
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    width: 250px;
-    margin-right: 10px;
-}
-
-/* ✅ Logbook Table */
-.admin-dashboard table {
-    width: 100%;
-    border-collapse: collapse;
-    background: white;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.1);
-}
-
-.admin-dashboard th,
-.admin-dashboard td {
-    padding: 12px;
-    text-align: left;
-    border-bottom: 1px solid #ddd;
-}
-
-.admin-dashboard th {
-    background: #2c3e50;
-    color: white;
-    font-weight: bold;
-    text-transform: uppercase;
-}
-
-.admin-dashboard td {
-    color: #333;
-}
-
-.admin-dashboard tr:hover {
-    background: #f1f1f1;
-}
-
-.admin-dashboard tr {
-    overflow: visible;
-    height: auto; /* don't force height that might cut dropdown */
-  }
-  
-/* ✅ Grade & View Buttons */
-.admin-dashboard button {
-    padding: 6px 12px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: 0.3s ease-in-out;
-}
-
-.admin-dashboard .grade-btn {
-    background-color: #27ae60;
-    color: white;
-}
-
-.admin-dashboard .grade-btn:hover {
-    background-color: #219150;
-}
-
-/* ✅ Status Colors */
-.admin-dashboard .status {
-    font-weight: bold;
-    text-transform: uppercase;
-}
-
-.admin-dashboard .status-graded {
-    color: green;
-}
-
-.admin-dashboard .status-pending {
-    color: orange;
-}
-
-/* ✅ Pagination */
-.pagination {
-    display: flex;
-    justify-content: center;
-    margin-top: 20px;
-}
-
-.pagination button {
-    padding: 8px 12px;
-    margin: 3px;
-    border: none;
-    border-radius: 5px;
-    background: #27ae60;
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
-    transition: 0.3s ease-in-out;
-}
-
-.pagination button:hover {
-    background: #2980b9;
-}
-
-.pagination .active {
-    background: #27ae60;
-    color: white;
-}
-/* ✅ Top Bar */
-/* .top-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: white;
-    padding: 10px 20px;
-    border-bottom: 3px solid #2980b9;
-    width: 100%;
-    max-width: 1000px;
-    margin: 0 auto;
-} */
-
-/* ✅ Right Section (Profile & Notifications) */
 .top-right {
-    display: flex;
-    align-items: center;
-    gap: 15px;
+  display: flex;
+  align-items: center;
+  gap: 15px; /* Spacing between bell and profile */
 }
 
-/* ✅ Notifications Icon */
+/* Page Title */
+.admin-dashboard h2 {
+  text-align: center;
+  color: #2c3e50;
+  font-size: 28px;
+  margin-bottom: 20px;
+  padding-top: 20px; /* Added for top spacing from header */
+}
+
+/* Main Container for Panels - MODIFIED for panel hide/show */
+.dashboard-panels-container {
+  display: flex; /* This creates the side-by-side layout */
+  flex: 1; /* Allows it to take up remaining vertical space */
+  padding: 20px;
+  gap: 20px; /* Space between left and main panels */
+  max-width: 1200px; /* A reasonable max-width for large screens */
+  margin: 0 auto; /* Center the main content area */
+  width: 100%; /* Ensure it takes full width within its max-width */
+  box-sizing: border-box; /* Include padding in width calculation */
+  transition: all 0.3s ease-in-out; /* Smooth transition for expansion/collapse */
+  position: relative; /* IMPORTANT: For absolute positioning of the toggle icon */
+}
+
+/* State when panel is hidden */
+.dashboard-panels-container.panel-hidden .left-panel {
+  width: 0; /* Collapse width */
+  min-width: 0;
+  padding: 0; /* Remove padding */
+  overflow: hidden; /* Hide content */
+  visibility: hidden; /* Ensures it's not interactive */
+  opacity: 0; /* Fade out */
+  margin-right: -20px; /* Counteract the gap, pull it closer */
+}
+
+/* When panel is hidden, main content expands */
+.dashboard-panels-container.panel-hidden .main-content-panel {
+  flex: 1 0 100%; /* Grow to full width, don't shrink */
+  max-width: 100%; /* Ensure it fills the space */
+}
+
+/* Left Navigation Panel - MODIFIED for panel hide/show */
+.left-panel {
+  flex: 0 0 200px; /* Fixed width for the sidebar */
+  min-width: 200px; /* Ensure it maintains this width when visible */
+  background-color: #f0f0f0;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* Spacing between buttons */
+  box-sizing: border-box; /* Include padding in width calculation */
+  transition: all 0.3s ease-in-out; /* Smooth transition for hiding/showing */
+}
+
+.left-panel h3 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.left-panel button {
+  padding: 10px 15px;
+  border: none;
+  background-color: #27ae60; /* Initial green for navigation buttons */
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
+  text-align: left; /* Align text to the left */
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  width: 100%; /* Ensure buttons fill the panel width */
+}
+
+.left-panel button:hover {
+  background-color: #219150; /* Darker green on hover */
+  transform: translateY(-1px);
+}
+
+.left-panel button.active {
+  background-color: #1e7a4b; /* Even darker green for active state */
+  font-weight: bold;
+}
+
+/* Main Content Area */
+.main-content-panel {
+  flex: 1; /* Takes up remaining space */
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow-x: auto; /* Allows horizontal scrolling for wide tables/content */
+  box-sizing: border-box; /* Include padding in width calculation */
+}
+
+.main-content-panel h3 {
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: #2c3e50;
+  font-size: 24px;
+}
+
+/* ========================================= */
+/* ✅ Your Existing Styles (Integrated & Refined for Responsiveness) */
+/* ========================================= */
+
+/* NEW: Panel Toggle Icon Wrapper (for correct positioning) */
+.panel-toggle-wrapper {
+  position: absolute;
+  /* Adjusted for better alignment and no conflict */
+  top: 35px; /* Slightly higher to align with the top of the h3 text */
+  left: 10px; /* Adjusted to place it cleanly inside the right edge of the left-panel */
+  z-index: 101; /* Ensure it's above other content */
+  cursor: pointer;
+  transition: left 0.3s ease-in-out, background-color 0.2s ease; /* Smooth transition for repositioning */
+  padding: 8px; /* Add some padding around the clickable area */
+  border-radius: 50%; /* Make it circular */
+  background-color: transparent; /* Default transparent */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.panel-toggle-wrapper:hover {
+  background-color: rgba(0, 0, 0, 0.05); /* Subtle hover effect */
+}
+
+/* Specific style for the icon itself */
+.panel-toggle-icon {
+  font-size: 20px; /* Standard icon size */
+  color: #27ae60; /* Match left panel button color */
+}
+
+/* Notifications Icon */
 .bell-icon {
-    font-size: 22px;
-    cursor: pointer;
-    color: #2c3e50;
-    transition: 0.3s;
+  font-size: 22px;
+  cursor: pointer;
+  color: #2c3e50;
+  transition: 0.3s;
 }
 
 .bell-icon:hover {
-    color: #2c3e50;
+  color: #2c3e50;
 }
 
-/* ✅ Profile Icon */
+/* Profile Icon */
 .profile-container {
-    position: relative;
-    cursor: pointer;
+  position: relative;
+  cursor: pointer;
 }
 
 .profile-icon {
-    width: 40px;
-    height: 40px;
-    background-color: #2c3e50;
-    color: white;
-    font-size: 18px;
-    font-weight: bold;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  width: 40px;
+  height: 40px;
+  background-color: #2c3e50;
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* ✅ Profile Dropdown */
+/* Profile Dropdown */
 .profile-dropdown {
-    position: absolute;
-    top: 50px;
-    right: 0;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-    padding: 10px;
-    text-align: center;
-    min-width: 150px;
+  position: absolute;
+  top: 50px;
+  right: 0;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 10px;
+  text-align: center;
+  min-width: 150px;
+  z-index: 10; /* Ensure it appears above other content */
 }
 
-/* Example CSS for profile-dropdown */
-.profile-dropdown {
-    position: absolute;
-    top: 50px;
-    right: 0;
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-    padding: 10px;
-    text-align: center;
-    min-width: 150px;
-  }
+.profile-dropdown button {
+  padding: 8px 15px;
+  background-color: #e74c3c; /* Red for logout */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.3s ease-in-out;
+  width: 100%;
+  margin-top: 10px;
+}
 
 .profile-dropdown button:hover {
-    background: #c0392b;
+  background-color: #c0392b;
 }
 
-/* ✅ Align Program + Course Section */
-.admin-dashboard .courses-container {
-    flex-wrap: wrap;
-    gap: 15px;
-  }
-  
-  .admin-dashboard .courses-container select,
-  .admin-dashboard .courses-container button {
-    margin: 5px 0;
-  }
-  
-  /* ✅ Fix label + select alignment */
-  .admin-dashboard label {
-    display: inline-block;
-    margin-bottom: 6px;
-    font-weight: bold;
-    color: #2c3e50;
-  }
-  
-  /* ✅ Align error message with select */
-  .admin-dashboard .courses-container .course-error {
-    color: #e74c3c;
-    font-weight: bold;
-    margin-top: -10px;
-    margin-bottom: 10px;
-  }
-  
-  /* ✅ Adjust button spacing */
-  .admin-dashboard .courses-container button {
-    margin-left: 10px;
-  }
-  
-  /* ✅ Better spacing for search + sort */
-  .admin-dashboard .search-box {
-    flex-wrap: wrap;
-    justify-content: space-between;
-    gap: 10px;
-  }
-  
-  .admin-dashboard .search-box input[type="text"],
-  .admin-dashboard .search-box select {
-    flex: 1;
-    min-width: 200px;
-  }
-  
-  /* ✅ Media column link spacing */
-  .admin-dashboard td a {
-    margin-right: 6px;
-    color: #2980b9;
-    text-decoration: none;
-  }
-  
-  .admin-dashboard td a:hover {
-    text-decoration: underline;
-  }
-  
-  /* ✅ Dropdown file links (Admin/Student Dashboard) */
-  .dropdown-container {
-    position: relative;
-    display: inline-block;
-  }
-  
-  .dropdown-button {
-    background-color: #27ae60;
-    color: white;
-    border: none;
-    padding: 6px 10px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 14px;
-  }
-  
-  .dropdown-button:hover {
-    background-color: #27ae60;
-  }
-  
-  .dropdown-content {
-    display: none;
-    position: absolute;
-    background-color: white;
-    border-radius: 6px;
-    min-width: 160px;
-    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.1);
-    padding: 8px 12px;
-    z-index: 1;
-    transition: opacity 0.2s ease, transform 0.2s ease;
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  
-  .dropdown-container:hover .dropdown-content {
-    display: block;
-    opacity: 1;
-  transform: translateY(0);
-  }
-  
-  .dropdown-content a {
-    display: block;
-    padding: 6px 0;
-    color: #2c3e50;
-  }
-  .admin-dashboard td {
-    color: #333;
-    vertical-align: middle; /* ✅ Aligns all cell contents centrally */
-    padding: 12px;
-  }
-/* ✅ Compact Row Height Without Reducing Font Size */
-.admin-dashboard th,
-.admin-dashboard td {
+/* Input Fields (select and text) - Refined for responsiveness */
+.main-content-panel select,
+.main-content-panel input[type="text"] {
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  width: auto; /* Let flexbox control width */
+  flex-grow: 1; /* Allow them to grow */
+  min-width: 150px; /* Minimum width before wrapping */
+  box-sizing: border-box; /* Include padding in width */
+}
+
+/* Search & Filter Container - Refined for responsiveness */
+.search-filter-container {
+  display: flex;
+  flex-wrap: wrap; /* Allows items to wrap to the next line */
+  justify-content: flex-start;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.search-filter-container button.export-csv-button {
+  padding: 8px 15px;
+  background-color: #27ae60; /* Green for export button */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.3s ease-in-out;
+  white-space: nowrap; /* Prevent button text from wrapping */
+}
+
+.search-filter-container button.export-csv-button:hover {
+  background-color: #219150;
+}
+
+
+/* Assign Course Section - Refined for responsiveness */
+.assign-section {
+  display: flex;
+  flex-direction: column; /* Stacks elements vertically by default */
+  gap: 15px;
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+}
+
+.assign-section div {
+  display: flex;
+  flex-wrap: wrap; /* Allow label-select pairs to wrap */
+  align-items: center;
+  gap: 10px; /* Space between label and select */
+}
+
+.assign-section label {
+  display: inline-block;
+  margin-bottom: 0;
+  font-weight: bold;
+  color: #2c3e50;
+  min-width: 80px;
+}
+
+.assign-section select {
+  flex: 1; /* Allow select to take available width */
+  min-width: 150px; /* Minimum width for selects */
+  box-sizing: border-box;
+}
+
+.assign-section button {
+  padding: 8px 15px;
+  background-color: #27ae60;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.3s ease-in-out;
+  margin-left: auto; /* Push button to the right for larger screens */
+  min-width: 120px; /* Ensure button has a minimum width */
+  box-sizing: border-box;
+}
+
+.assign-section button:hover {
+  background-color: #219150;
+}
+
+/* Teacher/Admin Signup Buttons - Refined for responsiveness */
+.teacher-signup-button,
+.admin-signup-button {
+  display: flex;
+  flex-wrap: wrap; /* Allows buttons to wrap */
+  gap: 15px;
+  margin-top: 20px;
+  justify-content: center;
+}
+
+.teacher-signup-button button,
+.admin-signup-button button {
+  padding: 10px 20px;
+  background-color: #27ae60; /* Green for signup buttons */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.3s ease-in-out;
+  flex-grow: 1; /* Allow buttons to grow and fill space */
+  min-width: 180px; /* Min width for these buttons */
+  box-sizing: border-box;
+}
+
+.teacher-signup-button button:hover,
+.admin-signup-button button:hover {
+  background-color: #219150;
+}
+
+/* Logbook Table */
+.main-content-panel table {
+  width: 100%; /* Ensure table takes full width of its container */
+  border-collapse: collapse;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden; /* Hide overflow from rounded corners */
+  box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  min-width: 900px; /* IMPORTANT: Ensures table has a minimum width, forcing horizontal scroll if needed */
+}
+
+.main-content-panel th,
+.main-content-panel td {
   padding-top: 4px;
   padding-bottom: 4px;
   padding-left: 8px;
   padding-right: 8px;
-  line-height: 1.1;         /* Tighter vertical spacing */
-  vertical-align: middle;   /* Align everything nicely in the center */
-  height: 30px;             /* Explicit row height */
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+  line-height: 1.1; /* Tighter vertical spacing */
+  vertical-align: middle; /* Align everything nicely in the center */
+  height: 30px; /* Explicit row height (may be overridden by wrapping content) */
+  color: #333;
+  white-space: nowrap; /* Default: Prevent text from wrapping in table cells */
+  word-wrap: break-word; /* Ensures long words break if nowrap is overridden */
 }
+
+/* Specific columns that should allow text wrapping */
+.main-content-panel td:nth-child(5), /* Task Type */
+.main-content-panel td:nth-child(8), /* Feedback */
+.main-content-panel td:nth-child(9) /* Status (Waiting for Grading) */ {
+  white-space: normal; /* Allow text to wrap */
+  max-width: 200px; /* Optional: Constrain max width for very long content to keep table compact */
+}
+
+.main-content-panel th {
+  background: #2c3e50;
+  color: white;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.main-content-panel tr:hover {
+  background: #f1f1f1;
+}
+
+/* Status Colors */
+.status {
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.status-graded {
+  color: green;
+}
+
+.status-pending {
+  color: orange;
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.pagination button {
+  padding: 8px 12px;
+  margin: 3px;
+  border: none;
+  border-radius: 5px;
+  background: #27ae60; /* Green for pagination buttons */
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s ease-in-out;
+}
+
+.pagination button:hover {
+  background: #219150;
+}
+
+.pagination .active {
+  background: #1e7a4b; /* Even darker green for active pagination button */
+  color: white;
+}
+
+/* Media Column Dropdown */
 .dropdown-container {
-    position: relative;
-    display: inline-block;
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-button {
+  background-color: #27ae60;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 14px;
+  min-width: 90px;
+}
+
+.dropdown-button:hover {
+  background-color: #219150;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: white;
+  border-radius: 6px;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.1);
+  padding: 8px 12px;
+  z-index: 10;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.dropdown-container:hover .dropdown-content {
+  display: block;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.dropdown-content a {
+  display: block;
+  padding: 6px 0;
+  color: #2c3e50;
+  text-decoration: none;
+}
+
+.dropdown-content a:hover {
+  text-decoration: underline;
+}
+
+/* Show dropdown above when close to bottom */
+.dropdown-container.upward .dropdown-content {
+  bottom: 100%;
+  top: auto;
+  transform: translateY(-10px);
+}
+
+.dropdown-container.upward:hover .dropdown-content {
+  transform: translateY(0);
+}
+
+/* General label style */
+label {
+  display: inline-block;
+  margin-bottom: 6px;
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+/* Align error message with select */
+.main-content-panel .course-error {
+  color: #e74c3c;
+  font-weight: bold;
+  margin-top: -10px;
+  margin-bottom: 10px;
+}
+
+/* Feedback media view button */
+.main-content-panel td button {
+  padding: 5px 10px;
+  font-size: 0.9em;
+  cursor: pointer;
+  background-color: #27ae60; /* Green for 'View File' button */
+  color: white;
+  border: none;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.main-content-panel td button:hover {
+  background-color: #219150;
+}
+
+
+/* ------------------------------------------- */
+/* ✅ Media Queries for Responsiveness */
+/* ------------------------------------------- */
+
+/* Small Screens (e.g., mobile phones) */
+@media (max-width: 768px) {
+  .dashboard-panels-container {
+    flex-direction: column; /* Stack panels vertically on small screens */
+    padding: 10px;
+    gap: 15px;
   }
-  
-  .dropdown-button {
-    background-color: #27ae60;
+
+  .left-panel {
+    flex: 0 0 auto; /* Allow height to adapt */
+    width: 100%; /* Take full width */
+    padding: 15px;
+    gap: 8px;
+    /* Ensure it also collapses correctly on mobile */
+    min-width: unset; /* Override fixed width on mobile */
+  }
+
+  /* Adjust panel toggle icon position when panel is hidden on small screens */
+  .dashboard-panels-container.panel-hidden .panel-toggle-wrapper {
+    left: 10px; /* Position it near the left edge of the screen */
+    top: 15px; /* Adjust top for mobile */
+    background-color: rgba(0, 0, 0, 0.05); /* Make it slightly visible */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Make sure the main content panel also takes full width on mobile */
+  .main-content-panel {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /* When panel is hidden on small screens */
+  .dashboard-panels-container.panel-hidden .left-panel {
+    height: 0; /* Collapse height */
+    padding: 0;
+    margin: 0;
+    gap: 0;
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  .dashboard-panels-container.panel-hidden .main-content-panel {
+    flex: 1 0 100%; /* Ensure it takes full width */
+  }
+
+  /* Table adjustments for small screens (Mobile-friendly table) */
+  .main-content-panel table {
+    display: block; /* Allows table to scroll horizontally */
+    width: auto; /* Allow width to be determined by content + overflow */
+    overflow-x: auto; /* Enable horizontal scrolling */
+    min-width: unset; /* Override min-width for full table on mobile */
+  }
+
+  .main-content-panel thead,
+  .main-content-panel tbody,
+  .main-content-panel th,
+  .main-content-panel td,
+  .main-content-panel tr {
+    display: block; /* Stack table cells */
+  }
+
+  .main-content-panel th {
+    text-align: right; /* Align header text to the right when stacked */
+    background: #2c3e50; /* Header background on stacked cells */
     color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 14px;
-    min-width: 90px;
+    padding: 8px; /* Adjust padding */
   }
-  
-  .dropdown-button:hover {
-    background-color: #219150;
+
+  .main-content-panel td {
+    border: none; /* Remove individual cell borders */
+    border-bottom: 1px solid #ddd;
+    position: relative;
+    padding-left: 50%; /* Space for pseudo-element label */
+    text-align: right;
+    white-space: normal; /* Allow content to wrap */
+    word-wrap: break-word;
   }
-  
-  .dropdown-content {
-    display: none;
+
+  .main-content-panel td::before {
+    content: attr(data-label); /* Use data-label for content */
     position: absolute;
-    background-color: white;
-    border-radius: 6px;
-    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.1);
-    padding: 8px 12px;
-    min-width: 160px;
-    z-index: 1;
+    left: 0;
+    width: 45%; /* Space for label */
+    padding-left: 10px;
+    font-weight: bold;
+    text-align: left;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
   }
-  
-  .dropdown-container:hover .dropdown-content {
-    display: block;
+
+  /* Remember to add data-label attributes to your JSX <td> elements for mobile view, e.g.:
+     <td data-label="Status">{entry.status}</td>
+  */
+}
+
+/* Medium Screens (e.g., tablets) */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .dashboard-panels-container {
+    padding: 15px;
+    gap: 15px;
   }
-  
-  /* ⬆ Show above when close to bottom */
-  .dropdown-container.upward .dropdown-content {
-    bottom: 100%;
-    top: auto;
+
+  .left-panel {
+    flex: 0 0 180px; /* Slightly smaller sidebar */
+    padding: 15px;
   }
-  
+
+  /* Adjust panel toggle icon position for medium screens */
+  .panel-toggle-wrapper {
+    left: 155px; /* Adjusted based on new left-panel width */
+    top: 20px; /* Keep consistent with desktop */
+  }
+
+  .dashboard-panels-container.panel-hidden .panel-toggle-wrapper {
+    left: 10px; /* Keep consistent with desktop */
+  }
+
+  .main-content-panel {
+    padding: 15px;
+  }
+
+  /* Adjustments for search/filter/assign if needed for horizontal flow */
+  .search-filter-container,
+  .assign-section div {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .search-filter-container input[type="text"],
+  .search-filter-container select,
+  .assign-section select {
+    flex: 1; /* Allow them to fill space but wrap */
+    min-width: 120px; /* Adjust min-width */
+  }
+
+  .search-filter-container button,
+  .assign-section button,
+  .teacher-signup-button button,
+  .admin-signup-button button {
+    flex-grow: 1;
+    min-width: 100px;
+  }
+}
