@@ -423,10 +423,38 @@ const getProfileInitials = () => {
 
 
         <td>{entry.grade || "N/A"}</td>
-        <td>{entry.feedback || "No feedback"}</td>
-        <td style={{ fontWeight: "bold", color: entry.status === "graded" ? "green" : "orange" }}>
-          {entry.status === "graded" ? "Graded" : "Waiting for Grading"}
-        </td>
+        <td className="feedback-cell">
+  {(() => {
+    if (!entry.feedback) return "No feedback yet";
+
+    const mediaRegex = /\[View Teacher Media\]\((https:\/\/res\.cloudinary\.com\/.+?)\)/;
+    const match = entry.feedback.match(mediaRegex);
+
+    if (match) {
+      const feedbackText = entry.feedback.replace(mediaRegex, "").trim();
+      const mediaUrl = match[1];
+
+      return (
+        <div>
+          <p>{feedbackText}</p>
+          <a href={mediaUrl} target="_blank" rel="noopener noreferrer">
+            <button className="view-file-btn">View File</button>
+          </a>
+        </div>
+      );
+    }
+
+    return entry.feedback;
+  })()}
+</td>
+        <td style={{
+    fontWeight: "bold",
+    // Set color based on status
+    color: entry.status === "graded" || entry.status === "synced" ? "green" : "orange"
+}}>
+    {/* Display text based on status */}
+    {entry.status === "graded" || entry.status === "synced" ? "Graded" : "Waiting for Grading"}
+</td>
         
       
       </tr>
