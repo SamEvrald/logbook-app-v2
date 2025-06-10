@@ -1,100 +1,112 @@
+/* TopBar.css */
+
 /* ✅ Top Navigation Bar */
 .top-bar {
-    background-color: white; /* Keep white background */
-    height: 90px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 20px;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-    border-bottom: 4px solid #2c3e50; /* ✅ Small Green Border */
-    border-top: 3px solid #27ae60;
+  background-color: white; /* Keep white background */
+  height: 90px; /* Fixed height as specified */
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Pushes logo left, and any elements added by parent to the right */
+  padding: 0 20px; /* Padding on left/right */
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  border-bottom: 4px solid #2c3e50; /* Darker blue border */
+  border-top: 3px solid #27ae60; /* Green border */
+  width: 100%; /* Ensure it spans the full width of its parent */
+  box-sizing: border-box; /* Ensures padding is included in the height/width */
+  min-width: 320px; /* Prevents the top bar from getting too narrow on very small screens */
 }
 
 /* ✅ Logo */
-.logo-container .hs-logo {
-    height: 70px;
+.logo-container {
+  /* No specific styles needed here, its child img handles sizing */
 }
 
-/* ✅ Navigation Menu */
+.logo-container .hs-logo {
+  height: 70px; /* Fixed height for the logo */
+  max-width: 100%; /* Ensures logo scales down if container gets very small */
+  object-fit: contain; /* Keeps aspect ratio and fits within bounds */
+}
+
+/* ✅ Navigation Menu (Styles provided but not used in TopBar.js directly) */
 .nav-menu ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
 }
 
 .nav-menu ul li {
-    margin: 0 15px;
-    position: relative;
+  margin: 0 15px;
+  position: relative;
 }
 
 .nav-menu ul li a,
 .nav-menu ul li span {
-    color: #2c3e50; /* ✅ Dark Text for Readability */
-    text-decoration: none;
-    font-size: 16px;
-    font-weight: bold;
-    padding: 10px;
+  color: #2c3e50; /* Dark Text for Readability */
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: bold;
+  padding: 10px;
 }
 
 .nav-menu ul li a:hover {
-    text-decoration: underline;
+  text-decoration: underline;
 }
 
-/* ✅ Dropdown Menu */
+/* ✅ Dropdown Menu (Styles provided but not used in TopBar.js directly) */
 .dropdown-menu {
-    display: none;
-    position: absolute;
-    background-color: white;
-    min-width: 180px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    border-radius: 5px;
-    padding: 5px 0;
-    top: 40px;
-    left: 0;
+  display: none;
+  position: absolute;
+  background-color: white;
+  min-width: 180px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 5px;
+  padding: 5px 0;
+  top: 40px;
+  left: 0;
+  z-index: 10; /* Ensure dropdown is on top */
 }
 
 .dropdown:hover .dropdown-menu {
-    display: block;
+  display: block;
 }
 
 .dropdown-menu li {
-    padding: 8px 15px;
+  padding: 8px 15px;
 }
 
 .dropdown-menu li a {
-    color: #2c3e50;
-    text-decoration: none;
+  color: #2c3e50;
+  text-decoration: none;
 }
 
 .dropdown-menu li a:hover {
-    background-color: #ecf0f1;
-    display: block;
+  background-color: #ecf0f1;
+  display: block;
 }
 
-/* ✅ Login Section */
+/* ✅ Login Section (Styles provided but not used in TopBar.js directly) */
 .login-container {
-    display: flex;
-    align-items: center;
+  display: flex;
+  align-items: center;
 }
 
 .login-input {
-    padding: 5px;
-    margin-right: 5px;
-    border: 1px solid #ccc;
-    border-radius: 3px;
+  padding: 5px;
+  margin-right: 5px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
 }
 
 .login-button {
-    background-color: #27ae60; /* ✅ Green Button */
-    color: white;
-    border: none;
-    padding: 6px 10px;
-    cursor: pointer;
-    font-size: 16px;
+  background-color: #27ae60; /* Green Button */
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 16px;
 }
 
 .login-button:hover {
-    background-color: #219150;
+  background-color: #219150;
 }
