@@ -473,7 +473,7 @@ const AdminDashboard = () => {
           {/* Your existing conditional rendering for currentView */}
           {currentView === "logbookEntries" && (
             <>
-              <h3>Logbook Entries</h3>
+              <h3>    Logbook Entries</h3>
               <div className="search-filter-container">
                 <input
                   type="text"
@@ -535,7 +535,7 @@ const AdminDashboard = () => {
                           {entry.feedback && !entry.feedback.includes("http") ? entry.feedback : entry.feedback?.split("📎")[0] || "No feedback yet"}
                           {entry.feedback && entry.feedback.includes("http") && (
                             <div style={{ marginTop: "5px" }}>
-                              <button style={{ padding: "5px 10px", fontSize: "0.9em", cursor: "pointer" }} onClick={() => { const match = entry.feedback.match(/\((.*?)\)/); if (match && match[1]) window.open(match[1], "_blank"); }}>🎥 View File</button>
+                              <button style={{ padding: "5px 10px", fontSize: "0.9em", cursor: "pointer" }} onClick={() => { const match = entry.feedback.match(/\((.*?)\)/); if (match && match[1]) window.open(match[1], "_blank"); }}>View File</button>
                             </div>
                           )}
                         </div>
