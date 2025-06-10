@@ -173,6 +173,91 @@ const handleAssignCourse = async () => {
   }
 };
 
+// ... (inside AdminDashboard component) ...
+
+// Helper function to format media links for CSV
+const formatMediaLinksForCsv = (mediaLinkJson) => {
+  if (!mediaLinkJson) return "N/A";
+  try {
+    const mediaArray = JSON.parse(mediaLinkJson);
+    return mediaArray.join('; '); // Join multiple links with a semicolon for CSV
+  } catch {
+    return mediaLinkJson; // If it's not JSON, use as-is
+  }
+};
+
+// Helper function to format feedback for CSV
+const formatFeedbackForCsv = (feedbackText) => {
+  if (!feedbackText) return "No feedback yet";
+  // Remove the "[View Teacher Media](URL)" part from feedback
+  const cleanedFeedback = feedbackText.replace(/\[View Teacher Media\]\((https:\/\/res\.cloudinary\.com\/.+?)\)/g, '').trim();
+  // Escape double quotes by replacing them with two double quotes, and wrap in quotes if contains commas or newlines
+  const escapedFeedback = cleanedFeedback.replace(/"/g, '""');
+  return `"${escapedFeedback}"`; // Ensure the whole string is quoted
+};
+
+// Helper function to format status for CSV display
+const formatStatusForCsv = (status) => {
+  if (status === "graded" || status === "synced") {
+    return "Graded";
+  } else if (status === "submitted") {
+    return "Waiting for Grading";
+  } else if (status === "draft") {
+    return "Draft";
+  }
+  return status; // Fallback for any other status
+};
+
+// ✅ Handle Export to CSV
+const handleExportCsv = () => {
+  if (filteredEntries.length === 0) {
+    setMessage("No entries to export.");
+    setTimeout(() => setMessage(""), 3000);
+    return;
+  }
+
+  // Define CSV headers
+  const headers = [
+    "Case #", "Entry Date", "Student", "Course", "Task Type",
+    "Media Links", "Grade", "Feedback", "Status"
+  ];
+
+  // Prepare CSV rows
+  const csvRows = [];
+  // Add header row
+  csvRows.push(headers.join(','));
+
+  // Add data rows
+  filteredEntries.forEach(entry => {
+    const row = [
+      `"${entry.case_number || ''}"`,
+      `"${new Date(entry.entry_date).toLocaleDateString() || ''}"`,
+      `"${entry.student || ''}"`,
+      `"${entry.course || ''}"`,
+      `"${entry.type_of_work || ''}"`,
+      formatMediaLinksForCsv(entry.media_link), // Use helper for media
+      `"${entry.grade || 'N/A'}"`,
+      formatFeedbackForCsv(entry.feedback), // Use helper for feedback
+      `"${formatStatusForCsv(entry.status)}"` // Use helper for status
+    ];
+    csvRows.push(row.join(','));
+  });
+
+  // Create a Blob from the CSV string
+  const csvString = csvRows.join('\n');
+  const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+
+  // Create a download link and trigger click
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.setAttribute('download', 'logbook_entries.csv');
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(link.href); // Clean up the URL object
+};
+
+// ... (rest of AdminDashboard component) ...
   
   // ✅ Handle Search
   const handleSearch = (query) => {
@@ -348,6 +433,21 @@ const getProfileInitials = () => {
     </button>
     </div>
 </div>
+
+
+      {/* ✅ Search & Sorting */}
+      <div className="search-filter-container">
+        <input type="text" placeholder="Search by Case #, Student..." value={searchQuery} onChange={(e) => handleSearch(e.target.value)} />
+        <select onChange={(e) => handleSort(e.target.value)} value={sortBy}>
+          <option value="entry_date">Sort by Entry Date</option>
+          <option value="grade">Sort by Grade</option>
+          <option value="student">Sort by Student (A-Z)</option>
+        </select>
+        {/* ✅ Export to CSV Button */}
+        <button onClick={handleExportCsv} className="export-csv-button">Export to CSV</button>
+      </div>
+
+
 
       {/* ✅ Logbook Table */}
       <table>
