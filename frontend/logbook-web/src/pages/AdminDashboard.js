@@ -22,6 +22,11 @@ const AdminDashboard = () => {
   const [message, setMessage] = useState("");
   const [moodleInstances, setMoodleInstances] = useState([]); // ✅ Store Moodle instances
   const [selectedMoodleInstance, setSelectedMoodleInstance] = useState(""); // ✅ Track selected Moodle instance
+
+  // ✅ ADD THESE NEW STATE DECLARATIONS
+  const [allStudents, setAllStudents] = useState([]);
+  const [allTeachers, setAllTeachers] = useState([]);
+  const [allCourses, setAllCourses] = useState([]);
   
   // ✅ Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -66,19 +71,41 @@ const AdminDashboard = () => {
   
 
   // ✅ Fetch Logbook Entries
+  // const fetchEntries = async () => {
+  //   try {
+  //     const response = await API.get("/admin/entries", {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     });
+
+  //     setEntries(response.data);
+  //     setFilteredEntries(response.data);
+  //   } catch (error) {
+  //     console.error("❌ Failed to fetch entries:", error.response?.data || error.message);
+  //     setMessage("Error: Failed to load logbook entries. Please log in again.");
+  //   }
+  // };
+
+  // ... (rest of your AdminDashboard.js code) ...
+
+  // ✅ Fetch Logbook Entries (MODIFIED)
   const fetchEntries = async () => {
     try {
       const response = await API.get("/admin/entries", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      setEntries(response.data);
-      setFilteredEntries(response.data);
+      // ✅ CORRECTED LINE: Access the 'entries' array from response.data
+      const fetchedEntries = response.data.entries || []; 
+      
+      setEntries(fetchedEntries);
+      setFilteredEntries(fetchedEntries); // This will now correctly be an array
     } catch (error) {
       console.error("❌ Failed to fetch entries:", error.response?.data || error.message);
       setMessage("Error: Failed to load logbook entries. Please log in again.");
     }
   };
+
+// ... (rest of your AdminDashboard.js code) ...
 
   // ✅ Fetch Teachers
   const fetchTeachers = async () => {
@@ -173,91 +200,118 @@ const handleAssignCourse = async () => {
   }
 };
 
-// ... (inside AdminDashboard component) ...
+// ... (Your existing imports and state declarations) ...
 
-// Helper function to format media links for CSV
+// Helper function to format media links for CSV (same as before)
 const formatMediaLinksForCsv = (mediaLinkJson) => {
-  if (!mediaLinkJson) return "N/A";
-  try {
-    const mediaArray = JSON.parse(mediaLinkJson);
-    return mediaArray.join('; '); // Join multiple links with a semicolon for CSV
-  } catch {
-    return mediaLinkJson; // If it's not JSON, use as-is
-  }
+    if (!mediaLinkJson) return "N/A";
+    try {
+        const mediaArray = JSON.parse(mediaLinkJson);
+        return mediaArray.join('; ');
+    } catch {
+        return mediaLinkJson;
+    }
 };
 
-// Helper function to format feedback for CSV
+// Helper function to format feedback for CSV (slightly modified to preserve full text including URL)
 const formatFeedbackForCsv = (feedbackText) => {
-  if (!feedbackText) return "No feedback yet";
-  // Remove the "[View Teacher Media](URL)" part from feedback
-  const cleanedFeedback = feedbackText.replace(/\[View Teacher Media\]\((https:\/\/res\.cloudinary\.com\/.+?)\)/g, '').trim();
-  // Escape double quotes by replacing them with two double quotes, and wrap in quotes if contains commas or newlines
-  const escapedFeedback = cleanedFeedback.replace(/"/g, '""');
-  return `"${escapedFeedback}"`; // Ensure the whole string is quoted
+    if (!feedbackText) return "No feedback yet";
+    // Escape double quotes by replacing them with two double quotes, and wrap in quotes if contains commas or newlines
+    const escapedFeedback = feedbackText.replace(/"/g, '""');
+    return `"${escapedFeedback}"`; // Ensure the whole string is quoted
 };
 
-// Helper function to format status for CSV display
+// Helper function to format status for CSV (same as before)
 const formatStatusForCsv = (status) => {
-  if (status === "graded" || status === "synced") {
-    return "Graded";
-  } else if (status === "submitted") {
-    return "Waiting for Grading";
-  } else if (status === "draft") {
-    return "Draft";
-  }
-  return status; // Fallback for any other status
+    if (status === "graded" || status === "synced") {
+        return "Graded";
+    } else if (status === "submitted") {
+        return "Waiting for Grading";
+    } else if (status === "draft") {
+        return "Draft";
+    }
+    return status;
 };
 
-// ✅ Handle Export to CSV
+// ✅ MODIFIED: Handle Export to CSV for Admin Dashboard
 const handleExportCsv = () => {
-  if (filteredEntries.length === 0) {
-    setMessage("No entries to export.");
-    setTimeout(() => setMessage(""), 3000);
-    return;
-  }
+    if (filteredEntries.length === 0) {
+        setMessage("No entries to export.");
+        setTimeout(() => setMessage(""), 3000);
+        return;
+    }
 
-  // Define CSV headers
-  const headers = [
-    "Case #", "Entry Date", "Student", "Course", "Task Type",
-    "Media Links", "Grade", "Feedback", "Status"
-  ];
-
-  // Prepare CSV rows
-  const csvRows = [];
-  // Add header row
-  csvRows.push(headers.join(','));
-
-  // Add data rows
-  filteredEntries.forEach(entry => {
-    const row = [
-      `"${entry.case_number || ''}"`,
-      `"${new Date(entry.entry_date).toLocaleDateString() || ''}"`,
-      `"${entry.student || ''}"`,
-      `"${entry.course || ''}"`,
-      `"${entry.type_of_work || ''}"`,
-      formatMediaLinksForCsv(entry.media_link), // Use helper for media
-      `"${entry.grade || 'N/A'}"`,
-      formatFeedbackForCsv(entry.feedback), // Use helper for feedback
-      `"${formatStatusForCsv(entry.status)}"` // Use helper for status
+    // Define CSV headers with more detailed information
+    const headers = [
+        "Entry ID",
+        "Case #",
+        "Entry Date",
+        "Completion Date",
+        "Student Name",
+        "Student ID",
+        "Course Name",
+        "Course ID",
+        "Assigned Teacher", // This refers to the teacher associated with *this specific entry*
+        "Teacher ID",
+        "Task Type",
+        "Description",
+        "Media Links",
+        "Consent Form",
+        "Clinical Info (Comments)",
+        "Grade",
+        "Feedback",
+        "Status",
+        "Allow Resubmit"
     ];
-    csvRows.push(row.join(','));
-  });
 
-  // Create a Blob from the CSV string
-  const csvString = csvRows.join('\n');
-  const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    // Prepare CSV rows
+    const csvRows = [];
+    csvRows.push(headers.map(header => `"${header}"`).join(',')); // Add header row, quoted
 
-  // Create a download link and trigger click
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.setAttribute('download', 'logbook_entries.csv');
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(link.href); // Clean up the URL object
+    filteredEntries.forEach(entry => {
+        // Find full student and teacher details if necessary, using IDs
+        // Assuming entry objects already contain student_id, course_id, teacher_id
+        const studentInfo = allStudents.find(s => s.id === entry.student_id);
+        const teacherInfo = allTeachers.find(t => t.id === entry.teacher_id);
+        const courseInfo = allCourses.find(c => c.id === entry.course_id);
+
+        const row = [
+            `"${entry.id || ''}"`,
+            `"${entry.case_number || ''}"`,
+            `"${new Date(entry.entry_date).toLocaleDateString() || ''}"`,
+            `"${entry.work_completed_date ? new Date(entry.work_completed_date).toLocaleDateString("en-GB") : 'Not Provided'}"`,
+            `"${studentInfo?.username || entry.student || 'Unknown'}"`, // Use studentInfo if available, fallback to entry.student
+            `"${entry.student_id || ''}"`,
+            `"${courseInfo?.fullname || entry.course || 'Unknown'}"`, // Use courseInfo if available, fallback to entry.course
+            `"${entry.course_id || ''}"`,
+            `"${teacherInfo?.username || entry.teacher_name || 'Unknown'}"`, // Use teacherInfo if available, fallback to entry.teacher_name
+            `"${entry.teacher_id || ''}"`,
+            `"${entry.type_of_work || ''}"`,
+            `"${entry.task_description || 'No Description'}"`,
+            formatMediaLinksForCsv(entry.media_link),
+            `"${entry.consent_form === 'yes' ? 'Yes' : 'No'}"`,
+            `"${entry.clinical_info || 'No Info'}"`,
+            `"${entry.grade !== null ? entry.grade : 'N/A'}"`,
+            formatFeedbackForCsv(entry.feedback), // Includes full feedback text with potential URLs
+            `"${formatStatusForCsv(entry.status)}"`,
+            `"${entry.allow_resubmit ? 'Yes' : 'No'}"`
+        ];
+        csvRows.push(row.join(','));
+    });
+
+    const csvString = csvRows.join('\n');
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.setAttribute('download', 'admin_logbook_entries_detailed.csv'); // Distinct filename
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
 };
 
-// ... (rest of AdminDashboard component) ...
+// ... (Rest of your AdminDashboard component) ...
   
   // ✅ Handle Search
   const handleSearch = (query) => {
