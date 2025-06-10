@@ -1,3 +1,4 @@
+// TopBar.js (No changes needed, keeping it as provided)
 import React from "react";
 import { Link } from "react-router-dom";
 import hsLogo from "../../images/hs-logo.jpg"; // ✅ Import the logo
@@ -11,17 +12,16 @@ const TopBar = () => {
         <img src={hsLogo} alt="Human Study Logo" className="hs-logo" />
       </div>
 
-   
-
-      {/* ✅ Right - Login Inputs
+      {/* ✅ Right - Login Inputs (commented out in your original code) */}
+      {/*
       <div className="login-container">
         <input type="text" placeholder="Username" className="login-input" />
         <input type="password" placeholder="Password" className="login-input" />
         <button className="login-button">→</button>
-      </div> */}
+      </div>
+      */}
     </div>
   );
-  
 };
 
 export default TopBar;
