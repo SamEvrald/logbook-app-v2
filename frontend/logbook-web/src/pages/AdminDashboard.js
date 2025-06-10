@@ -423,29 +423,26 @@ const getProfileInitials = () => {
 
 
         <td>{entry.grade || "N/A"}</td>
-        <td className="feedback-cell">
-  {(() => {
-    if (!entry.feedback) return "No feedback yet";
+         <td>
+  <div>
+    {/* ✅ Show plain feedback */}
+    {entry.feedback && !entry.feedback.includes("http") ? entry.feedback : entry.feedback?.split("📎")[0] || "No feedback yet"}
 
-    const mediaRegex = /\[View Teacher Media\]\((https:\/\/res\.cloudinary\.com\/.+?)\)/;
-    const match = entry.feedback.match(mediaRegex);
-
-    if (match) {
-      const feedbackText = entry.feedback.replace(mediaRegex, "").trim();
-      const mediaUrl = match[1];
-
-      return (
-        <div>
-          <p>{feedbackText}</p>
-          <a href={mediaUrl} target="_blank" rel="noopener noreferrer">
-            <button className="view-file-btn">View File</button>
-          </a>
-        </div>
-      );
-    }
-
-    return entry.feedback;
-  })()}
+    {/* ✅ Add view file button if media link is present */}
+    {entry.feedback && entry.feedback.includes("http") && (
+      <div style={{ marginTop: "5px" }}>
+        <button
+          style={{ padding: "5px 10px", fontSize: "0.9em", cursor: "pointer" }}
+          onClick={() => {
+            const match = entry.feedback.match(/\((.*?)\)/); // extract URL inside markdown link
+            if (match && match[1]) window.open(match[1], "_blank");
+          }}
+        >
+          🎥 View File
+        </button>
+      </div>
+    )}
+  </div>
 </td>
         <td style={{
     fontWeight: "bold",
