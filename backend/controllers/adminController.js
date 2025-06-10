@@ -254,25 +254,65 @@ exports.getAllTeachers = async (req, res) => {
     }
   };
   // ✅ Get all logbook entries
-  exports.getAllEntries = async (req, res) => {
-    try {
-        const [entries] = await db.promise().query(
-            `SELECT le.id, le.case_number, le.entry_date, 
-                    s.username AS student, c.fullname AS course, 
-                    le.type_of_work, le.grade, le.feedback, le.status, 
-                    le.media_link  -- ✅ Include media_link field
-             FROM logbook_entries le
-             JOIN users s ON le.student_id = s.id
-             JOIN courses c ON le.course_id = c.id
-             ORDER BY le.entry_date DESC`
-        );
+  // exports.getAllEntries = async (req, res) => {
+  //   try {
+  //       const [entries] = await db.promise().query(
+  //           `SELECT le.id, le.case_number, le.entry_date, 
+  //                   s.username AS student, c.fullname AS course, 
+  //                   le.type_of_work, le.grade, le.feedback, le.status, 
+  //                   le.media_link  -- ✅ Include media_link field
+  //            FROM logbook_entries le
+  //            JOIN users s ON le.student_id = s.id
+  //            JOIN courses c ON le.course_id = c.id
+  //            ORDER BY le.entry_date DESC`
+  //       );
   
-        res.json(entries);
-    } catch (error) {
-        console.error("❌ Database error:", error);
-        res.status(500).json({ message: "Failed to fetch logbook entries", error: error.message });
-    }
-  };
+  //       res.json(entries);
+  //   } catch (error) {
+  //       console.error("❌ Database error:", error);
+  //       res.status(500).json({ message: "Failed to fetch logbook entries", error: error.message });
+  //   }
+  // };
   
   
-  
+// ... (Your existing imports at the top of the file) ...
+
+// ✅ Get all logbook entries (CORRECTED - Removed non-existent teacher_id join)
+exports.getAllEntries = async (req, res) => {
+  try {
+    const [entries] = await db.promise().query(
+      `SELECT
+          le.id,
+          le.case_number,
+          le.entry_date,
+          le.work_completed_date, -- ✅ Added: Completion date for the work
+          le.type_of_work,
+          le.grade,
+          le.feedback,
+          le.status,
+          le.media_link,
+          le.consent_form,    -- ✅ Added: Consent form status
+          le.clinical_info,   -- ✅ Added: Clinical info/comments
+          le.allow_resubmit,  -- ✅ Added: Flag for allowing resubmission
+          s.username AS student,
+          s.id AS student_id, -- ✅ Added: Student ID
+          c.fullname AS course,
+          c.id AS course_id   -- ✅ Added: Course ID
+       FROM logbook_entries le
+       JOIN users s ON le.student_id = s.id
+       JOIN courses c ON le.course_id = c.id
+       -- Removed: LEFT JOIN teachers t ON le.teacher_id = t.id (because le.teacher_id doesn't exist)
+       -- Removed: t.username AS teacher_name, t.id AS teacher_id (because we can't join to teachers this way)
+       ORDER BY le.entry_date DESC`
+    );
+
+    // ✅ IMPORTANT: Wrap the entries in an object to match frontend's expected structure
+    //    (where frontend calls entriesResponse.data.entries)
+    res.json({ entries });
+  } catch (error) {
+    console.error("❌ Database error:", error);
+    res.status(500).json({ message: "Failed to fetch logbook entries", error: error.message });
+  }
+};
+
+// ... (Rest of your controller code) ...
