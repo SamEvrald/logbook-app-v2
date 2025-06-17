@@ -3,7 +3,12 @@ const db = require("../models/db");
 const multer = require("multer");
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("../utils/cloudinary");
-const { notifyNewLogbookEntry, createAssignmentNotification, notifyEntryGraded } = require("../controllers/notificationController");
+const {
+  notifyNewLogbookEntry,
+  createAssignmentNotification,
+  notifyEntryGraded,
+  notifyTeacherOnStudentSubmission
+} = require("../controllers/notificationController");
 
 
 // Function to generate a case number based on the course
@@ -59,12 +64,13 @@ exports.createEntry = async (req, res) => {
 
     console.log("✅ All required fields received.");
 
-    // Ensure student exists
-    const [userRows] = await db.promise().query("SELECT id FROM users WHERE moodle_id = ?", [moodle_id]);
+    // Ensure student exists AND fetch studentName
+    const [userRows] = await db.promise().query("SELECT id, username FROM users WHERE moodle_id = ?", [moodle_id]);
     if (userRows.length === 0) {
       return res.status(404).json({ message: "❌ No user found with this Moodle ID." });
     }
     const studentId = userRows[0].id;
+    const studentName = userRows[0].username; // ✅ This line ensures studentName is defined here
 
     // Prevent duplicate submissions unless resubmission is allowed
     const [existingEntries] = await db.promise().query(
@@ -225,6 +231,13 @@ exports.createEntry = async (req, res) => {
         JSON.stringify(mediaFiles), parseInt(moodle_instance_id)
       ]
     );
+
+    // ✅ NOTIFICATION: Notify student about their own submission
+    await notifyNewLogbookEntry(studentId, caseNumber);
+
+    // ✅ NOTIFICATION: Notify teachers about student submission
+    await notifyTeacherOnStudentSubmission(courseId, studentName, caseNumber); // studentName is now correctly defined
+
 
     res.status(201).json({ message: "✅ Logbook entry submitted successfully.", case_number: caseNumber, mediaFiles });
   } catch (error) {
@@ -592,7 +605,7 @@ exports.getStudentCourses = async (req, res) => {
       },
     });
 
-    console.log(`� Moodle Response:`, moodleResponse.data);
+    console.log(`📚 Moodle Response:`, moodleResponse.data);
 
     res.json(moodleResponse.data);
   } catch (error) {
