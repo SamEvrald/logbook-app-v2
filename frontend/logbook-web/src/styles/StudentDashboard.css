@@ -161,18 +161,8 @@
     background: #27ae60;
     color: white;
 }
-/* ✅ Top Bar */
-/* .top-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: white;
-    padding: 10px 20px;
-    border-bottom: 3px solid #2980b9;
-    width: 100%;
-    max-width: 1000px;
-    margin: 0 auto;
-} */
+
+/* The provided TopBar component CSS is not here, but assuming it handles its own layout */
 
 /* ✅ Right Section (Profile & Notifications) */
 .top-right {
@@ -181,7 +171,13 @@
     gap: 15px;
 }
 
-/* ✅ Notifications Icon */
+/* ✅ Notifications Container (NEW/MODIFIED - Ensures dropdown is positioned correctly relative to this) */
+.notifications-container {
+    /* Already has inline style: position: 'relative' from StudentDashboard.js */
+    display: inline-block; /* Makes it only take up the necessary width */
+}
+
+/* ✅ Notification Bell Icon */
 .bell-icon {
     font-size: 22px;
     cursor: pointer;
@@ -192,6 +188,97 @@
 .bell-icon:hover {
     color: #2c3e50;
 }
+
+/* ✅ Notification Count Badge (NEW/MODIFIED - Positions the red circle) */
+.notification-count {
+  position: absolute;
+  top: -8px; /* Adjust vertical position */
+  right: -8px; /* Adjust horizontal position */
+  background-color: red;
+  color: white;
+  border-radius: 50%;
+  padding: 3px 7px; /* Adjust for better circle shape */
+  font-size: 11px; /* Smaller font for badge */
+  line-height: 1;
+  min-width: 10px; /* Ensure it's a circle even for single digit */
+  text-align: center;
+  box-sizing: border-box; /* Include padding in width/height */
+}
+
+/* ✅ Notification Dropdown (NEW/MODIFIED - Main styling for the dropdown behavior) */
+.notifications-dropdown {
+    position: absolute; /* Takes the dropdown out of the normal document flow */
+    top: 100%; /* Positions it directly below the parent (.notifications-container) */
+    left: 50%; /* Centers it horizontally relative to the bell */
+    transform: translateX(-50%); /* Fine-tunes the centering */
+    z-index: 1000; /* Ensures it appears on top of other content */
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    width: 320px; /* ✅ IMPORTANT: Set a fixed width to prevent horizontal expansion */
+    max-height: 400px; /* ✅ Set a maximum height for vertical scrolling */
+    overflow-y: auto; /* ✅ Enable vertical scrolling if content exceeds max-height */
+    padding: 10px;
+    margin-top: 5px; /* Small gap between bell and dropdown */
+    box-sizing: border-box; /* Includes padding and border in the element's total width and height */
+}
+
+.notifications-dropdown ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.notifications-dropdown li {
+  padding: 10px 5px; /* Adjust padding for list items */
+  border-bottom: 1px solid #eee;
+  display: flex;
+  flex-direction: column; /* Stack message and timestamp */
+  align-items: flex-start;
+  font-size: 14px;
+}
+
+.notifications-dropdown li:last-child {
+  border-bottom: none;
+}
+
+.notifications-dropdown li.unread {
+  font-weight: bold;
+  background-color: #f0f8ff; /* Light blue background for unread */
+}
+
+.notifications-dropdown .message {
+    margin-bottom: 5px;
+}
+
+.notifications-dropdown .timestamp {
+  font-size: 0.8em;
+  color: #777;
+}
+
+.notifications-dropdown button {
+  background-color: #27ae60;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.75em;
+  margin-top: 8px; /* Space between message and button */
+  align-self: flex-end; /* Align button to the right within the flex column */
+}
+
+.notifications-dropdown button:hover {
+  background-color: #0056b3;
+}
+
+.notifications-dropdown p {
+  text-align: center;
+  color: #888;
+  padding: 20px;
+}
+
 
 /* ✅ Profile Icon */
 .profile-container {
@@ -223,6 +310,7 @@
     padding: 10px;
     text-align: center;
     min-width: 150px;
+    z-index: 999; /* Lower than notifications dropdown if both open */
 }
 
 .profile-dropdown button {
@@ -245,7 +333,7 @@
     position: relative;
     display: inline-block;
   }
-  
+
   /* ✅ Dropdown Button */
   .dropdown-button {
     background-color: #27ae60;
@@ -258,7 +346,7 @@
     line-height: 1;
     min-width: 90px;
   }
-  
+
   /* ✅ Default (downward) */
   .dropdown-content {
     display: none;
@@ -272,10 +360,9 @@
     top: 100%;
     left: 0;
   }
-  
+
   /* ✅ Upward version (when near bottom) */
   .dropdown-container.upward .dropdown-content {
     bottom: 100%;
     top: auto;
   }
-  
