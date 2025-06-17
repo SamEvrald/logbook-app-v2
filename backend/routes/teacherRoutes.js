@@ -4,7 +4,7 @@ const {
   signupTeacher,
   loginTeacher,
   getSubmittedEntries,
-  gradeEntry,
+ 
   getTeacherCourses,
 } = require("../controllers/teacherController");
 const { allowResubmit } = require("../controllers/entryController"); // ✅ Make sure it's imported
@@ -29,7 +29,7 @@ router.get("/:teacherEmail/courses", authMiddleware, roleMiddleware("teacher"), 
 router.get("/:teacherEmail/entries", authMiddleware, roleMiddleware("teacher"), getSubmittedEntries);
 
 // ✅ Grade an Entry
-router.post("/grade", authMiddleware, roleMiddleware("teacher"), gradeEntry);
+//router.post("/grade", authMiddleware, roleMiddleware("teacher"), gradeEntry);
 
 
 
