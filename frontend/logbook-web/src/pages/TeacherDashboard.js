@@ -28,11 +28,15 @@ const TeacherDashboard = () => {
   const [sortBy, setSortBy] = useState("entry_date");
 
   // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
+   const [currentPage, setCurrentPage] = useState(1);
   const entriesPerPage = 6;
 
   // Profile Dropdown
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+
+  // ✅ New: Notification state and visibility
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
 
 
   // ✅ Handle Search & Filtering (existing code)
@@ -110,14 +114,35 @@ const TeacherDashboard = () => {
     }
   }, [storedUser?.email, token, navigate]);
 
-  // 2. Then use it in useEffect (existing code)
+
+  // ✅ New: Fetch Notifications for the Teacher (using internal_user_id)
+  const fetchNotifications = useCallback(async () => {
+    try {
+      // Use storedUser.internal_user_id which is set during login for teachers
+      if (!storedUser?.internal_user_id) { 
+        console.warn("Internal User ID not available for teacher notifications. Cannot fetch notifications.");
+        return;
+      }
+      // Call the new backend route using the internal user ID
+      const response = await API.get(`/notifications/teacher/internal/${storedUser.internal_user_id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setNotifications(response.data);
+    } catch (error) {
+      console.error("❌ Failed to fetch teacher notifications:", error.response?.data || error.message);
+    }
+  }, [storedUser?.internal_user_id, token]); // Dependency array updated to use internal_user_id
+
+
+  // 2. Then use it in useEffect (existing code + new notification fetch)
   useEffect(() => {
     if (!storedUser || storedUser.role !== "teacher" || !token) {
       navigate("/login/teacher");
       return;
     }
     fetchDashboard();
-  }, [fetchDashboard, storedUser, token, navigate]);
+    fetchNotifications(); // ✅ Fetch notifications on component mount
+  }, [fetchDashboard, fetchNotifications, storedUser, token, navigate]);
 
 
   // handleGradeEntry (existing code)
@@ -128,7 +153,6 @@ const TeacherDashboard = () => {
   // allowResubmission (existing code)
   const allowResubmission = async (entryId) => {
     try {
-      // Replaced window.confirm with a more robust modal in actual applications
       const confirmAllowance = window.confirm("Are you sure you want to allow resubmission for this entry?");
       if (!confirmAllowance) return;
 
@@ -136,7 +160,8 @@ const TeacherDashboard = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       alert("✅ Resubmission allowed.");
-      await fetchDashboard(); // Refresh data
+      await fetchDashboard(); // Refresh entries
+      await fetchNotifications(); // ✅ Also refresh notifications
     } catch (error) {
       console.error("❌ Failed to allow resubmission:", error.response?.data || error.message);
       alert("❌ Failed to allow resubmission.");
@@ -146,7 +171,7 @@ const TeacherDashboard = () => {
   // handleLogout (existing code)
   const handleLogout = () => {
     localStorage.removeItem("token");
-    localStorage.removeItem("user"); // Also remove user on logout
+    localStorage.removeItem("user");
     navigate("/login");
   };
 
@@ -174,20 +199,18 @@ const TeacherDashboard = () => {
     if (!mediaLinkJson) return "N/A";
     try {
       const mediaArray = JSON.parse(mediaLinkJson);
-      return mediaArray.join('; '); // Join multiple links with a semicolon for CSV
+      return mediaArray.join('; ');
     } catch {
-      return mediaLinkJson; // If it's not JSON, use as-is
+      return mediaLinkJson;
     }
   };
 
   // ✅ New: Helper function to format feedback for CSV
   const formatFeedbackForCsv = (feedbackText) => {
     if (!feedbackText) return "No feedback yet";
-    // Remove the "[View Teacher Media](URL)" part from feedback
     const cleanedFeedback = feedbackText.replace(/\[View Teacher Media\]\((https:\/\/res\.cloudinary\.com\/.+?)\)/g, '').trim();
-    // Escape double quotes by replacing them with two double quotes, and wrap in quotes if contains commas or newlines
     const escapedFeedback = cleanedFeedback.replace(/"/g, '""');
-    return `"${escapedFeedback}"`; // Ensure the whole string is quoted
+    return `"${escapedFeedback}"`;
   };
 
   // ✅ New: Helper function to format status for CSV display (consistent with dashboard)
@@ -197,7 +220,7 @@ const TeacherDashboard = () => {
     } else if (status === "submitted") {
       return "Waiting for Grading";
     }
-    return status; // Fallback for any other status
+    return status;
   };
 
   // ✅ New: Handle Export to CSV
@@ -207,15 +230,13 @@ const TeacherDashboard = () => {
       return;
     }
 
-    // Define CSV headers relevant for teachers
     const headers = [
       "Case #", "Completion Date", "Student", "Course", "Type Of Task/Device",
       "Description", "Media Links", "Consent", "Comments", "Grade", "Feedback", "Status"
     ];
 
-    // Prepare CSV rows
     const csvRows = [];
-    csvRows.push(headers.map(header => `"${header}"`).join(',')); // Add header row, quoted
+    csvRows.push(headers.map(header => `"${header}"`).join(','));
 
     filteredEntries.forEach(entry => {
       const row = [
@@ -225,28 +246,25 @@ const TeacherDashboard = () => {
         `"${entry.course_name || `Course ID ${entry.course_id}`}"`,
         `"${entry.type_of_work || ''}"`,
         `"${entry.task_description || 'No Description'}"`,
-        formatMediaLinksForCsv(entry.media_link), // Use helper for media
+        formatMediaLinksForCsv(entry.media_link),
         `"${entry.consent_form === "yes" ? "Yes" : "No"}"`,
         `"${entry.clinical_info || 'No Info'}"`,
         `"${entry.grade !== null ? entry.grade : "-"}"`,
-        formatFeedbackForCsv(entry.feedback), // Use helper for feedback
-        `"${formatStatusForCsv(entry.status)}"` // Use helper for status
+        formatFeedbackForCsv(entry.feedback),
+        `"${formatStatusForCsv(entry.status)}"`
       ];
       csvRows.push(row.join(','));
     });
 
-    // Create a Blob from the CSV string
     const csvString = csvRows.join('\n');
     const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
-
-    // Create a download link and trigger click
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.setAttribute('download', 'teacher_logbook_entries.csv');
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    URL.revokeObjectURL(link.href); // Clean up
+    URL.revokeObjectURL(link.href);
   };
 
 
@@ -256,12 +274,63 @@ const TeacherDashboard = () => {
   const currentEntries = filteredEntries.slice(indexOfFirstEntry, indexOfLastEntry);
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
+
+  // ✅ New: Handle marking notification as read
+  const markAsRead = async (notificationId) => {
+    try {
+      // This route is generic for both student/teacher, relies on req.user.moodle_id from token
+      // For teachers, req.user.moodle_id will be NULL, but their internal user ID should be used
+      // So markNotificationAsRead needs to be robust for NULL moodle_id or handle based on internal_user_id
+      // Let's assume the auth middleware provides internal_user_id on req.user for teachers
+      await API.put(`/notifications/${notificationId}/read`, {}, { 
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      fetchNotifications(); // Refresh notifications after marking one as read
+    } catch (error) {
+      console.error("❌ Failed to mark notification as read:", error.response?.data || error.message);
+    }
+  };
+
+
+  const unreadNotificationsCount = notifications.filter(n => !n.is_read).length;
+
+
   return (
     <div className="teacher-dashboard">
       <div className="top-bar">
         <TopBar />
         <div className="top-right">
-          <FaBell className="icon bell-icon" title="Notifications" />
+          <div className="notifications-container" style={{ position: 'relative' }}>
+                      <FaBell
+                        className="icon bell-icon"
+                        title="Notifications"
+                        onClick={() => setShowNotifications(!showNotifications)}
+                      />
+                      {unreadNotificationsCount > 0 && (
+                        <span className="notification-count">{unreadNotificationsCount}</span>
+                      )}
+                      {showNotifications && (
+                        <div className="notifications-dropdown">
+                          {notifications.length === 0 ? (
+                            <p>No new notifications.</p>
+                          ) : (
+                            <ul>
+                              {notifications.map((notification) => (
+                                <li key={notification.id} className={notification.is_read ? "read" : "unread"}>
+                                  <span className="message">{notification.message}</span>
+                                  {!notification.is_read && (
+                                    <button onClick={() => markAsRead(notification.id)}>Mark as Read</button>
+                                  )}
+                                  <span className="timestamp">{new Date(notification.timestamp).toLocaleString()}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    
+
           <div className="profile-container" onClick={() => setShowProfileMenu(!showProfileMenu)}>
             <div className="profile-icon">{getProfileInitials()}</div>
             {showProfileMenu && (
@@ -414,7 +483,7 @@ const TeacherDashboard = () => {
                     {/* The Grade button should always be there */}
                     <button className="grade-btn" onClick={() => handleGradeEntry(entry.id)}>Grade</button>
 
-                    {/* Show Allow Resubmit button only if entry is graded/synced AND resubmission is NOT yet allowed */}
+                    {/* Show Allow Resubmit button or "Resubmission Allowed" text if entry is graded/synced */}
                     {(entry.status === "graded" || entry.status === "synced") && (
                       entry.allow_resubmit ? ( // If allow_resubmit is true (1)
                         <span style={{color: 'gray', fontSize: '0.9em', whiteSpace: 'nowrap' }}>Resubmission Allowed</span>
