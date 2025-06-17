@@ -14,7 +14,7 @@ const TeacherDashboard = () => {
     const user = localStorage.getItem("user");
     return user ? JSON.parse(user) : null;
   }, []);
-  
+
   const token = localStorage.getItem("token");
 
   const [teacherName] = useState(storedUser?.username || "Unknown");
@@ -128,14 +128,15 @@ const TeacherDashboard = () => {
   // allowResubmission (existing code)
   const allowResubmission = async (entryId) => {
     try {
-      const confirm = window.confirm("Are you sure you want to allow resubmission for this entry?");
-      if (!confirm) return;
+      // Replaced window.confirm with a more robust modal in actual applications
+      const confirmAllowance = window.confirm("Are you sure you want to allow resubmission for this entry?");
+      if (!confirmAllowance) return;
 
       await API.put(`/teachers/entries/${entryId}/allow-resubmit`, null, {
         headers: { Authorization: `Bearer ${token}` },
       });
       alert("✅ Resubmission allowed.");
-      await fetchDashboard();
+      await fetchDashboard(); // Refresh data
     } catch (error) {
       console.error("❌ Failed to allow resubmission:", error.response?.data || error.message);
       alert("❌ Failed to allow resubmission.");
@@ -145,6 +146,7 @@ const TeacherDashboard = () => {
   // handleLogout (existing code)
   const handleLogout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("user"); // Also remove user on logout
     navigate("/login");
   };
 
@@ -158,25 +160,13 @@ const TeacherDashboard = () => {
   // handleSearch (existing code)
   const handleSearch = (query) => {
     setSearchQuery(query);
-    const filtered = entries.filter(
-      (entry) =>
-        entry.case_number.toLowerCase().includes(query.toLowerCase()) ||
-        entry.student_name.toLowerCase().includes(query.toLowerCase())
-    );
-    setFilteredEntries(filtered);
+    // Filtering handled by useEffect now
   };
 
   // handleFilterCourse (existing code)
   const handleFilterCourse = (courseId) => {
     setSelectedCourse(courseId);
-    if (!courseId) {
-      setFilteredEntries(entries);
-      return;
-    }
-    const filtered = entries.filter((entry) =>
-      String(entry.course_id) === String(courseId)
-    );
-    setFilteredEntries(filtered);
+    // Filtering handled by useEffect now
   };
 
   // ✅ New: Helper function to format media links for CSV
@@ -206,8 +196,6 @@ const TeacherDashboard = () => {
       return "Graded";
     } else if (status === "submitted") {
       return "Waiting for Grading";
-    } else if (status === "draft") { // Include 'draft' if applicable from student side
-        return "Draft";
     }
     return status; // Fallback for any other status
   };
@@ -215,7 +203,7 @@ const TeacherDashboard = () => {
   // ✅ New: Handle Export to CSV
   const handleExportCsv = () => {
     if (filteredEntries.length === 0) {
-      alert("No entries to export."); // Or use a state-based message like in AdminDashboard
+      alert("No entries to export.");
       return;
     }
 
@@ -254,7 +242,7 @@ const TeacherDashboard = () => {
     // Create a download link and trigger click
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.setAttribute('download', 'teacher_logbook_entries.csv'); // Different filename
+    link.setAttribute('download', 'teacher_logbook_entries.csv');
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -270,7 +258,6 @@ const TeacherDashboard = () => {
 
   return (
     <div className="teacher-dashboard">
-      {/* ... (existing Top Bar and Welcome message) ... */}
       <div className="top-bar">
         <TopBar />
         <div className="top-right">
@@ -307,8 +294,8 @@ const TeacherDashboard = () => {
           <option value="">-- Filter by Status --</option>
           <option value="submitted">Not Graded</option>
           <option value="graded">Graded</option>
-          <option value="synced">Graded (Synced)</option> {/* Consider adding 'synced' for completeness */}
-          <option value="draft">Draft</option> {/* Consider adding 'draft' if teachers see these */}
+          <option value="synced">Graded (Synced)</option>
+          {/* Removed: <option value="draft">Draft</option> */}
         </select>
 
         {/* Sorting Options */}
@@ -321,7 +308,7 @@ const TeacherDashboard = () => {
         {/* Search Box */}
         <input
           type="text"
-          placeholder="Search entries..." // Changed placeholder
+          placeholder="Search entries..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
@@ -336,7 +323,6 @@ const TeacherDashboard = () => {
         <p>No entries found.</p>
       ) : (
         <table>
-          {/* ... (existing table header) ... */}
           <thead>
             <tr>
               <th>Case #</th>
@@ -355,7 +341,6 @@ const TeacherDashboard = () => {
             </tr>
           </thead>
           <tbody>
-            {/* ... (existing table rows) ... */}
             {currentEntries.map((entry) => (
               <tr key={entry.id}>
                 <td>{entry.case_number || "Not Assigned"}</td>
@@ -413,29 +398,37 @@ const TeacherDashboard = () => {
                     return entry.feedback;
                   })()}
                 </td>
-                {/* Changed status display to be consistent with Admin Dashboard's robust display */}
                 <td style={{ fontWeight: "bold", color:
                   entry.status === "graded" || entry.status === "synced" ? "green" :
                   entry.status === "submitted" ? "orange" :
-                  "gray"
+                  "gray" // Fallback for any unexpected status
                 }}>
                   {
                     entry.status === "graded" || entry.status === "synced" ? "Graded" :
                     entry.status === "submitted" ? "Waiting for Grading" :
-                    "Draft"
+                    entry.status // Display the actual status if it's not one of the main ones
                   }
                 </td>
                 <td>
-                  <button className="grade-btn" onClick={() => handleGradeEntry(entry.id)}>Grade</button>
-                  {entry.status === "graded" && !entry.allow_resubmit && (
-                    <button
-                      className="grade-btn"
-                      style={{ backgroundColor: "#2980b9", marginTop: "5px" }}
-                      onClick={() => allowResubmission(entry.id)}
-                    >
-                      Allow Resubmit
-                    </button>
-                  )}
+                  <div style={{ display: 'flex', flexDirection: 'row', gap: '10px', alignItems: 'center', justifyContent: 'center' }}>
+                    {/* The Grade button should always be there */}
+                    <button className="grade-btn" onClick={() => handleGradeEntry(entry.id)}>Grade</button>
+
+                    {/* Show Allow Resubmit button only if entry is graded/synced AND resubmission is NOT yet allowed */}
+                    {(entry.status === "graded" || entry.status === "synced") && (
+                      entry.allow_resubmit ? ( // If allow_resubmit is true (1)
+                        <span style={{color: 'gray', fontSize: '0.9em', whiteSpace: 'nowrap' }}>Resubmission Allowed</span>
+                      ) : ( // If allow_resubmit is false (0)
+                        <button
+                          className="grade-btn"
+                          style={{ backgroundColor: "#2980b9" }}
+                          onClick={() => allowResubmission(entry.id)}
+                        >
+                          Allow Resubmit
+                        </button>
+                      )
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}
