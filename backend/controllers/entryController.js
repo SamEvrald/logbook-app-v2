@@ -312,26 +312,31 @@ exports.getSubmittedEntries = async (req, res) => {
 exports.gradeEntry = async (req, res) => {
   try {
     const { entryId, grade, feedback } = req.body;
+    let teacher_media_link = null; // Initialize to null
 
-    let finalFeedback = feedback;
-
-    if (req.file) {
-      const result = await cloudinary.uploader.upload(req.file.path, {
-        resource_type: "auto",
-        folder: "logbook/teacher_feedback",
-      });
-
-      const mediaUrl = result.secure_url;
-      finalFeedback += `\n\n📎 [View Teacher Media](${mediaUrl})`;
+    if (!entryId || grade === undefined || grade === null || grade === "") {
+      return res.status(400).json({ message: "Entry ID and grade are required." });
     }
 
-    await db.promise().query(
-      `UPDATE logbook_entries SET grade = ?, feedback = ?, status = 'graded' WHERE id = ?`,
-      [grade, finalFeedback, entryId]
-    );
+    // --- Start: Handle Teacher Media Upload ---
+    // Make sure 'cloudinary' is imported at the top of this file if not already.
+    if (req.file) {
+      try {
+        const result = await cloudinary.uploader.upload(req.file.path, {
+          resource_type: "auto",
+          folder: "logbook/teacher_feedback",
+        });
+        teacher_media_link = result.secure_url;
+        console.log("✅ Teacher media uploaded to Cloudinary:", teacher_media_link);
+      } catch (uploadError) {
+        console.error("❌ Cloudinary Upload Error for teacher media:", uploadError);
+        // Log the error but continue; grade can still be saved without media.
+      }
+    }
+    // --- End: Handle Teacher Media Upload ---
 
-    console.log(`✅ Entry updated in local DB (graded) for Entry ID: ${entryId}`);
 
+    // 🔍 Fetch entry details (student_id, assignment_id, moodle_instance_id, moodle_id, case_number)
     const [entryRows] = await db.promise().query(
       `SELECT le.student_id, le.assignment_id, le.moodle_instance_id, le.case_number, u.moodle_id
        FROM logbook_entries le
@@ -341,21 +346,28 @@ exports.gradeEntry = async (req, res) => {
     );
 
     if (entryRows.length === 0) {
-      console.warn(`⚠️ Logbook entry ${entryId} not found after grading. Cannot sync to Moodle.`);
-      return res.status(200).json({ message: "✅ Grade successfully saved locally. Moodle sync skipped (entry not found)." });
+      console.warn(`⚠️ Logbook entry ${entryId} not found after grading.`);
+      return res.status(404).json({ message: "Logbook entry not found." });
     }
 
     const entry = entryRows[0];
     const moodleUserId = entry.moodle_id;
     const assignmentId = entry.assignment_id;
     const moodleInstanceId = entry.moodle_instance_id;
-    const studentId = entry.student_id;
-    const caseNumber = entry.case_number;
+    const studentId = entry.student_id; // For notification
+    const caseNumber = entry.case_number; // For notification
 
+    // ✅ Update entry in local database with grade, feedback, and teacher_media_link
+    await db.promise().query(
+      `UPDATE logbook_entries SET grade = ?, feedback = ?, teacher_media_link = ?, status = 'graded' WHERE id = ?`,
+      [grade, feedback, teacher_media_link, entryId]
+    );
+
+    console.log(`✅ Entry updated in local DB (graded) for Entry ID: ${entryId}`);
 
     // NOTIFICATION: Notify the student about the graded entry
     try {
-      await notifyEntryGraded(studentId, caseNumber, grade, finalFeedback);
+      await notifyEntryGraded(studentId, caseNumber, grade, feedback); // Pass finalFeedback
       console.log(`✅ Notification sent to student ${studentId} for graded entry ${caseNumber}`);
     } catch (notificationError) {
       console.error("❌ Error sending grade notification:", notificationError);
@@ -376,49 +388,68 @@ exports.gradeEntry = async (req, res) => {
     const moodleUrl = moodleInstance.base_url;
     const moodleToken = moodleInstance.api_token;
 
+    console.log(`🌍 Moodle URL: ${moodleUrl}`);
+    // console.log(`🔑 Moodle API Token: ${moodleToken}`); // Avoid logging sensitive tokens in production
+
     console.log(`🚀 Sending grade ${grade} to Moodle for Moodle User ID: ${moodleUserId} | Assignment ID: ${assignmentId}`);
 
-    const moodleGradeResponse = await axios.post(
-      `${moodleUrl}/webservice/rest/server.php`,
-      null,
-      {
-        params: {
-          wstoken: moodleToken,
-          wsfunction: "mod_assign_save_grade",
-          moodlewsrestformat: "json",
-          assignmentid: assignmentId,
-          userid: moodleUserId,
-          grade: parseFloat(grade),
-          attemptnumber: -1,
-          workflowstate: "graded",
-          applytoall: 0,
-        },
-      }
-    );
+    let moodleGradeResponse; // Declare outside try for scope
+    try {
+        moodleGradeResponse = await axios.post(
+            `${moodleUrl}/webservice/rest/server.php`,
+            null, // No request body for this specific Moodle function
+            {
+                params: { // All parameters go in the URL query string for mod_assign_save_grade (singular)
+                    wstoken: moodleToken,
+                    wsfunction: "mod_assign_save_grade", // ✅ Use singular 'save_grade' as confirmed
+                    moodlewsrestformat: "json", // Request JSON response
+                    assignmentid: assignmentId,
+                    userid: moodleUserId,
+                    grade: parseFloat(grade),
+                    attemptnumber: -1,
+                    addattempt: 0, // Keep as integer 0 as per working version and Moodle docs
+                    workflowstate: "graded",
+                    applytoall: 0,
+                },
+            }
+        );
 
-    console.log("✅ Moodle Grade Response:", moodleGradeResponse.data);
+        console.log("✅ Moodle Grade Response (Full):", JSON.stringify(moodleGradeResponse.data, null, 2));
 
-    if (moodleGradeResponse.data?.exception) {
-      console.error("❌ Moodle API Error:", moodleGradeResponse.data.message);
-      return res.status(400).json({ message: `Moodle API Error: ${moodleGradeResponse.data.message}`, error: moodleGradeResponse.data.message });
+        if (moodleGradeResponse.data?.exception) {
+            const moodleErrorMessage = moodleGradeResponse.data.message || "Unknown Moodle API Error.";
+            console.error("❌ Moodle API Error:", moodleErrorMessage);
+            return res.status(400).json({ message: `Moodle API Error: ${moodleErrorMessage}`, error: moodleErrorMessage });
+        }
+
+        // Update status to 'synced' after successful Moodle sync
+        await db.promise().query(
+            `UPDATE logbook_entries SET status = 'synced' WHERE id = ?`,
+            [entryId]
+        );
+        console.log(`✅ Entry ${entryId} status updated to 'synced' after successful Moodle sync.`);
+
+
+        res.status(200).json({ message: "✅ Entry graded and media (if any) added successfully." });
+
+    } catch (axiosError) {
+        console.error("❌ Axios Error during Moodle sync:", axiosError.message);
+        const detailedError = axiosError.response?.data ?
+                              JSON.stringify(axiosError.response.data, null, 2) :
+                              axiosError.message;
+        console.error("❌ Moodle Sync Error (Details):", detailedError);
+
+        return res.status(500).json({
+            message: `Grade saved locally, but failed to sync to Moodle. Error: ${axiosError.response?.statusText || axiosError.message}`,
+            error: detailedError
+        });
     }
-
-    // Update status to 'synced' after successful Moodle sync
-    await db.promise().query(
-      `UPDATE logbook_entries SET status = 'synced' WHERE id = ?`,
-      [entryId]
-    );
-    console.log(`✅ Entry ${entryId} status updated to 'synced' after Moodle sync.`);
-
-
-    res.status(200).json({ message: "✅ Entry graded and media (if any) added successfully." });
 
   } catch (error) {
     console.error("❌ Grade Entry Error:", error.message);
-    res.status(500).json({ message: "❌ Failed to grade entry", error: error.message });
+    res.status(500).json({ message: "Failed to grade entry", error: error.message });
   }
 };
-
 exports.updateEntryStatus = async (req, res) => {
   const { entryId, status } = req.body;
 
