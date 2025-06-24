@@ -2,7 +2,7 @@ const db = require("../models/db");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const axios = require("axios");
-const { notifyEntryGraded } = require("../controllers/notificationController");
+const { notifyEntryGraded, notifyResubmissionAllowed } = require("../controllers/notificationController"); // ✅ Import new notification function
 const qs = require('qs');
 
 
@@ -26,9 +26,6 @@ const signupTeacher = async (req, res) => {
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Insert into teachers table
-        // Note: moodle_instance_id might be 0 or null here if not provided during signup.
-        // It's crucial for the login process to then try and fetch the Moodle ID.
         await db.promise().query(
             "INSERT INTO teachers (username, email, password) VALUES (?, ?, ?)",
             [username, email, hashedPassword]
@@ -45,13 +42,12 @@ const signupTeacher = async (req, res) => {
 const loginTeacher = async (req, res) => {
     const { email, password } = req.body;
 
-    // ✅ FIX: Select the 'password' column from the teachers table
     const [teacherRows] = await db.promise().query("SELECT id, username, email, password FROM teachers WHERE email = ?", [email]);
     if (teacherRows.length === 0) {
         return res.status(401).json({ message: "Invalid credentials." });
     }
 
-    const isMatch = await bcrypt.compare(password, teacherRows[0].password); // Now teacherRows[0].password will have a value
+    const isMatch = await bcrypt.compare(password, teacherRows[0].password);
     if (!isMatch) {
         return res.status(401).json({ message: "Invalid credentials." });
     }
@@ -59,24 +55,19 @@ const loginTeacher = async (req, res) => {
     const teacherInternalId = teacherRows[0].id;
     const teacherUsername = teacherRows[0].username;
     const teacherEmail = teacherRows[0].email;
-    // teacherMoodleInstanceId is no longer retrieved from teachers table here, as teachers are not in Moodle
 
     console.log(`DEBUG: Teacher '${teacherUsername}' logging in. Internal ID: ${teacherInternalId}, Email: ${teacherEmail}`);
 
-    let moodleId = null; // Teachers do not have a Moodle ID if they are only in Logbook app.
-    let moodleInstanceIdForUser = null; // Also set to null for teachers
+    let moodleId = null; 
+    let moodleInstanceIdForUser = null; 
 
     // ✅ Automatic Upsert into 'users' table
-    // Check if a user entry for this teacher already exists in the 'users' table
     const [existingUserRows] = await db.promise().query(
-        "SELECT id FROM users WHERE id = ? AND role = 'teacher'", // Check by ID, as it's unique
-        [teacherInternalId] // Use the teacher's internal ID from the 'teachers' table
+        "SELECT id FROM users WHERE id = ? AND role = 'teacher'", 
+        [teacherInternalId] 
     );
 
     if (existingUserRows.length === 0) {
-        // If not found, insert a new entry for the teacher in the 'users' table
-        // Use the teacher's ID from the 'teachers' table as the 'id' in 'users' for consistency
-        // password can be null in users table for teachers as authentication is done via teachers table
         try {
             await db.promise().query(
                 `INSERT INTO users (id, username, password, role, moodle_id, moodle_instance_id, created_at)
@@ -86,30 +77,25 @@ const loginTeacher = async (req, res) => {
             console.log(`✅ Created new entry for teacher '${teacherUsername}' (ID: ${teacherInternalId}) in 'users' table.`);
         } catch (insertError) {
             console.error(`❌ Error inserting teacher '${teacherUsername}' into 'users' table:`, insertError.message);
-            // This catch is mostly for primary key conflicts if ID is reused, but we use the existing teacher ID.
-            // If the error indicates duplicate username but different ID, a manual check is needed.
-            // Fallback for primary key conflict if users.id is AUTO_INCREMENT and can clash
             await db.promise().query(
                 `INSERT INTO users (username, password, role, moodle_id, moodle_instance_id, created_at)
                  VALUES (?, ?, ?, ?, ?, NOW())
-                 ON DUPLICATE KEY UPDATE password = VALUES(password), role = VALUES(role), moodle_id = VALUES(moodle_id), moodle_instance_id = VALUES(moodle_instance_id)`, // Removed updated_at
+                 ON DUPLICATE KEY UPDATE password = VALUES(password), role = VALUES(role), moodle_id = VALUES(moodle_id), moodle_instance_id = VALUES(moodle_instance_id), updated_at = NOW()`, 
                 [teacherUsername, teacherRows[0].password, 'teacher', moodleId, moodleInstanceIdForUser]
             );
             console.log(`✅ Upserted teacher '${teacherUsername}' into 'users' table (handling potential existing entry).`);
         }
     } else {
-        // If found, update the existing entry (e.g., ensure role is 'teacher' and moodle_id is null/correct)
         await db.promise().query(
-            `UPDATE users SET username = ?, password = ?, role = ?, moodle_id = ?, moodle_instance_id = ?
-             WHERE id = ?`, // Removed updated_at = NOW()
+            `UPDATE users SET username = ?, password = ?, role = ?, moodle_id = ?, moodle_instance_id = ?, updated_at = NOW()
+             WHERE id = ?`, 
             [teacherUsername, teacherRows[0].password, 'teacher', moodleId, moodleInstanceIdForUser, teacherInternalId]
         );
         console.log(`✅ Updated existing entry for teacher '${teacherUsername}' (ID: ${teacherInternalId}) in 'users' table.`);
     }
 
-    // Sign JWT token with moodle_id as null (or undefined) for teachers
     const token = jwt.sign(
-        { teacherId: teacherInternalId, email: teacherEmail, role: "teacher", moodle_id: moodleId, internal_user_id: teacherInternalId }, // Added internal_user_id to token for frontend use
+        { teacherId: teacherInternalId, email: teacherEmail, role: "teacher", moodle_id: moodleId, internal_user_id: teacherInternalId }, 
         process.env.JWT_SECRET,
         { expiresIn: "1d" }
     );
@@ -117,12 +103,12 @@ const loginTeacher = async (req, res) => {
     res.status(200).json({
         message: "Login successful",
         user: {
-            id: teacherInternalId, // This is the internal ID from 'teachers' table and also now 'users' table
+            id: teacherInternalId, 
             username: teacherUsername,
             email: teacherEmail,
             role: "teacher",
-            moodle_id: moodleId, // This will be null for teachers
-            internal_user_id: teacherInternalId // Provide this explicitly
+            moodle_id: moodleId, 
+            internal_user_id: teacherInternalId 
         },
         token,
     });
@@ -198,7 +184,7 @@ const getSubmittedEntries = async (req, res) => {
              FROM logbook_entries le
              JOIN users u ON le.student_id = u.id
              JOIN courses c ON le.course_id = c.id
-             WHERE le.course_id IN (?) AND le.status IN ('submitted', 'graded', 'synced')
+             WHERE le.course_id IN (?) AND le.status IN ('submitted', 'graded', 'synced', 'resubmitted')
              ORDER BY le.status DESC, le.work_completed_date DESC`,
             [courseIds]
         );
@@ -225,9 +211,6 @@ const gradeEntry = async (req, res) => {
         // Make sure 'cloudinary' is imported at the top of this file if not already.
         if (req.file) {
             try {
-                // The dataUri(req).content approach might be from a different multer setup.
-                // If using multer.single/array/fields, req.file.path is usually enough.
-                // Assuming req.file is available and has a path property.
                 const result = await cloudinary.uploader.upload(req.file.path, {
                     resource_type: "auto",
                     folder: "logbook/teacher_feedback",
@@ -358,11 +341,52 @@ const gradeEntry = async (req, res) => {
         res.status(500).json({ message: "Failed to grade entry", error: error.message });
     }
 };
-// Export All Functions
+
+// ✅ ALLOW RESUBMIT (Updated)
+// const allowResubmit = async (req, res) => { // Defined as const
+//     try {
+//         const entryId = req.params.id; // Get entry ID from URL parameter
+
+//         // 1. Fetch current entry details (especially student_id and case_number)
+//         const [entryRows] = await db.promise().query(
+//             "SELECT student_id, case_number FROM logbook_entries WHERE id = ?",
+//             [entryId]
+//         );
+
+//         if (entryRows.length === 0) {
+//             return res.status(404).json({ message: "Entry not found." });
+//         }
+
+//         const studentId = entryRows[0].student_id;
+//         const caseNumber = entryRows[0].case_number;
+
+//         // 2. Update entry: Set allow_resubmit to 1 AND update status to 'resubmitted'
+//         const [result] = await db.promise().query(
+//             "UPDATE logbook_entries SET allow_resubmit = 1, status = 'resubmitted' WHERE id = ?",
+//             [entryId]
+//         );
+
+//         if (result.affectedRows === 0) {
+//             return res.status(404).json({ message: "Entry not found or no changes made." });
+//         }
+
+//         // 3. Notify the student about resubmission being allowed
+//         await notifyResubmissionAllowed(studentId, caseNumber);
+//         console.log(`✅ Resubmission allowed and student ${studentId} notified for entry ${caseNumber}.`);
+
+//         res.json({ message: "Resubmission allowed and student notified." });
+//     } catch (err) {
+//         console.error("❌ Error in allowResubmit:", err);
+//         res.status(500).json({ error: "Failed to allow resubmission." });
+//     }
+// };
+
+// Export All Functions (ensure new functions are exported)
 module.exports = {
     signupTeacher,
     loginTeacher,
     getTeacherCourses,
     getSubmittedEntries,
     gradeEntry,
+    //allowResubmit // ✅ Export allowResubmit
 };
