@@ -6,6 +6,7 @@ import TopBar from "../components/Shared/TopBar";
 import { FaBell } from "react-icons/fa";
 import "../styles/TeacherDashboard.css";
 import { useCallback, useMemo } from "react";
+import { saveAs } from 'file-saver';
 
 
 const TeacherDashboard = () => {
@@ -196,77 +197,160 @@ const TeacherDashboard = () => {
 
   // ✅ New: Helper function to format media links for CSV
   const formatMediaLinksForCsv = (mediaLinkJson) => {
+
     if (!mediaLinkJson) return "N/A";
+
     try {
+
       const mediaArray = JSON.parse(mediaLinkJson);
+
       return mediaArray.join('; ');
+
     } catch {
+
       return mediaLinkJson;
+
     }
+
   };
 
-  // ✅ New: Helper function to format feedback for CSV
+
+
   const formatFeedbackForCsv = (feedbackText) => {
+
     if (!feedbackText) return "No feedback yet";
-    const cleanedFeedback = feedbackText.replace(/\[View Teacher Media\]\((https:\/\/res\.cloudinary\.com\/.+?)\)/g, '').trim();
+
+    const mediaRegex = /📎\s*\[View Teacher Media\]\((https:\/\/res\.cloudinary\.com\/.+?)\)/;
+
+    const cleanedFeedback = feedbackText.replace(mediaRegex, "").trim();
+
     const escapedFeedback = cleanedFeedback.replace(/"/g, '""');
+
     return `"${escapedFeedback}"`;
+
   };
 
-  // ✅ New: Helper function to format status for CSV display (consistent with dashboard)
+
+
   const formatStatusForCsv = (status) => {
+
     if (status === "graded" || status === "synced") {
+
       return "Graded";
+
     } else if (status === "submitted") {
+
       return "Waiting for Grading";
+
     }
+
     return status;
+
   };
 
-  // ✅ New: Handle Export to CSV
-  const handleExportCsv = () => {
+
+
+  // ✅ Handle Export to CSV - ADDED Entry Date and Allow Resubmit
+
+  const handleExportCsv = useCallback(() => {
+
     if (filteredEntries.length === 0) {
+
       alert("No entries to export.");
+
       return;
+
     }
+
+
 
     const headers = [
-      "Case #", "Completion Date", "Student", "Course", "Type Of Task/Device",
-      "Description", "Media Links", "Consent", "Comments", "Grade", "Feedback", "Status"
+
+      "Case #", 
+
+      "Entry Date", // ✅ Added column
+
+      "Completion Date", 
+
+      "Student", 
+
+      "Course", 
+
+      "Type Of Task/Device",
+
+      "Description", 
+
+      "Media Links", 
+
+      "Consent", 
+
+      "Comments", 
+
+      "Grade", 
+
+      "Feedback", 
+
+      "Status", 
+
+      "Allow Resubmit" // ✅ Added column
+
     ];
 
+
+
     const csvRows = [];
+
     csvRows.push(headers.map(header => `"${header}"`).join(','));
 
+
+
     filteredEntries.forEach(entry => {
+
       const row = [
+
         `"${entry.case_number || ''}"`,
+
+        `"${entry.entry_date ? new Date(entry.entry_date).toLocaleDateString("en-GB") : "Not Provided"}"`, // ✅ Entry Date value
+
         `"${entry.work_completed_date ? new Date(entry.work_completed_date).toLocaleDateString("en-GB") : "Not Provided"}"`,
-        `"${entry.student_name || 'Unknown'}"`,
-        `"${entry.course_name || `Course ID ${entry.course_id}`}"`,
+
+        `"${entry.student_name || 'Unknown'}"`, // Use student_name from fetched entries
+
+        `"${entry.course_name || `Course ID ${entry.course_id}`}"`, // Use course_name from fetched entries
+
         `"${entry.type_of_work || ''}"`,
+
         `"${entry.task_description || 'No Description'}"`,
+
         formatMediaLinksForCsv(entry.media_link),
+
         `"${entry.consent_form === "yes" ? "Yes" : "No"}"`,
+
         `"${entry.clinical_info || 'No Info'}"`,
+
         `"${entry.grade !== null ? entry.grade : "-"}"`,
+
         formatFeedbackForCsv(entry.feedback),
-        `"${formatStatusForCsv(entry.status)}"`
+
+        `"${formatStatusForCsv(entry.status)}"`,
+
+        `"${entry.allow_resubmit === 1 ? "Yes" : "No"}"` // ✅ Allow Resubmit value (assuming 1 for true, 0 for false)
+
       ];
+
       csvRows.push(row.join(','));
+
     });
 
-    const csvString = csvRows.join('\n');
-    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.setAttribute('download', 'teacher_logbook_entries.csv');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(link.href);
-  };
 
+
+    const csvString = csvRows.join('\n');
+
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+
+    saveAs(blob, "teacher_logbook_entries.csv");
+
+  }, [filteredEntries]);
 
   // ✅ Pagination Logic (existing code)
   const indexOfLastEntry = currentPage * entriesPerPage;
