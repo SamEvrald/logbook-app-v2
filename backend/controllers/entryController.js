@@ -264,7 +264,84 @@ exports.allowResubmit = async (req, res) => {
     res.status(500).json({ error: "Failed to allow resubmission." });
   }
 };
+// exports.allowResubmit = async (req, res) => {
+//     try {
+//         const entryId = req.params.id; // Get entry ID from URL parameter
 
+//         // 1. Fetch current entry details (especially student_id and case_number)
+//         const [entryRows] = await db.promise().query(
+//             "SELECT student_id, case_number FROM logbook_entries WHERE id = ?",
+//             [entryId]
+//         );
+
+//         if (entryRows.length === 0) {
+//             return res.status(404).json({ message: "Entry not found." });
+//         }
+
+//         const studentId = entryRows[0].student_id;
+//         const caseNumber = entryRows[0].case_number;
+
+//         // 2. Update entry: ONLY set allow_resubmit to 1 (status remains unchanged)
+//         const [result] = await db.promise().query(
+//             "UPDATE logbook_entries SET allow_resubmit = 1 WHERE id = ?",
+//             [entryId]
+//         );
+
+//         if (result.affectedRows === 0) {
+//             return res.status(404).json({ message: "Entry not found or no changes made." });
+//         }
+
+//         // 3. Notify the student about resubmission being allowed
+//         await notifyResubmissionAllowed(studentId, caseNumber);
+//         console.log(`✅ Resubmission allowed and student ${studentId} notified for entry ${caseNumber}.`);
+
+//         res.json({ message: "Resubmission allowed and student notified." });
+//     } catch (err) {
+//         console.error("❌ Error in allowResubmit:", err);
+//         res.status(500).json({ error: "Failed to allow resubmission." });
+//     }
+// };
+
+
+// exports.getStudentEntries = async (req, res) => {
+//   const { moodle_id } = req.params;
+
+//   try {
+//     const [userRows] = await db.promise().query("SELECT id FROM users WHERE moodle_id = ?", [moodle_id]);
+
+//     if (userRows.length === 0) {
+//       return res.status(404).json({ message: "User with this Moodle ID not found." });
+//     }
+
+//     const studentId = userRows[0].id;
+
+//     // FIX: Removed the JavaScript comment inside the SQL query string
+//     const [entries] = await db.promise().query(
+//       `SELECT id, case_number,
+//                     DATE_FORMAT(work_completed_date, '%d/%m/%y') AS work_completed_date,
+//                     type_of_work,
+//                     pathology,
+//                     content AS task_description,
+//                     media_link,
+//                     consent_form,
+//                     clinical_info,
+//                     grade,
+//                     feedback,
+//                     status
+//              FROM logbook_entries
+//              WHERE student_id = ?
+//              ORDER BY work_completed_date DESC`,
+//       [studentId]
+//     );
+
+//     res.status(200).json(entries);
+//   } catch (error) {
+//     console.error("❌ Database error:", error);
+//     res.status(500).json({ message: "Failed to fetch student logbook entries.", error: error.message });
+//   }
+// };
+
+// Inside your entryController.js file
 
 exports.getStudentEntries = async (req, res) => {
   const { moodle_id } = req.params;
@@ -278,28 +355,34 @@ exports.getStudentEntries = async (req, res) => {
 
     const studentId = userRows[0].id;
 
-    // FIX: Removed the JavaScript comment inside the SQL query string
+    // >>>>> ✅ THIS IS THE CRITICAL PART TO VERIFY/UPDATE IN YOUR BACKEND entryController.js <<<<<
     const [entries] = await db.promise().query(
-      `SELECT id, case_number,
-                    DATE_FORMAT(work_completed_date, '%d/%m/%y') AS work_completed_date,
-                    type_of_work,
-                    pathology,
-                    content AS task_description,
-                    media_link,
-                    consent_form,
-                    clinical_info,
-                    grade,
-                    feedback,
-                    status
-             FROM logbook_entries
-             WHERE student_id = ?
-             ORDER BY work_completed_date DESC`,
+      `SELECT le.id, le.case_number,
+                    DATE_FORMAT(le.work_completed_date, '%d/%m/%y') AS work_completed_date,
+                    le.type_of_work,
+                    le.pathology,
+                    le.content AS task_description,
+                    le.media_link,
+                    le.consent_form,
+                    le.clinical_info,
+                    le.grade,
+                    le.feedback,
+                    le.status,
+                    le.allow_resubmit,   -- <--- ENSURE THIS LINE IS PRESENT
+                    le.assignment_id,    -- Needed for pre-filling NewEntryForm
+                    le.course_id,        -- Needed for pre-filling NewEntryForm
+                    c.fullname AS course_name -- <--- ENSURE THIS LINE IS PRESENT AND JOIN IS CORRECT
+             FROM logbook_entries le
+             JOIN courses c ON le.course_id = c.id -- <--- ENSURE THIS JOIN IS PRESENT
+             WHERE le.student_id = ?
+             ORDER BY le.work_completed_date DESC`,
       [studentId]
     );
+    // >>>>> END CRITICAL PART <<<<<
 
     res.status(200).json(entries);
   } catch (error) {
-    console.error("❌ Database error:", error);
+    console.error("❌ Database error (getStudentEntries):", error);
     res.status(500).json({ message: "Failed to fetch student logbook entries.", error: error.message });
   }
 };
