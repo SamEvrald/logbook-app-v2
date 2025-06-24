@@ -254,7 +254,7 @@ const StudentDashboard = () => {
         case 'graded':
             return 'Graded';
         case 'synced':
-            return 'Graded (Synced)';
+            return 'Graded';
         default:
             return 'Waiting for Grading';
     }
