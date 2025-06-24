@@ -603,34 +603,61 @@ exports.getAllEntries = async (req, res) => {
 };
 
 exports.getTeacherDashboard = async (req, res) => {
-  const { moodle_id } = req.params;
+  const teacherId = req.user.id; 
+  const teacherRole = req.user.role;
+
+  console.log(`DEBUG (getTeacherDashboard) Start: req.user.id = ${req.user.id} (Type: ${typeof req.user.id}), req.user.role = ${req.user.role}`);
+
+  // Adding a check for req.user.id directly
+  if (!teacherId) {
+      console.error(`❌ getTeacherDashboard: req.user.id is missing or null. Cannot proceed.`);
+      return res.status(400).json({ message: "User ID missing from token. Please re-login." });
+  }
+  if (teacherRole !== 'teacher') {
+      console.error(`❌ getTeacherDashboard: User role is '${teacherRole}', not 'teacher'.`);
+      return res.status(403).json({ message: "Unauthorized access: Not a teacher." });
+  }
 
   try {
-    const [teacherRows] = await db.promise().query("SELECT id, fullname FROM users WHERE moodle_id = ? AND role = 'teacher'", [moodle_id]);
-
-    if (teacherRows.length === 0) {
-      return res.status(404).json({ message: "Teacher not found or not authorized." });
-    }
-
-    const teacherId = teacherRows[0].id;
-    const [teacherUserRows] = await db.promise().query("SELECT username FROM users WHERE id = ?", [teacherId]);
-    const teacherUsername = teacherUserRows.length > 0 ? teacherUserRows[0].username : "Unknown Teacher";
-
-
-    const [courseRows] = await db.promise().query(
-      "SELECT c.id, c.fullname, c.shortname FROM courses c INNER JOIN teacher_courses tc ON c.id = tc.course_id WHERE tc.teacher_id = ?",
+    // Re-verify the teacher's role and existence in the DB for security/robustness
+    // Using CAST to ensure the ID is treated as INT in the query for robustness
+    const [teacherRows] = await db.promise().query(
+      "SELECT username FROM users WHERE id = CAST(? AS UNSIGNED) AND role = 'teacher'", 
       [teacherId]
     );
 
+    console.log(`DEBUG (getTeacherDashboard): DB query for teacher ID ${teacherId} (Type: ${typeof teacherId}) and role 'teacher' returned:`, teacherRows);
+
+    if (teacherRows.length === 0) {
+      console.error(`❌ Teacher not found in DB with ID: ${teacherId} or role is not 'teacher' based on DB query.`);
+      return res.status(404).json({ message: "Teacher not found or not authorized." });
+    }
+
+    const teacherName = teacherRows[0].username; 
+
+    const [courseRows] = await db.promise().query(
+      "SELECT c.id, c.fullname, c.shortname FROM courses c INNER JOIN teacher_courses tc ON c.id = tc.course_id WHERE tc.teacher_id = CAST(? AS UNSIGNED)", // CAST for consistency
+      [teacherId]
+    );
+
+    console.log(`DEBUG (getTeacherDashboard): Course query result for teacher ID ${teacherId}:`, courseRows);
+
+
     if (courseRows.length === 0) {
-      return res.status(200).json({ teacherName: teacherUsername, courses: [], entries: [] });
+      console.log(`ℹ️ Teacher ${teacherId} is not assigned to any courses.`);
+      return res.status(200).json({ teacherName, courses: [], entries: [] });
     }
 
     const courseIds = courseRows.map(course => course.id);
 
     const [entries] = await db.promise().query(
-      `SELECT l.id, l.case_number, l.student_id, u.username AS student_name, l.course_id, c.fullname AS course_name, l.type_of_work, l.pathology,
-                  l.content AS task_description, l.media_link, l.consent_form, l.clinical_info, l.grade, l.feedback, l.status, l.work_completed_date
+      `SELECT l.id, l.case_number, l.student_id, u.username AS student_name, u.moodle_id,
+                  l.course_id, c.fullname AS course_name, l.type_of_work, l.pathology,
+                  l.content AS task_description, l.media_link, l.consent_form, l.clinical_info,
+                  l.grade, l.feedback, l.status, l.work_completed_date,
+                  l.entry_date,
+                  l.allow_resubmit,
+                  l.teacher_media_link
            FROM logbook_entries l
            JOIN users u ON l.student_id = u.id
            JOIN courses c ON l.course_id = c.id
@@ -638,10 +665,12 @@ exports.getTeacherDashboard = async (req, res) => {
            ORDER BY l.work_completed_date DESC`,
       [courseIds]
     );
+    console.log(`DEBUG (getTeacherDashboard) Entries fetched count: ${entries.length}`);
 
-    res.status(200).json({ teacherName: teacherUsername, courses: courseRows, entries });
+
+    res.status(200).json({ teacherName, courses: courseRows, entries });
   } catch (error) {
-    console.error("❌ Database error:", error);
+    console.error("❌ Database error (getTeacherDashboard):", error);
     res.status(500).json({ message: "Failed to fetch teacher dashboard data.", error: error.message });
   }
 };
