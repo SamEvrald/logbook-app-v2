@@ -1,10 +1,9 @@
-
 const db = require("../models/db");
 const jwt = require("jsonwebtoken");
 const axios = require("axios");
 
 exports.login = async (req, res) => {
-  const { username, password, moodle_instance_id } = req.body;  // ✅ Ensure moodle_instance_id is received
+  const { username, password, moodle_instance_id } = req.body;
 
   try {
     console.log(`🔍 Attempting Moodle login for: ${username}`);
@@ -30,7 +29,7 @@ exports.login = async (req, res) => {
 
     // ✅ Authenticate with Moodle
     const tokenResponse = await axios.get(`${moodleInstance.base_url}/login/token.php`, {
-      params: { username, password, service: "moodle_mobile_app" }, // ✅ No need for process.env
+      params: { username, password, service: "moodle_mobile_app" },
     });
 
     if (!tokenResponse.data.token) {
@@ -57,12 +56,16 @@ exports.login = async (req, res) => {
 
     console.log(`✅ Moodle User ID: ${userInfo.userid}`);
 
-    // ✅ Save/Update User in Database
+    // ✅ Save/Update User in Database (ensure moodle_instance_id is saved here too)
+    // Make sure your 'users' table has `moodle_id` and `moodle_instance_id` columns.
     const user = {
       username: userInfo.username,
       fullname: userInfo.fullname,
       moodle_id: userInfo.userid,
       role: "student",
+      // We don't necessarily need to store moodle_instance_id in this `user` object
+      // used for the DB query if it's already a separate parameter in the query.
+      // However, ensure the DB columns exist for it.
     };
 
     await db.promise().query(
@@ -72,25 +75,31 @@ exports.login = async (req, res) => {
       [user.username, user.role, user.moodle_id, moodle_instance_id]
     );
 
-    // ✅ Generate JWT Token (Ensure token contains moodle_instance_id)
+    // ✅ Generate JWT Token (Your original payload was correct)
     const tokenPayload = { 
       moodle_id: user.moodle_id, 
       username: user.username, 
       role: "student", 
-      moodle_instance_id 
+      moodle_instance_id // Already correctly in JWT payload
     };
 
     console.log("🛠️ JWT Token Payload:", tokenPayload);
 
     const token = jwt.sign(tokenPayload, process.env.JWT_SECRET, { expiresIn: "1d" });
 
-    // ✅ Send Response
+    // ✅ Send Response - FIX IS HERE: Include moodle_instance_id in the 'user' object
     res.status(200).json({
       message: "Login successful",
-      user: { username: user.username, fullname: user.fullname, moodle_id: user.moodle_id, role: "student" },
+      user: { // This 'user' object is what gets stored in localStorage on the frontend
+        username: user.username,
+        fullname: user.fullname,
+        moodle_id: user.moodle_id,
+        role: "student",
+        moodle_instance_id: moodle_instance_id, // ✅ ADDED THIS LINE
+      },
       token,
-      courses: [],
-      moodle_instance_id,  // ✅ Return moodle_instance_id in response
+      // courses: [], // You can remove this or keep it based on your actual API design
+      // moodle_instance_id, // This top-level return is now redundant as it's in `user` object
     });
 
   } catch (err) {
@@ -100,9 +109,7 @@ exports.login = async (req, res) => {
 };
 
 
-
-
-// ✅ Teacher Login via Manual Credentials
+// ✅ Teacher Login via Manual Credentials (No changes needed here based on the student login issue)
 exports.teacherLogin = async (req, res) => {
   const { username, password } = req.body;
 
@@ -132,7 +139,7 @@ exports.teacherLogin = async (req, res) => {
 
     res.status(200).json({
       message: "Login successful",
-      user: { username: user.username, role: "teacher" },
+      user: { username: user.username, role: "teacher" }, // Teachers might also need moodle_id/instance_id if their dashboard uses it
       token,
     });
   });
