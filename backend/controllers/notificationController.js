@@ -150,7 +150,7 @@ exports.notifyEntryGraded = async (studentId, caseNumber, grade, feedback) => {
 
         console.log(`✅ Notified student ${studentId} about graded logbook entry: ${caseNumber}`);
     } catch (error) {
-        console.error("❌ Error notifying student about graded entry:", error);
+        console.error("❌ Error sending grade notification:", error);
     }
 };
 
@@ -197,5 +197,19 @@ exports.notifyTeacherOnStudentSubmission = async (courseId, studentName, caseNum
         }
     } catch (error) {
         console.error("❌ Error notifying teachers about student submission:", error);
+    }
+};
+
+// ✅ NEW FUNCTION: Notify Student when Resubmission is Allowed
+exports.notifyResubmissionAllowed = async (studentId, caseNumber) => {
+    try {
+        const message = `📝 Your logbook entry #${caseNumber} is now open for resubmission!`;
+        await db.promise().query(
+            "INSERT INTO notifications (user_id, message, is_read) VALUES (?, ?, FALSE)",
+            [studentId, message]
+        );
+        console.log(`✅ Notified student ${studentId} about resubmission allowed for entry ${caseNumber}`);
+    } catch (error) {
+        console.error("❌ Error notifying student about resubmission allowed:", error);
     }
 };
