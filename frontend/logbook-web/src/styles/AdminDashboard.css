@@ -351,7 +351,7 @@
   border-collapse: collapse;
   background: white;
   border-radius: 8px;
-  overflow: hidden; /* Hide overflow from rounded corners */
+  overflow: visible; /* Hide overflow from rounded corners */
   box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.1);
   margin-bottom: 20px;
   min-width: 900px; /* IMPORTANT: Ensures table has a minimum width, forcing horizontal scroll if needed */
@@ -623,7 +623,7 @@ label {
     text-align: left;
     white-space: nowrap;
     text-overflow: ellipsis;
-    overflow: hidden;
+    overflow: visible;
   }
 
   /* Remember to add data-label attributes to your JSX <td> elements for mobile view, e.g.:
