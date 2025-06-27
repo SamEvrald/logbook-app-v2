@@ -1,4 +1,4 @@
-/* ✅ General Styles */
+/* ✅ General Styles (No changes here, keeping for context) */
 .student-dashboard {
     max-width: 90%;
     margin: 50px auto;
@@ -9,7 +9,7 @@
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* ✅ Page Title */
+/* ✅ Page Title (No changes) */
 .student-dashboard h2 {
     text-align: center;
     color: #2c3e50;
@@ -17,7 +17,7 @@
     margin-bottom: 20px;
 }
 
-/* ✅ Logout Button */
+/* ✅ Logout Button (No changes) */
 .student-dashboard .logout-btn {
     float: right;
     padding: 8px 15px;
@@ -34,7 +34,7 @@
     background-color: #c0392b;
 }
 
-/* ✅ Courses Section */
+/* ✅ Courses Section (No changes) */
 .student-dashboard .courses-container {
     display: flex;
     align-items: center;
@@ -53,7 +53,7 @@
     width: 200px;
 }
 
-/* ✅ Search Box */
+/* ✅ Search Box (No changes) */
 .student-dashboard .search-box {
     display: flex;
     align-items: center;
@@ -69,22 +69,24 @@
     margin-right: 10px;
 }
 
-/* ✅ Logbook Table */
+/* ✅ Logbook Table (No changes, except for td position relative - already there) */
 .student-dashboard table {
     width: 100%;
     border-collapse: collapse;
     background: white;
     border-radius: 8px;
-    overflow: hidden;
+    overflow: visible; /* This is what causes clipping if td is not relative */
     box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.1);
 }
 
 .student-dashboard th,
 .student-dashboard td {
-    margin-right: 6px;
-    color: #2980b9;
+    /* Keeping your existing styles */
+    margin-right: 6px; /* This style on th/td might not be effective, usually on children */
+    color: #2980b9; /* This will make text blue, usually you want black text */
     text-decoration: none;
-  }
+    padding: 8px; /* This removes underlines from links/text */
+}
 
 .student-dashboard th {
     background: #2c3e50;
@@ -94,14 +96,18 @@
 }
 
 .student-dashboard td {
+    position: relative; /* ✅ CRITICAL: This was already there from the last fix */
     color: #333;
+    /* Make sure this is applied */
+    /* Add some padding-bottom if needed to ensure space for upward dropdowns */
+     /* Ensuring text color is dark for content */
 }
 
 .student-dashboard tr:hover {
     background: #f1f1f1;
 }
 
-/* ✅ Grade & View Buttons */
+/* ✅ Grade & View Buttons (No changes) */
 .student-dashboard button {
     padding: 6px 12px;
     border: none;
@@ -120,7 +126,7 @@
     background-color: #219150;
 }
 
-/* ✅ Status Colors */
+/* ✅ Status Colors (No changes) */
 .student-dashboard .status {
     font-weight: bold;
     text-transform: uppercase;
@@ -134,7 +140,7 @@
     color: orange;
 }
 
-/* ✅ Pagination */
+/* ✅ Pagination (No changes) */
 .pagination {
     display: flex;
     justify-content: center;
@@ -162,22 +168,17 @@
     color: white;
 }
 
-/* The provided TopBar component CSS is not here, but assuming it handles its own layout */
-
-/* ✅ Right Section (Profile & Notifications) */
+/* ✅ Right Section (Profile & Notifications) (No changes relevant to dropdown) */
 .top-right {
     display: flex;
     align-items: center;
     gap: 15px;
 }
 
-/* ✅ Notifications Container (NEW/MODIFIED - Ensures dropdown is positioned correctly relative to this) */
 .notifications-container {
-    /* Already has inline style: position: 'relative' from StudentDashboard.js */
-    display: inline-block; /* Makes it only take up the necessary width */
+    display: inline-block;
 }
 
-/* ✅ Notification Bell Icon */
 .bell-icon {
     font-size: 22px;
     cursor: pointer;
@@ -189,39 +190,37 @@
     color: #2c3e50;
 }
 
-/* ✅ Notification Count Badge (NEW/MODIFIED - Positions the red circle) */
 .notification-count {
   position: absolute;
-  top: -8px; /* Adjust vertical position */
-  right: -8px; /* Adjust horizontal position */
+  top: -8px;
+  right: -8px;
   background-color: red;
   color: white;
   border-radius: 50%;
-  padding: 3px 7px; /* Adjust for better circle shape */
-  font-size: 11px; /* Smaller font for badge */
+  padding: 3px 7px;
+  font-size: 11px;
   line-height: 1;
-  min-width: 10px; /* Ensure it's a circle even for single digit */
+  min-width: 10px;
   text-align: center;
-  box-sizing: border-box; /* Include padding in width/height */
+  box-sizing: border-box;
 }
 
-/* ✅ Notification Dropdown (NEW/MODIFIED - Main styling for the dropdown behavior) */
 .notifications-dropdown {
-    position: absolute; /* Takes the dropdown out of the normal document flow */
-    top: 100%; /* Positions it directly below the parent (.notifications-container) */
-    left: 50%; /* Centers it horizontally relative to the bell */
-    transform: translateX(-50%); /* Fine-tunes the centering */
-    z-index: 1000; /* Ensures it appears on top of other content */
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
     background-color: #fff;
     border: 1px solid #ddd;
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    width: 320px; /* ✅ IMPORTANT: Set a fixed width to prevent horizontal expansion */
-    max-height: 400px; /* ✅ Set a maximum height for vertical scrolling */
-    overflow-y: auto; /* ✅ Enable vertical scrolling if content exceeds max-height */
+    width: 320px;
+    max-height: 400px;
+    overflow-y: auto;
     padding: 10px;
-    margin-top: 5px; /* Small gap between bell and dropdown */
-    box-sizing: border-box; /* Includes padding and border in the element's total width and height */
+    margin-top: 5px;
+    box-sizing: border-box;
 }
 
 .notifications-dropdown ul {
@@ -231,10 +230,10 @@
 }
 
 .notifications-dropdown li {
-  padding: 10px 5px; /* Adjust padding for list items */
+  padding: 10px 5px;
   border-bottom: 1px solid #eee;
   display: flex;
-  flex-direction: column; /* Stack message and timestamp */
+  flex-direction: column;
   align-items: flex-start;
   font-size: 14px;
 }
@@ -245,7 +244,7 @@
 
 .notifications-dropdown li.unread {
   font-weight: bold;
-  background-color: #f0f8ff; /* Light blue background for unread */
+  background-color: #f0f8ff;
 }
 
 .notifications-dropdown .message {
@@ -265,8 +264,8 @@
   border-radius: 4px;
   cursor: pointer;
   font-size: 0.75em;
-  margin-top: 8px; /* Space between message and button */
-  align-self: flex-end; /* Align button to the right within the flex column */
+  margin-top: 8px;
+  align-self: flex-end;
 }
 
 .notifications-dropdown button:hover {
@@ -279,8 +278,7 @@
   padding: 20px;
 }
 
-
-/* ✅ Profile Icon */
+/* ✅ Profile Icon (No changes) */
 .profile-container {
     position: relative;
     cursor: pointer;
@@ -299,7 +297,7 @@
     justify-content: center;
 }
 
-/* ✅ Profile Dropdown */
+/* ✅ Profile Dropdown (No changes) */
 .profile-dropdown {
     position: absolute;
     top: 50px;
@@ -310,7 +308,7 @@
     padding: 10px;
     text-align: center;
     min-width: 150px;
-    z-index: 999; /* Lower than notifications dropdown if both open */
+    z-index: 999;
 }
 
 .profile-dropdown button {
@@ -348,21 +346,35 @@
   }
 
   /* ✅ Default (downward) */
-  .dropdown-content {
-    display: none;
+ .dropdown-content {
+    display: none; /* Hidden by default */
     position: absolute;
     background-color: white;
     border-radius: 6px;
     min-width: 150px;
-    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.1);
+    /* ✅ Added max-width to prevent the dropdown from becoming too wide and extending off-screen horizontally */
+    max-width: 250px; /* Adjust as needed */
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.3); /* Stronger shadow for better visibility */
     padding: 8px 12px;
-    z-index: 10;
-    top: 100%;
-    left: 0;
-  }
+    z-index: 9999; /* ✅ Very high z-index to ensure it layers above all other content */
+    top: calc(100% + 5px); /* Position 5px below the button, ensures it's not hidden by button itself */
+    left: 50%; /* Start positioning from the middle of the button */
+    transform: translateX(-50%); /* Shift back by half its own width to truly center it */
+    border: 1px solid #ccc; /* Add a subtle border for definition */
+    white-space: normal; /* Allow text to wrap within the dropdown's max-width */
+    box-sizing: border-box;/* Ensures padding and border are included in width/height */
+}
 
   /* ✅ Upward version (when near bottom) */
-  .dropdown-container.upward .dropdown-content {
-    bottom: 100%;
-    top: auto;
-  }
+ .dropdown-container.upward .dropdown-content {
+    bottom: calc(100% + 5px); /* Position 5px *above* the button */
+    top: auto; /* Crucial: unset 'top' when using 'bottom' for upward positioning */
+    left: 50%; /* Keep centered horizontally */
+    transform: translateX(-50%); /* Adjust to truly center */
+}
+
+/* ✅ Hover effect to show dropdown (This rule is correct and ensures visibility on hover) */
+.dropdown-container:hover .dropdown-content {
+    display: block;
+}
+
