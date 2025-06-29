@@ -297,7 +297,8 @@ exports.getAllEntries = async (req, res) => {
           s.username AS student,
           s.id AS student_id, -- ✅ Added: Student ID
           c.fullname AS course,
-          c.id AS course_id   -- ✅ Added: Course ID
+          c.id AS course_id,   -- ✅ Added: Course ID
+          le.teacher_media_link
        FROM logbook_entries le
        JOIN users s ON le.student_id = s.id
        JOIN courses c ON le.course_id = c.id
