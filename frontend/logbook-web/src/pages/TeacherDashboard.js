@@ -27,6 +27,7 @@ const TeacherDashboard = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
   const [sortBy, setSortBy] = useState("entry_date");
+  const [message, setMessage] = useState("");
 
   // Pagination state
    const [currentPage, setCurrentPage] = useState(1);
@@ -253,106 +254,75 @@ const TeacherDashboard = () => {
   // ✅ Handle Export to CSV - ADDED Entry Date and Allow Resubmit
 
   const handleExportCsv = useCallback(() => {
-
     if (filteredEntries.length === 0) {
-
-      alert("No entries to export.");
-
+      setMessage("No entries to export.");
+      setTimeout(() => setMessage(""), 3000);
       return;
-
     }
 
-
-
     const headers = [
-
-      "Case #", 
-
-      "Entry Date", // ✅ Added column
-
-      "Completion Date", 
-
-      "Student", 
-
-      "Course", 
-
+      "Case #",
+      "Entry Date",
+      "Completion Date",
+      "Student",
+      "Course",
       "Type Of Task/Device",
-
-      "Description", 
-
-      "Media Links", 
-
-      "Consent", 
-
-      "Comments", 
-
-      "Grade", 
+      "Description",
+      "Media Links",
+      "Consent",
+      "Comments",
+      "Grade",
       "Teacher Media Link",
-
-      "Feedback", 
-
-      "Status", 
-
-      "Allow Resubmit" // ✅ Added column
-
+      "Feedback",
+      "Status",
+      "Allow Resubmit",
     ];
 
-
-
     const csvRows = [];
-
     csvRows.push(headers.map(header => `"${header}"`).join(','));
 
-
-
     filteredEntries.forEach(entry => {
+      // ✅ Entry Date Logic: If entry.entry_date is falsy, set to "Not Provided" (or ""). Otherwise, try to format.
+      let entryDateFormatted = entry.entry_date
+        ? (new Date(entry.entry_date).toLocaleDateString() || "Invalid Date")
+        : "Not Provided"; // Default to "Not Provided" if entry_date is null/empty/undefined
+
+      // ✅ Completion Date Logic: Keep as is, but ensure it defaults to "Not Provided" if empty.
+      let completionDateFormatted = entry.work_completed_date
+        ? (new Date(entry.work_completed_date).toLocaleDateString("en-GB") || "Invalid Date")
+        : "Not Provided";
+
 
       const row = [
-
         `"${entry.case_number || ''}"`,
-
-        `"${entry.entry_date ? new Date(entry.entry_date).toLocaleDateString("en-GB") : "Not Provided"}"`, // ✅ Entry Date value
-
-        `"${entry.work_completed_date ? new Date(entry.work_completed_date).toLocaleDateString("en-GB") : "Not Provided"}"`,
-
-        `"${entry.student_name || 'Unknown'}"`, // Use student_name from fetched entries
-
-        `"${entry.course_name || `Course ID ${entry.course_id}`}"`, // Use course_name from fetched entries
-
+        `"${entryDateFormatted}"`, // Use the safely formatted entry date
+        `"${completionDateFormatted}"`, // Use the safely formatted completion date
+        `"${entry.student_name || 'Unknown'}"`,
+        `"${entry.course_name || `Course ID ${entry.course_id}`}"`,
         `"${entry.type_of_work || ''}"`,
-
         `"${entry.task_description || 'No Description'}"`,
-
         formatMediaLinksForCsv(entry.media_link),
-
         `"${entry.consent_form === "yes" ? "Yes" : "No"}"`,
-
         `"${entry.clinical_info || 'No Info'}"`,
-
         `"${entry.grade !== null ? entry.grade : "-"}"`,
-        `"${entry.teacher_media_link || "N/A"}"`, // Include teacher media link
-
+        `"${entry.teacher_media_link || "N/A"}"`,
         formatFeedbackForCsv(entry.feedback),
-        
-
         `"${formatStatusForCsv(entry.status)}"`,
-
-        `"${entry.allow_resubmit === 1 ? "Yes" : "No"}"` // ✅ Allow Resubmit value (assuming 1 for true, 0 for false)
-
+        `"${entry.allow_resubmit === 1 ? "Yes" : "No"}"`
       ];
-
       csvRows.push(row.join(','));
-
     });
 
-
-
-    const csvString = csvRows.join('\n');
-
+     const csvString = csvRows.join('\n');
     const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
 
-    saveAs(blob, "teacher_logbook_entries.csv");
-
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.setAttribute("download", "teacher_logbook_entries.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
   }, [filteredEntries]);
 
   // ✅ Pagination Logic (existing code)
