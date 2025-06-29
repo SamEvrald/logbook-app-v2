@@ -436,17 +436,26 @@ const StudentDashboard = () => {
                   <td>{entry.consent_form === "yes" ? "Yes" : "No"}</td>
                   <td>{entry.clinical_info || "Not Provided"}</td>
                   <td>{entry.grade !== null ? entry.grade : "-"}</td>
-                  <td>
+                     <td>
                     <div>
-                      {entry.feedback && !entry.feedback.includes("http") ? entry.feedback : entry.feedback?.split("📎")[0] || "No feedback yet"}
-                      {entry.feedback && entry.feedback.includes("http") && (
+                      {/* Display text feedback if available */}
+                      {entry.feedback || "No feedback yet"} 
+                      
+                      {/* Check for teacher_media_link directly */}
+                      {entry.teacher_media_link && (
                         <div style={{ marginTop: "5px" }}>
                           <button
-                            style={{ padding: "5px 10px", fontSize: "0.9em", cursor: "pointer" }}
-                            onClick={() => {
-                              const match = entry.feedback.match(/\((.*?)\)/);
-                              if (match && match[1]) window.open(match[1], "_blank");
-                            }}
+                            style={{ padding: "5px 10px", fontSize: "0.9em", cursor: "pointer",
+                                      backgroundColor: '#2980b9', // A nice blue for the button
+                                      color: 'white',
+                                      border: 'none',
+                                      borderRadius: '5px',
+                                      boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                                      transition: 'background-color 0.2s ease'
+                                  }}
+                            onMouseOver={(e) => e.target.style.backgroundColor = '#2c3e50'} // Darker blue on hover
+                            onMouseOut={(e) => e.target.style.backgroundColor = '#27ae60'} // Back to original on mouse out
+                            onClick={() => window.open(entry.teacher_media_link, "_blank")}
                           >
                             View File
                           </button>
