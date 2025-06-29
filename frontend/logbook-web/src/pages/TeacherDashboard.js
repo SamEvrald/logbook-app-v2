@@ -287,6 +287,7 @@ const TeacherDashboard = () => {
       "Comments", 
 
       "Grade", 
+      "Teacher Media Link",
 
       "Feedback", 
 
@@ -329,8 +330,10 @@ const TeacherDashboard = () => {
         `"${entry.clinical_info || 'No Info'}"`,
 
         `"${entry.grade !== null ? entry.grade : "-"}"`,
+        `"${entry.teacher_media_link || "N/A"}"`, // Include teacher media link
 
         formatFeedbackForCsv(entry.feedback),
+        
 
         `"${formatStatusForCsv(entry.status)}"`,
 
@@ -531,26 +534,33 @@ const TeacherDashboard = () => {
                 <td>{entry.consent_form === "yes" ? "Yes" : "No"}</td>
                 <td>{entry.clinical_info || "No Info"}</td>
                 <td>{entry.grade !== null ? entry.grade : "-"}</td>
-                <td className="feedback-cell">
-                  {(() => {
-                    if (!entry.feedback) return "No feedback yet";
-                    const mediaRegex = /\[View Teacher Media\]\((https:\/\/res\.cloudinary\.com\/.+?)\)/;
-                    const match = entry.feedback.match(mediaRegex);
-                    if (match) {
-                      const feedbackText = entry.feedback.replace(mediaRegex, "").trim();
-                      const mediaUrl = match[1];
-                      return (
-                        <div>
-                          <p>{feedbackText}</p>
-                          <a href={mediaUrl} target="_blank" rel="noopener noreferrer">
-                            <button className="view-file-btn">View File</button>
-                          </a>
-                        </div>
-                      );
-                    }
-                    return entry.feedback;
-                  })()}
-                </td>
+                <td>
+                                <div>
+                                    {entry.feedback || "No feedback yet"} {/* Display text feedback */}
+                                    {entry.teacher_media_link && (
+                                        <div style={{ marginTop: "5px" }}>
+                                            <button
+                                                style={{
+                                                    padding: "5px 10px",
+                                                    fontSize: "0.9em",
+                                                    cursor: "pointer",
+                                                    backgroundColor: '#2980b9', // Blue for the button
+                                                    color: 'white',
+                                                    border: 'none',
+                                                    borderRadius: '5px',
+                                                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                                                    transition: 'background-color 0.2s ease'
+                                                }}
+                                                onMouseOver={(e) => e.target.style.backgroundColor = '#2c3e50'}
+                                                onMouseOut={(e) => e.target.style.backgroundColor = '#27ae60'}
+                                                onClick={() => window.open(entry.teacher_media_link, "_blank")}
+                                            >
+                                                View File
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            </td>
                 <td style={{ fontWeight: "bold", color:
                   entry.status === "graded" || entry.status === "synced" ? "green" :
                   entry.status === "submitted" ? "orange" :
