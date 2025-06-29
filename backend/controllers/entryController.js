@@ -358,6 +358,7 @@ exports.getStudentEntries = async (req, res) => {
     // >>>>> ✅ THIS IS THE CRITICAL PART TO VERIFY/UPDATE IN YOUR BACKEND entryController.js <<<<<
     const [entries] = await db.promise().query(
       `SELECT le.id, le.case_number,
+      le.entry_date,
                     DATE_FORMAT(le.work_completed_date, '%d/%m/%y') AS work_completed_date,
                     le.type_of_work,
                     le.pathology,
