@@ -530,16 +530,33 @@ const AdminDashboard = () => {
                         })()}
                       </td>
                       <td>{entry.grade || "N/A"}</td>
-                      <td>
-                        <div>
-                          {entry.feedback && !entry.feedback.includes("http") ? entry.feedback : entry.feedback?.split("📎")[0] || "No feedback yet"}
-                          {entry.feedback && entry.feedback.includes("http") && (
-                            <div style={{ marginTop: "5px" }}>
-                              <button style={{ padding: "5px 10px", fontSize: "0.9em", cursor: "pointer" }} onClick={() => { const match = entry.feedback.match(/\((.*?)\)/); if (match && match[1]) window.open(match[1], "_blank"); }}>View File</button>
-                            </div>
-                          )}
-                        </div>
-                      </td>
+                     <td>
+                                <div>
+                                    {entry.feedback || "No feedback yet"} {/* Display text feedback */}
+                                    {entry.teacher_media_link && (
+                                        <div style={{ marginTop: "5px" }}>
+                                            <button
+                                                style={{
+                                                    padding: "6px 12px",
+                                                    fontSize: "0.9em",
+                                                    cursor: "pointer",
+                                                    backgroundColor: '#27ae60', // Blue for the button
+                                                    color: 'white',
+                                                    border: 'none',
+                                                    borderRadius: '5px',
+                                                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                                                    transition: 'background-color 0.2s ease'
+                                                }}
+                                                onMouseOver={(e) => e.target.style.backgroundColor = '#2c3e50'}
+                                                onMouseOut={(e) => e.target.style.backgroundColor = '#27ae60'}
+                                                onClick={() => window.open(entry.teacher_media_link, "_blank")}
+                                            >
+                                                View File
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            </td>
                       <td style={{ fontWeight: "bold", color: entry.status === "graded" || entry.status === "synced" ? "green" : "orange" }}>
                         {entry.status === "graded" || entry.status === "synced" ? "Graded" : "Waiting for Grading"}
                       </td>
