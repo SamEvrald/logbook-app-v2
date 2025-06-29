@@ -371,7 +371,8 @@ exports.getStudentEntries = async (req, res) => {
                     le.allow_resubmit,   -- <--- ENSURE THIS LINE IS PRESENT
                     le.assignment_id,    -- Needed for pre-filling NewEntryForm
                     le.course_id,        -- Needed for pre-filling NewEntryForm
-                    c.fullname AS course_name -- <--- ENSURE THIS LINE IS PRESENT AND JOIN IS CORRECT
+                    c.fullname AS course_name, -- <--- ENSURE THIS LINE IS PRESENT AND JOIN IS CORRECT
+                    le.teacher_media_link
              FROM logbook_entries le
              JOIN courses c ON le.course_id = c.id -- <--- ENSURE THIS JOIN IS PRESENT
              WHERE le.student_id = ?
