@@ -1,10 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../api/api";
 import { FaBell, FaBars, FaTimes } from "react-icons/fa"; // ✅ Import FaBars and FaTimes
 import "../styles/AdminDashboard.css"; // ✅ Import CSS
 import Footer from "../components/Footer"; // ✅ Import Footer
 import TopBar from "../components/Shared/TopBar"; // ✅ Import TopBar
+
+// ✅ Import Recharts components
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+  PieChart, Pie, Cell, LineChart, Line
+} from 'recharts';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -28,6 +34,15 @@ const AdminDashboard = () => {
   const [allStudents, setAllStudents] = useState([]); // This is not being fetched in your current code. You would need a fetchAllStudents function.
   const [allTeachers, setAllTeachers] = useState([]); // This is similar to `teachers` state, potential redundancy.
   const [allCourses, setAllCourses] = useState([]);   // This is similar to `courses` state, potential redundancy.
+
+    // ✅ NEW ANALYTICS STATES
+  const [totalStudents, setTotalStudents] = useState(0);
+  const [entriesPerCourseData, setEntriesPerCourseData] = useState([]);
+  const [entriesByMonthData, setEntriesByMonthData] = useState([]);
+  const [entryStatusSummaryData, setEntryStatusSummaryData] = useState([]);
+
+  // Colors for Pie Chart
+  const PIE_COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF'];
 
    // ✅ NEW STATE: To control panel visibility
   const [isPanelHidden, setIsPanelHidden] = useState(false); // true to hide by default
@@ -375,6 +390,35 @@ const AdminDashboard = () => {
     }
   };
 
+  // ✅ NEW: Fetch Analytics Data
+  const fetchAnalyticsData = useCallback(async () => {
+    try {
+      setMessage("Loading analytics...");
+      const [
+        totalStudentsRes,
+        entriesPerCourseRes,
+        entriesByMonthRes,
+        entryStatusSummaryRes
+      ] = await Promise.all([
+        API.get("/admin/analytics/total-students", { headers: { Authorization: `Bearer ${token}` } }),
+        API.get("/admin/analytics/entries-per-course", { headers: { Authorization: `Bearer ${token}` } }),
+        API.get("/admin/analytics/entries-by-month", { headers: { Authorization: `Bearer ${token}` } }),
+        API.get("/admin/analytics/entry-status-summary", { headers: { Authorization: `Bearer ${token}` } })
+      ]);
+
+      setTotalStudents(totalStudentsRes.data.totalStudents);
+      setEntriesPerCourseData(entriesPerCourseRes.data.entriesPerCourse);
+      setEntriesByMonthData(entriesByMonthRes.data.entriesByMonth);
+      setEntryStatusSummaryData(entryStatusSummaryRes.data.entryStatusSummary);
+      setMessage("Analytics loaded.");
+      setTimeout(() => setMessage(""), 3000);
+    } catch (error) {
+      console.error("❌ Failed to fetch analytics data:", error.response?.data || error.message);
+      setMessage("❌ Failed to load analytics data.");
+      setTimeout(() => setMessage(""), 3000);
+    }
+  }, [token]);
+
   // Main useEffect for initial data fetches based on currentView
   useEffect(() => {
     if (!token) {
@@ -386,6 +430,8 @@ const AdminDashboard = () => {
     // Fetch entries only when the logbookEntries view is active
     if (currentView === "logbookEntries") {
       fetchEntries();
+    } else if (currentView === "analytics") { // ✅ Fetch analytics when this view is active
+      fetchAnalyticsData();
     }
     // Fetch teachers and moodle instances once on component mount,
     // as they are needed for the "Assign Courses" section regardless of initial view.
@@ -468,6 +514,14 @@ const AdminDashboard = () => {
               onClick={() => navigate("/signup/admin")} /* Direct navigation from here */
             >
               Create Admin
+            </button>
+
+            {/* ✅ NEW: Analytics Button */}
+            <button
+              className={currentView === "analytics" ? "active" : ""}
+              onClick={() => setCurrentView("analytics")}
+            >
+              Analytics
             </button>
           </div>
         )}
@@ -605,6 +659,84 @@ const AdminDashboard = () => {
 
           {/* Moved direct navigation to buttons, so removed these divs */}
           {/* The createTeacher/createAdmin buttons in the left panel now directly navigate */}
+
+           {/* ✅ NEW: Analytics View */}
+          {currentView === "analytics" && (
+            <div className="analytics-section">
+              <h3>Dashboard Analytics</h3>
+              {message && <p style={{ color: message.startsWith("✅") ? "green" : "red", fontWeight: "bold" }}>{message}</p>}
+
+              <div className="analytics-summary">
+                <div className="summary-card">
+                  <h4>Total Students</h4>
+                  <p>{totalStudents}</p>
+                </div>
+              </div>
+
+              <div className="charts-container">
+                <div className="chart-card">
+                  <h4>Entries per Course</h4>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart
+                      data={entriesPerCourseData}
+                      margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="courseName" tick={{ fontSize: 12 }} angle={-30} textAnchor="end" height={60} />
+                      <YAxis allowDecimals={false} />
+                      <Tooltip />
+                      <Legend />
+                      <Bar dataKey="totalEntries" fill="#8884d8" name="Total Entries" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+
+                <div className="chart-card">
+                  <h4>Entries by Month ({new Date().getFullYear()})</h4>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <LineChart
+                      data={entriesByMonthData}
+                      margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="monthYear" tickFormatter={(tick) => {
+                        const [year, month] = tick.split('-');
+                        return new Date(year, month - 1, 1).toLocaleString('default', { month: 'short' });
+                      }} />
+                      <YAxis allowDecimals={false} />
+                      <Tooltip />
+                      <Legend />
+                      <Line type="monotone" dataKey="totalEntries" stroke="#82ca9d" name="Total Entries" activeDot={{ r: 8 }} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+
+                <div className="chart-card">
+                  <h4>Entry Status Summary</h4>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={entryStatusSummaryData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                      >
+                        {entryStatusSummaryData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
