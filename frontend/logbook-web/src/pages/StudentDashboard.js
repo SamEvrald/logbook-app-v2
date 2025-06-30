@@ -229,8 +229,11 @@ const StudentDashboard = () => {
     localStorage.setItem("resubmitEntryData", JSON.stringify({
         assignment_id: entry.assignment_id,
         case_number: entry.case_number, // For display in NewEntryForm
-        course_id: entry.course_id,     // For NewEntryForm to fetch assignments for correct course
+        course_id: entry.course_id, 
+        type_of_work: entry.type_of_work, // Pass Activity
+        task_type: entry.task_type,     // For NewEntryForm to fetch assignments for correct course
         course_name: entry.course_name  // Pass course_name for NewEntryForm's title
+        
     }));
 
     // Ensure selectedCourse is set correctly for NewEntryForm.
@@ -377,7 +380,8 @@ const StudentDashboard = () => {
               <tr>
                 <th>Case #</th>
                 <th>Completion Date</th>
-                <th>Type Of Task/Device</th>
+                <th>Activity</th>
+                <th>Task</th>
                 <th>Pathology</th>
                 <th>Task Description</th>
                 <th>Media</th>
@@ -395,6 +399,7 @@ const StudentDashboard = () => {
                   <td>{entry.case_number || "Not Assigned"}</td>
                   <td>{entry.work_completed_date || "Not Provided"}</td>
                   <td>{entry.type_of_work || "N/A"}</td>
+                  <td>{entry.task_type || "N/A"}</td> 
                   <td>{entry.pathology || "N/A"}</td>
                   <td>{entry.task_description || "N/A"}</td>
                   <td>
