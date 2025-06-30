@@ -148,7 +148,21 @@ exports.assignCourseToTeacher = async (req, res) => {
 
 
 
-  
+  exports.getTeachersWithCourses = async (req, res) => {
+  try {
+    const [results] = await db.promise().query(
+      `SELECT t.id as teacher_id, t.username, t.email, c.id as course_id, c.fullname 
+       FROM teachers t -- Corrected: JOIN 'teachers' table directly
+       LEFT JOIN teacher_courses tc ON t.id = tc.teacher_id
+       LEFT JOIN courses c ON tc.course_id = c.id
+      `
+    );
+    res.json(results);
+  } catch (error) {
+    console.error("Database error:", error);
+    res.status(500).json({ message: "Failed to fetch teachers with courses", error: error.message });
+  }
+};
   
 
 // ✅ Get all courses assigned to a specific teacher
@@ -245,7 +259,7 @@ exports.loginAdmin = async (req, res) => {
 exports.getAllTeachers = async (req, res) => {
     try {
       const [teachers] = await db.promise().query(
-        `SELECT id, username, email FROM teachers`
+        `SELECT id, username, email FROM teachers` // Corrected: Select from 'teachers' table
       );
       res.json(teachers);
     } catch (error) {
@@ -285,35 +299,33 @@ exports.getAllEntries = async (req, res) => {
           le.id,
           le.case_number,
           le.entry_date,
-          le.work_completed_date, -- ✅ Added: Completion date for the work
+          le.work_completed_date,
           le.type_of_work,
+          le.task_type,
           le.grade,
           le.feedback,
           le.status,
           le.media_link,
-          le.consent_form,    -- ✅ Added: Consent form status
-          le.clinical_info,   -- ✅ Added: Clinical info/comments
-          le.allow_resubmit,  -- ✅ Added: Flag for allowing resubmission
+          le.consent_form,
+          le.clinical_info,
+          le.allow_resubmit,
           s.username AS student,
-          s.id AS student_id, -- ✅ Added: Student ID
+          s.id AS student_id,
           c.fullname AS course,
-          c.id AS course_id,   -- ✅ Added: Course ID
+          c.id AS course_id,
+          t.username AS teacher_name,
+          t.id AS teacher_id,
           le.teacher_media_link
        FROM logbook_entries le
        JOIN users s ON le.student_id = s.id
        JOIN courses c ON le.course_id = c.id
-       -- Removed: LEFT JOIN teachers t ON le.teacher_id = t.id (because le.teacher_id doesn't exist)
-       -- Removed: t.username AS teacher_name, t.id AS teacher_id (because we can't join to teachers this way)
+       LEFT JOIN teachers t ON le.graded_by_teacher_id = t.id -- This JOIN now correctly uses the new column
        ORDER BY le.entry_date DESC`
     );
 
-    // ✅ IMPORTANT: Wrap the entries in an object to match frontend's expected structure
-    //    (where frontend calls entriesResponse.data.entries)
     res.json({ entries });
   } catch (error) {
-    console.error("❌ Database error:", error);
+    console.error("❌ Database error (getAllEntries):", error);
     res.status(500).json({ message: "Failed to fetch logbook entries", error: error.message });
   }
 };
-
-// ... (Rest of your controller code) ...
