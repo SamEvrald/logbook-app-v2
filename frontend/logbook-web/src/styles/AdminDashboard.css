@@ -38,13 +38,13 @@
   padding-top: 20px; /* Added for top spacing from header */
 }
 
-/* Main Container for Panels - MODIFIED for panel hide/show */
+/* Main Container for Panels - MODIFIED for panel hide/show and increased max-width */
 .dashboard-panels-container {
   display: flex; /* This creates the side-by-side layout */
   flex: 1; /* Allows it to take up remaining vertical space */
-  padding: 20px;
-  gap: 20px; /* Space between left and main panels */
-  max-width: 1200px; /* A reasonable max-width for large screens */
+  padding: 10px; /* ✅ Further reduced padding for max table space */
+  gap: 10px; /* ✅ Further reduced gap */
+  max-width: 1700px; /* ✅ INCREASED AGAIN: Even wider container */
   margin: 0 auto; /* Center the main content area */
   width: 100%; /* Ensure it takes full width within its max-width */
   box-sizing: border-box; /* Include padding in width calculation */
@@ -57,10 +57,10 @@
   width: 0; /* Collapse width */
   min-width: 0;
   padding: 0; /* Remove padding */
-  overflow: hidden; /* Hide content */
+  overflow: visible; /* Hide content */
   visibility: hidden; /* Ensures it's not interactive */
   opacity: 0; /* Fade out */
-  margin-right: -20px; /* Counteract the gap, pull it closer */
+  margin-right: -10px; /* Counteract the gap */
 }
 
 /* When panel is hidden, main content expands */
@@ -69,10 +69,10 @@
   max-width: 100%; /* Ensure it fills the space */
 }
 
-/* Left Navigation Panel - MODIFIED for panel hide/show */
+/* Left Navigation Panel - MODIFIED for increased width */
 .left-panel {
-  flex: 0 0 200px; /* Fixed width for the sidebar */
-  min-width: 200px; /* Ensure it maintains this width when visible */
+  flex: 0 0 260px; /* ✅ INCREASED AGAIN: Wider fixed width for the sidebar */
+  min-width: 260px; /* ✅ ENSURE: Maintains this width when visible */
   background-color: #f0f0f0;
   padding: 20px;
   border-radius: 8px;
@@ -113,7 +113,7 @@
   font-weight: bold;
 }
 
-/* Main Content Area */
+/* Main Content Area - Allow horizontal overflow on the table, not the panel itself */
 .main-content-panel {
   flex: 1; /* Takes up remaining space */
   background-color: #fff;
@@ -121,7 +121,7 @@
   padding-left: 10px;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  overflow-x: auto; /* Allows horizontal scrolling for wide tables/content */
+  overflow-x: visible; /* Let table manage its own overflow if needed */
   box-sizing: border-box; /* Include padding in width calculation */
 }
 
@@ -137,12 +137,11 @@
 /* ✅ Your Existing Styles (Integrated & Refined for Responsiveness) */
 /* ========================================= */
 
-/* NEW: Panel Toggle Icon Wrapper (for correct positioning) */
+/* NEW: Panel Toggle Icon Wrapper (for correct positioning with new left-panel width) */
 .panel-toggle-wrapper {
   position: absolute;
-  /* Adjusted for better alignment and no conflict */
-  top: 35px; /* Slightly higher to align with the top of the h3 text */
-  left: 10px; /* Adjusted to place it cleanly inside the right edge of the left-panel */
+  top: 35px; /* Adjust as needed */
+  left: 240px; /* ✅ ADJUSTED: Positions it slightly overlapping the widened left panel */
   z-index: 101; /* Ensure it's above other content */
   cursor: pointer;
   transition: left 0.3s ease-in-out, background-color 0.2s ease; /* Smooth transition for repositioning */
@@ -347,45 +346,80 @@
 
 /* Logbook Table */
 .main-content-panel table {
-  width: 100%; /* Ensure table takes full width of its container */
+  width: 100%; /* Make table fill its container */
+  table-layout: fixed; /* Important: Distribute columns evenly/by defined widths */
   border-collapse: collapse;
   background: white;
   border-radius: 8px;
-  overflow: visible; /* Hide overflow from rounded corners */
+  overflow-x: auto; /* ✅ IMPORTANT: Re-enabled auto for table directly. This is the safest way. */
   box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.1);
   margin-bottom: 20px;
-  min-width: 900px; /* IMPORTANT: Ensures table has a minimum width, forcing horizontal scroll if needed */
+  /* Removed min-width, allowing it to adapt fully */
 }
 
 .main-content-panel th,
 .main-content-panel td {
-  padding-top: 4px;
-  padding-bottom: 4px;
-  padding-left: 8px;
-  padding-right: 8px;
+  padding: 6px; /* Reduced padding slightly for compactness */
   text-align: left;
   border-bottom: 1px solid #ddd;
-  line-height: 1.1; /* Tighter vertical spacing */
-  vertical-align: middle; /* Align everything nicely in the center */
-  height: 30px; /* Explicit row height (may be overridden by wrapping content) */
+  line-height: 1.3; /* Increased for better readability with wrapping text */
+  vertical-align: top; /* Align content to top for wrapped text */
   color: #333;
-  white-space: nowrap; /* Default: Prevent text from wrapping in table cells */
-  word-wrap: break-word; /* Ensures long words break if nowrap is overridden */
+  word-wrap: break-word; /* Ensures long words break */
 }
 
-/* Specific columns that should allow text wrapping */
-.main-content-panel td:nth-child(5), /* Task Type */
-.main-content-panel td:nth-child(8), /* Feedback */
-.main-content-panel td:nth-child(9) /* Status (Waiting for Grading) */ {
-  white-space: normal; /* Allow text to wrap */
-  max-width: 200px; /* Optional: Constrain max width for very long content to keep table compact */
+/* Default for all table cells: allow text to wrap */
+.main-content-panel td {
+  white-space: normal;
 }
+
+/* Specific columns that should NOT allow text wrapping (to maintain structure for short data) */
+/* Re-evaluated based on your screenshot and common content */
+.main-content-panel td:nth-child(1),  /* Case # */
+.main-content-panel td:nth-child(2),  /* Completion Date */
+.main-content-panel td:nth-child(8),  /* Media (button) */
+.main-content-panel td:nth-child(9),  /* Consent */
+.main-content-panel td:nth-child(11), /* Grade */
+.main-content-panel td:nth-child(13), /* Status */
+.main-content-panel td:nth-child(14)  /* Action */ {
+  white-space: nowrap; /* Keep these on one line */
+  /* If content exceeds allocated width for nowrap cells, it will be clipped */
+  overflow: visible; 
+  text-overflow: ellipsis; /* Add ellipsis for clipped nowrap text */
+}
+
+/* ✅ Column Widths (Finely Tuned based on screenshot and typical content - increased widths for problematic columns) */
+/* The sum of these should be 100% */
+.main-content-panel th:nth-child(1), .main-content-panel td:nth-child(1) { width: 9%; }  /* Case # - INCREASED */
+.main-content-panel th:nth-child(2), .main-content-panel td:nth-child(2) { width: 9%; }  /* Completion Date - INCREASED */
+.main-content-panel th:nth-child(3), .main-content-panel td:nth-child(3) { width: 9%; }  /* Student */
+.main-content-panel th:nth-child(4), .main-content-panel td:nth-child(4) { width: 9%; }  /* Course */
+.main-content-panel th:nth-child(5), .main-content-panel td:nth-child(5) { width: 9%; }  /* Activity */
+.main-content-panel th:nth-child(6), .main-content-panel td:nth-child(6) { width: 9%; }  /* Task */
+.main-content-panel th:nth-child(7), .main-content-panel td:nth-child(7) { width: 9%; }  /* Description */
+.main-content-panel th:nth-child(8), .main-content-panel td:nth-child(8) { width: 6%; }  /* Media - Slightly increased for button */
+.main-content-panel th:nth-child(9), .main-content-panel td:nth-child(9) { width: 5%; }  /* Consent */
+.main-content-panel th:nth-child(10), .main-content-panel td:nth-child(10) { width: 8%; } /* Comments */
+.main-content-panel th:nth-child(11), .main-content-panel td:nth-child(11) { width: 4%; }  /* Grade */
+.main-content-panel th:nth-child(12), .main-content-panel td:nth-child(12) { width: 9%; }  /* Feedback - KEPT same for wrapping */
+.main-content-panel th:nth-child(13), .main-content-panel td:nth-child(13) { width: 8%; }  /* Status - INCREASED to accommodate text */
+.main-content-panel th:nth-child(14), .main-content-panel td:nth-child(14) { width: 5%; }  /* Action - Reduced slightly */
+
 
 .main-content-panel th {
   background: #2c3e50;
   color: white;
   font-weight: bold;
   text-transform: uppercase;
+  /* Optional: Adjust font size for headers if still tight */
+  font-size: 0.85em; /* Smaller header font */
+  padding-top: 8px; /* More padding for headers */
+  padding-bottom: 8px;
+}
+
+.main-content-panel td {
+  /* Optional: Adjust font size for data cells if still tight */
+  font-size: 0.9em; /* Smaller data cell font */
 }
 
 .main-content-panel tr:hover {
@@ -541,6 +575,7 @@ label {
     flex-direction: column; /* Stack panels vertically on small screens */
     padding: 10px;
     gap: 15px;
+    max-width: 100%; /* Ensure full width on small screens */
   }
 
   .left-panel {
@@ -562,8 +597,9 @@ label {
 
   /* Make sure the main content panel also takes full width on mobile */
   .main-content-panel {
-    width: 100%;
-    max-width: 100%;
+    width: auto;
+    max-width: auto;
+    overflow-x: auto; /* Re-enable scrolling on very small screens for table if content is too wide */
   }
 
   /* When panel is hidden on small screens */
@@ -583,8 +619,8 @@ label {
   /* Table adjustments for small screens (Mobile-friendly table) */
   .main-content-panel table {
     display: block; /* Allows table to scroll horizontally */
-    width: auto; /* Allow width to be determined by content + overflow */
-    overflow-x: auto; /* Enable horizontal scrolling */
+    width: 100%; /* Take full width, but content can overflow horizontally */
+    table-layout: auto; /* Revert to auto on mobile, easier with `data-label` */
     min-width: unset; /* Override min-width for full table on mobile */
   }
 
@@ -623,12 +659,19 @@ label {
     text-align: left;
     white-space: nowrap;
     text-overflow: ellipsis;
-    overflow: visible;
+    overflow: visible; /* Hide overflow for labels */
   }
 
-  /* Remember to add data-label attributes to your JSX <td> elements for mobile view, e.g.:
-     <td data-label="Status">{entry.status}</td>
-  */
+  /* Ensure Action buttons are centered in their stacked cell */
+  .main-content-panel td:nth-child(14) { /* Action column */
+    text-align: center;
+    padding-left: 10px; /* Reset padding-left for buttons */
+  }
+  .main-content-panel td:nth-child(14)::before {
+    display: none; /* Hide data-label for action buttons */
+  }
+
+
 }
 
 /* Medium Screens (e.g., tablets) */
@@ -636,16 +679,18 @@ label {
   .dashboard-panels-container {
     padding: 15px;
     gap: 15px;
+    max-width: 100%; /* Allow it to grow on medium screens */
   }
 
   .left-panel {
-    flex: 0 0 180px; /* Slightly smaller sidebar */
+    flex: 0 0 200px; /* Slightly smaller sidebar for tablets */
+    min-width: 200px;
     padding: 15px;
   }
 
   /* Adjust panel toggle icon position for medium screens */
   .panel-toggle-wrapper {
-    left: 155px; /* Adjusted based on new left-panel width */
+    left: 180px; /* Adjusted based on new left-panel width */
     top: 20px; /* Keep consistent with desktop */
   }
 
@@ -655,6 +700,7 @@ label {
 
   .main-content-panel {
     padding: 15px;
+    overflow-x: auto; /* Re-enable auto overflow for tables on medium screens if necessary */
   }
 
   /* Adjustments for search/filter/assign if needed for horizontal flow */
@@ -678,4 +724,16 @@ label {
     flex-grow: 1;
     min-width: 100px;
   }
+
+  /* On medium screens, let table scroll if needed, don't force break. */
+  .main-content-panel table {
+    table-layout: auto; /* Allow columns to auto-adjust if content is too wide */
+    width: 100%; /* Still take full width */
+  }
+  /* Remove fixed width for tds on medium screens, let them flow */
+  .main-content-panel th,
+  .main-content-panel td {
+    white-space: normal;
+  }
+
 }
