@@ -176,7 +176,7 @@ const getSubmittedEntries = async (req, res) => {
         console.log("DEBUG: Course IDs for this teacher:", courseIds);
 
         const [entries] = await db.promise().query(
-            `SELECT le.id, le.case_number, le.entry_date, le.student_id, le.type_of_work, le.pathology,
+            `SELECT le.id, le.case_number, le.entry_date, le.student_id, le.type_of_work, le.task_type, le.pathology,
                     le.content AS task_description, le.consent_form, le.work_completed_date,
                     le.media_link, le.grade, le.feedback, le.status, le.allow_resubmit, le.course_id,
                     le.teacher_media_link,
