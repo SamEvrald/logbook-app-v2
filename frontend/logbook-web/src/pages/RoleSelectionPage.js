@@ -11,14 +11,19 @@ const RoleSelectionPage = () => {
   return (
     <div className="role-container">
        <TopBar /> {/* ✅ Add TopBar at the Top */}
-      <h2>Select Your Role</h2>
+
+
+<h2 class="heading-highlight h2">Welcome to The Logbook!</h2>
+<h4 class="heading-highlight h4">Please Select Your Role To Login</h4>
+
+
       
       <div className="role-buttons">
         <button onClick={() => navigate("/login/student")} className="btn student">
-          Login as Student
+          Student Login
         </button>
         <button onClick={() => navigate("/login/teacher")} className="btn teacher">
-          Login as Teacher
+          Teacher Login
         </button>
       </div>
 
@@ -30,7 +35,7 @@ const RoleSelectionPage = () => {
 
       <div className="role-buttons">
         <button onClick={() => navigate("/login/admin")} className="btn admin">
-          Login as Admin
+          Admin Login
         </button>
         {/* <button onClick={() => navigate("/signup/admin")} className="btn green">
           Signup as Admin
