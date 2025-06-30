@@ -98,7 +98,8 @@ const AdminDashboard = () => {
       "Course ID",
       "Assigned Teacher", // This refers to the teacher associated with *this specific entry*
       "Teacher ID",
-      "Task Type",
+      "Activity",
+      "Task",
       "Description",
       "Media Links",
       "Consent Form",
@@ -137,6 +138,7 @@ const AdminDashboard = () => {
         `"${teacherInfo?.username || entry.teacher_name || "Unknown"}"`, // Use teacherInfo if available, fallback to entry.teacher_name
         `"${entry.teacher_id || ""}"`,
         `"${entry.type_of_work || ""}"`,
+        `"${entry.task_type || ''}"`,
         `"${entry.task_description || "No Description"}"`,
         formatMediaLinksForCsv(entry.media_link),
         `"${entry.consent_form === "yes" ? "Yes" : "No"}"`,
@@ -167,7 +169,9 @@ const AdminDashboard = () => {
     const filtered = entries.filter(
       (entry) =>
         entry.case_number.toLowerCase().includes(query.toLowerCase()) ||
-        entry.student.toLowerCase().includes(query.toLowerCase())
+        entry.student.toLowerCase().includes(query.toLowerCase()) ||
+        entry.type_of_work.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (entry.task_type && entry.task_type.toLowerCase().includes(searchQuery.toLowerCase()))
     );
     setFilteredEntries(filtered);
   };
@@ -499,7 +503,8 @@ const AdminDashboard = () => {
                     <th>Entry Date</th>
                     <th>Student</th>
                     <th>Course</th>
-                    <th>Task Type</th>
+                    <th>Activity</th>
+                    <th>Task</th>
                     <th>Media</th>
                     <th>Grade</th>
                     <th>Feedback</th>
@@ -514,6 +519,7 @@ const AdminDashboard = () => {
                       <td>{entry.student}</td>
                       <td>{entry.course}</td>
                       <td>{entry.type_of_work}</td>
+                      <td>{entry.task_type || "N/A"}</td> 
                       <td>
                         {(() => {
                           if (!entry.media_link) return "Not Provided";
@@ -532,7 +538,7 @@ const AdminDashboard = () => {
                       <td>{entry.grade || "N/A"}</td>
                      <td>
                                 <div>
-                                    {entry.feedback || "No feedback yet"} {/* Display text feedback */}
+                                    {entry.feedback || "No feedback"} {/* Display text feedback */}
                                     {entry.teacher_media_link && (
                                         <div style={{ marginTop: "5px" }}>
                                             <button
