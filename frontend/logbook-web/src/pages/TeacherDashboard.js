@@ -154,6 +154,58 @@ const TeacherDashboard = () => {
   };
 
   // allowResubmission (existing code)
+  // const allowResubmission = async (entryId) => {
+  //   try {
+  //     const confirmAllowance = await new Promise(resolve => {
+  //         const confirmationBox = document.createElement('div');
+  //         confirmationBox.style.cssText = `
+  //             position: fixed;
+  //             top: 50%;
+  //             left: 50%;
+  //             transform: translate(-50%, -50%);
+  //             background-color: white;
+  //             padding: 30px;
+  //             border: 1px solid #ccc;
+  //             border-radius: 8px;
+  //             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  //             z-index: 1000;
+  //             text-align: center;
+  //             font-size: 1.1em;
+  //             color: #333;
+  //             max-width: 400px;
+  //         `;
+  //         confirmationBox.innerHTML = `
+  //             <p>Are you sure you want to allow resubmission for this entry?</p>
+  //             <div style="margin-top: 20px;">
+  //                 <button id="confirmYes" style="background-color: #2c3e50; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin-right: 15px;">Yes</button>
+  //                 <button id="confirmNo" style="background-color: #e74c3c; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">No</button>
+  //             </div>
+  //         `;
+  //         document.body.appendChild(confirmationBox);
+
+  //         document.getElementById('confirmYes').onclick = () => {
+  //             document.body.removeChild(confirmationBox);
+  //             resolve(true);
+  //         };
+  //         document.getElementById('confirmNo').onclick = () => {
+  //             document.body.removeChild(confirmationBox);
+  //             resolve(false);
+  //         };
+  //     });
+
+  //     if (!confirmAllowance) return;
+
+  //     await API.put(`/teachers/entries/${entryId}/allow-resubmit`, null, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     });
+  //     alert("✅ Resubmission allowed.");
+  //     await fetchDashboard(); // Refresh entries
+  //     await fetchNotifications(); // ✅ Also refresh notifications
+  //   } catch (error) {
+  //     console.error("❌ Failed to allow resubmission:", error.response?.data || error.message);
+  //     alert("❌ Failed to allow resubmission.");
+  //   }
+  // };
   const allowResubmission = async (entryId) => {
     try {
       const confirmAllowance = await new Promise(resolve => {
@@ -183,14 +235,15 @@ const TeacherDashboard = () => {
           `;
           document.body.appendChild(confirmationBox);
 
-          document.getElementById('confirmYes').onclick = () => {
+          // ✅ IMPORTANT: Use addEventListener instead of onclick
+          document.getElementById('confirmYes').addEventListener('click', () => {
               document.body.removeChild(confirmationBox);
               resolve(true);
-          };
-          document.getElementById('confirmNo').onclick = () => {
+          });
+          document.getElementById('confirmNo').addEventListener('click', () => {
               document.body.removeChild(confirmationBox);
               resolve(false);
-          };
+          });
       });
 
       if (!confirmAllowance) return;
@@ -198,12 +251,58 @@ const TeacherDashboard = () => {
       await API.put(`/teachers/entries/${entryId}/allow-resubmit`, null, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      alert("✅ Resubmission allowed.");
-      await fetchDashboard(); // Refresh entries
-      await fetchNotifications(); // ✅ Also refresh notifications
+      
+      // ✅ Use custom success message box
+      const successMessageBox = document.createElement('div');
+      successMessageBox.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: white;
+        padding: 20px;
+        border: 2px solid green;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        z-index: 1000;
+        text-align: center;
+        font-weight: bold;
+        color: green;
+      `;
+      successMessageBox.textContent = "✅ Resubmission allowed.";
+      document.body.appendChild(successMessageBox);
+
+      setTimeout(() => {
+        document.body.removeChild(successMessageBox);
+        fetchDashboard(); // Refresh entries
+        fetchNotifications(); // Also refresh notifications
+      }, 2000); // Show for 2 seconds
+
     } catch (error) {
       console.error("❌ Failed to allow resubmission:", error.response?.data || error.message);
-      alert("❌ Failed to allow resubmission.");
+      // ✅ Use custom error message box
+      const errorMessageBox = document.createElement('div');
+      errorMessageBox.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: white;
+        padding: 20px;
+        border: 2px solid red;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        z-index: 1000;
+        text-align: center;
+        font-weight: bold;
+        color: red;
+      `;
+      errorMessageBox.textContent = "❌ Failed to allow resubmission.";
+      document.body.appendChild(errorMessageBox);
+
+      setTimeout(() => {
+        document.body.removeChild(errorMessageBox);
+      }, 3000); // Show for 3 seconds
     }
   };
 
