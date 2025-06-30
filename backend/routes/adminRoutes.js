@@ -4,11 +4,16 @@ const {
     getAllCourses,
     assignCourseToTeacher,
     removeCourseFromTeacher,
-    getAllTeachers,
+    getAllTeachers, // Using this existing one for teacher fetching
     signupAdmin,
     loginAdmin,
     getAdminProfile,
     getAllEntries, // ✅ Added
+    // ✅ NEW: Import analytics controllers
+    getTotalStudents,
+    getEntriesPerCourse,
+    getEntriesByMonth,
+    getEntryStatusSummary,
 } = require("../controllers/adminController");
 
 const authMiddleware = require("../middleware/authMiddleware");
@@ -37,5 +42,12 @@ router.post("/signup", signupAdmin);
 
 // ✅ Admin Login
 router.post("/login", loginAdmin);
+
+// ✅ NEW ANALYTICS ROUTES:
+router.get("/analytics/total-students", authMiddleware, roleMiddleware("admin"), getTotalStudents);
+router.get("/analytics/entries-per-course", authMiddleware, roleMiddleware("admin"), getEntriesPerCourse);
+router.get("/analytics/entries-by-month", authMiddleware, roleMiddleware("admin"), getEntriesByMonth);
+router.get("/analytics/entry-status-summary", authMiddleware, roleMiddleware("admin"), getEntryStatusSummary);
+
 
 module.exports = router;
