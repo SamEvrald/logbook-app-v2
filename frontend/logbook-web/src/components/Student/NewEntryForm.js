@@ -9,8 +9,6 @@ const NewEntryForm = () => {
   const navigate = useNavigate();
 
   // ✅ Initializing state from localStorage synchronously using useMemo for initial render
-  // This ensures `initialResubmitData`, `storedUser`, `storedSelectedCourse`, `storedToken`
-  // are available immediately when the component renders.
   const initialResubmitData = useMemo(() => {
     try {
       const data = localStorage.getItem('resubmitEntryData');
@@ -22,7 +20,7 @@ const NewEntryForm = () => {
       localStorage.removeItem('resubmitEntryData');
       return null;
     }
-  }, []); // Empty dependency array means this runs once on mount
+  }, []);
 
   const storedUser = useMemo(() => {
     try {
@@ -61,12 +59,14 @@ const NewEntryForm = () => {
   const [course] = useState(storedSelectedCourse);
   const [token] = useState(storedToken);
 
-  // ✅ Initialize selectedAssignment and isResubmission directly from initialResubmitData
   const [selectedAssignment, setSelectedAssignment] = useState(initialResubmitData?.assignment_id || "");
-  const [isResubmission, setIsResubmission] = useState(!!initialResubmitData); // `!!` converts to boolean
-
+  const [isResubmission, setIsResubmission] = useState(!!initialResubmitData);
   const [assignments, setAssignments] = useState([]);
-  const [typeOfWork, setTypeOfWork] = useState("");
+
+  // ✅ NEW STATE FOR ACTIVITY AND TASK
+  const [activity, setActivity] = useState(initialResubmitData?.type_of_work || ""); // `type_of_work` now maps to Activity
+  const [task, setTask] = useState(initialResubmitData?.task_type || "");           // New state for Task
+
   const [clinicalInfo, setClinicalInfo] = useState("");
   const [pathology, setPathology] = useState("");
   const [consentForm, setConsentForm] = useState("no");
@@ -80,8 +80,88 @@ const NewEntryForm = () => {
 
   const [originalCaseNumber, setOriginalCaseNumber] = useState(initialResubmitData?.case_number || null);
 
-  // ✅ fetchAssignments: No longer sets the default assignment itself.
-  // It only fetches and updates the `assignments` state.
+  // ✅ Define the Activity-Task mapping data structure
+  const activityTaskMap = useMemo(() => ({
+    "Lower Limb Prostheses": [
+      "Partial foot (PF)",
+      "Transfemoral quadrilateral (TF-QL)",
+      "Ankle dis-articulation (AD)",
+      "Trans tibial (TT)",
+      "Knee dis-articulation (KD)",
+      "Transfemoral ichial containment (TF-IC)",
+      "Hip dis-articulation (HD)",
+      "Hemipelvectomy (HP)",
+      "Hemocorporectomy (HC)",
+      "Orthoprostheses (OP)",
+      "Other lower limb prostheses"
+    ],
+    "Lower Limb Orthoses": [
+      "Knee ankle foot orthoses (KAFO)",
+      "Ankle foot orthosis (AFO)",
+      "Foot orthoses (FO)",
+      "Hip knee ankle foot orthoses (HKAFO)",
+      "Dynamic ankle foot orthoses (DAFO)",
+      "Knee orthoses (KO)",
+      "Hip orthoses (HO)",
+      "Other lower limb orthoses"
+    ],
+    "Upper Limb Orthoses": [
+      "Wrist hand orthoses (WHO)",
+      "Finger orthoses (FO)",
+      "Hand orthoses (HO)",
+      "Elbow wrist hand orthoses (EWHO)",
+      "Wrist orthoses (WO)",
+      "Elbow orthoses (EO)",
+      "Other upper limb orthoses"
+    ],
+    "Upper Limb Prostheses": [
+      "Transhumeral (TH)",
+      "Wrist dis-articulation (WD)",
+      "Transradial (TR)",
+      "Elbow dis-articulation (ED)",
+      "Shoulder dis-articulation (SD)",
+      "Partial hand (PH)",
+      "Interscapulo thoracic (IST)",
+      "Other upper limb prostheses"
+    ],
+    "Spinal Orthoses": [
+      "Chênn eau brace",
+      "Boston brace",
+      "Cervical orthosis (CO)",
+      "Other thoracolumbosacral orthoses (TLSO)",
+      "Cervicothoracic orthosis (CTO)",
+      "Head cervicothoracic orthosis (HCTO)",
+      "Cervicothoracolumbosacral orthosis (CTLSO)",
+      "Milwaukee brace",
+      "Lumbosacral orthosis (LSO)",
+      "Other spinal orthoses"
+    ],
+    "Other P&O Activities": [
+      "Lecturing Prosthetics (Theoretical)",
+      "Lecturing Orthotics (Theoretical)",
+      "Lecturing Prosthetics Workshop",
+      "Lecturing Orthotics Workshop",
+      "Cat I| Practical examination", // Changed from 'Cat I|' to 'Cat II|' assuming it's a typo from user, but keeping exact if not.
+      "Supervision of Prosthetics Activities",
+      "Supervision of Orthotics Activities",
+      "Patient Assessment/Prescription",
+      "Other activities with patients",
+      "P&O Educational Material Preparation", // Changed '&' from user to '&' for consistency
+      "Patient check-up/follow-up",
+      "Other practical activities"
+    ],
+    "Other P&O Devices": [
+      "Orthoprosthesis",
+      "Orthopedic Shoes"
+    ]
+  }), []);
+
+  // Get current Task options based on selected Activity
+  const currentTaskOptions = useMemo(() => {
+    return activityTaskMap[activity] || [];
+  }, [activity, activityTaskMap]);
+
+
   const fetchAssignments = useCallback(async () => {
     if (!course?.id || !user?.moodle_instance_id || !token) {
       console.warn("NewEntryForm: Skipping fetchAssignments due to missing critical data.", { user, course, token });
@@ -91,7 +171,7 @@ const NewEntryForm = () => {
       const response = await API.get(`/entries/assignments/${course.id}`, {
         headers: { Authorization: `Bearer ${token}` },
         params: {
-            moodle_instance_id: user.moodle_instance_id
+          moodle_instance_id: user.moodle_instance_id
         }
       });
       if (Array.isArray(response.data) && response.data.length > 0) {
@@ -103,17 +183,17 @@ const NewEntryForm = () => {
       setError("Failed to load assignments.");
       console.error("❌ Failed to load assignments:", error.response?.data || error.message);
     }
-  }, [course, user, token]); // Dependencies for useCallback
+  }, [course, user, token]);
 
   useEffect(() => {
     console.group("🟢 NewEntryForm useEffect Triggered");
-    console.log("   Current user state (in useEffect):", user);
-    console.log("   Current token state (in useEffect):", token);
-    console.log("   Current course state (in useEffect):", course);
-    console.log("   user.moodle_id:", user?.moodle_id);
-    console.log("   user.moodle_instance_id:", user?.moodle_instance_id);
-    console.log("   isResubmission state:", isResubmission);
-    console.log("   selectedAssignment state:", selectedAssignment);
+    console.log("   Current user state (in useEffect):", user);
+    console.log("   Current token state (in useEffect):", token);
+    console.log("   Current course state (in useEffect):", course);
+    console.log("   user.moodle_id:", user?.moodle_id);
+    console.log("   user.moodle_instance_id:", user?.moodle_instance_id);
+    console.log("   isResubmission state:", isResubmission);
+    console.log("   selectedAssignment state:", selectedAssignment);
     console.groupEnd();
 
     let shouldRedirect = false;
@@ -142,18 +222,17 @@ const NewEntryForm = () => {
     }
 
     // ✅ Clear resubmit data from localStorage once it's been used to initialize state
-    // This ensures it's only processed on the very first render of a resubmit flow.
     if (initialResubmitData) {
       localStorage.removeItem('resubmitEntryData');
-      // No need to set state again here, as it's already set by useState(initialResubmitData)
-      // Also, clear other fields here as part of the resubmission setup
-      setTypeOfWork('');
-      setPathology('');
-      setClinicalInfo('');
-      setContent('');
-      setConsentForm('no');
-      setWorkCompletedDate('');
-      setMediaFiles([]);
+      // For resubmission, populate other fields from initialResubmitData if they exist
+      // `activity` and `task` are already set via useState initialization
+      setPathology(initialResubmitData.pathology || '');
+      setClinicalInfo(initialResubmitData.clinical_info || '');
+      setContent(initialResubmitData.content || '');
+      setConsentForm(initialResubmitData.consent_form || 'no'); // Ensure default if not present
+      // Format work_completed_date for input type="date"
+      setWorkCompletedDate(initialResubmitData.work_completed_date ? new Date(initialResubmitData.work_completed_date).toISOString().split('T')[0] : '');
+      setMediaFiles([]); // Clear existing media files on resubmit
     }
 
     fetchAssignments();
@@ -161,13 +240,18 @@ const NewEntryForm = () => {
 
   // ✅ New useEffect to set default assignment if it's a new entry and assignments are loaded
   useEffect(() => {
-    // This effect runs only if it's NOT a resubmission AND no assignment is already selected
-    // AND assignments data has been fetched.
     if (!isResubmission && !selectedAssignment && assignments.length > 0) {
       console.log("DEBUG: Setting default assignment:", assignments[0].id);
       setSelectedAssignment(assignments[0].id);
     }
-  }, [assignments, isResubmission, selectedAssignment]); // Runs when assignments, isResubmission, selectedAssignment change
+  }, [assignments, isResubmission, selectedAssignment]);
+
+
+  // ✅ Handle Activity change: Reset Task when Activity changes
+  const handleActivityChange = (e) => {
+    setActivity(e.target.value);
+    setTask(""); // Reset task when activity changes
+  };
 
   const handleFileChange = (e, index) => {
     const newFiles = [...mediaFiles];
@@ -181,13 +265,31 @@ const NewEntryForm = () => {
     setError("");
     setLoading(true);
 
+     // --- START DEBUGGING LOGS FOR ACTIVITY AND TASK ---
+    console.log("DEBUG: Submitting form...");
+    console.log("DEBUG: Activity (typeOfWork) value:", activity);
+    console.log("DEBUG: Task (task) value:", task);
+    // --- END DEBUGGING LOGS FOR ACTIVITY AND TASK ---
+
     if (!selectedAssignment) {
-      setError("Please select an assignment.");
+      setError("Please select an entry assignment.");
       setLoading(false);
       return;
     }
-    if (!typeOfWork || !pathology || !content || !workCompletedDate) {
-      setError("Please fill all required fields: Type of Task/Device, Pathology, Task Description, and Work Completed Date.");
+    // ✅ Updated validation for Activity and Task
+    if (!activity) {
+        setError("Please select an Activity.");
+        setLoading(false);
+        return;
+    }
+    // Only require 'Task' if there are options for the selected activity
+    if (currentTaskOptions.length > 0 && !task) {
+        setError("Please select a Task.");
+        setLoading(false);
+        return;
+    }
+    if (!pathology || !content || !workCompletedDate) {
+      setError("Please fill all required fields: Pathology, Task Description, and Work Completed Date.");
       setLoading(false);
       return;
     }
@@ -201,13 +303,16 @@ const NewEntryForm = () => {
     formData.append("moodle_id", studentMoodleId);
     formData.append("courseId", courseId);
     formData.append("assignmentId", selectedAssignment);
-    formData.append("type_of_work", typeOfWork);
+    formData.append("type_of_work", activity); // ✅ Send 'activity' as 'type_of_work'
+    formData.append("task_type", task);         // ✅ Send 'task' as 'task_type'
     formData.append("pathology", pathology);
     formData.append("clinical_info", clinicalInfo);
     formData.append("content", content);
     formData.append("consentForm", consentForm);
     formData.append("work_completed_date", workCompletedDate);
     formData.append("moodle_instance_id", moodleInstanceId);
+    formData.append("isResubmission", isResubmission ? "true" : "false"); // Ensure this is sent as a string
+
 
     if (mediaFiles.length > 0) {
       mediaFiles.forEach((file) => {
@@ -225,8 +330,31 @@ const NewEntryForm = () => {
         },
       });
 
-      alert(`Entry ${isResubmission ? "resubmitted" : "created"} successfully! Case Number: ${response.data.case_number}`);
-      navigate("/student"); // ✅ Changed redirect path to /student
+      // Using a custom message box instead of alert
+      const messageBox = document.createElement('div');
+      messageBox.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: white;
+        padding: 20px;
+        border: 2px solid green;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        z-index: 1000;
+        text-align: center;
+        font-weight: bold;
+        color: green;
+      `;
+      messageBox.textContent = `Entry ${isResubmission ? "resubmitted" : "created"} successfully! Case Number: ${response.data.case_number}`;
+      document.body.appendChild(messageBox);
+
+      setTimeout(() => {
+        document.body.removeChild(messageBox);
+        navigate("/student");
+      }, 3000); // Show for 2 seconds then navigate
+
     } catch (err) {
       console.error("❌ NewEntryForm Submission error:", err.response?.data || err.message);
       setError(err.response?.data?.message || "Failed to create/resubmit entry.");
@@ -292,6 +420,7 @@ const NewEntryForm = () => {
               required
               disabled={isResubmission}
             >
+              <option value="">-- Select an Entry Assignment --</option> {/* Added placeholder */}
               {assignments.map((assignment) => (
                 <option key={assignment.id} value={assignment.id}>
                   {assignment.name}
@@ -301,10 +430,43 @@ const NewEntryForm = () => {
             {isResubmission && <p style={{fontSize: '0.8em', color: '#555'}}>You are resubmitting for this specific entry.</p>}
           </div>
 
+          {/* ✅ Activity Dropdown (formerly Type of Task/Device) */}
           <div>
-            <label>Type of Task/Device</label>
-            <input type="text" value={typeOfWork} onChange={(e) => setTypeOfWork(e.target.value)} required />
+            <label htmlFor="activity-select">Activity:</label>
+            <select
+              id="activity-select"
+              value={activity}
+              onChange={handleActivityChange}
+              required
+            >
+              <option value="">-- Select an Activity --</option>
+              {Object.keys(activityTaskMap).map((act) => (
+                <option key={act} value={act}>
+                  {act}
+                </option>
+              ))}
+            </select>
           </div>
+
+          {/* ✅ Task Dropdown (conditionally rendered) */}
+          {activity && ( // Only show Task dropdown if an Activity is selected
+            <div>
+              <label htmlFor="task-select">Task:</label>
+              <select
+                id="task-select"
+                value={task}
+                onChange={(e) => setTask(e.target.value)}
+                required={currentTaskOptions.length > 0} // Required only if options exist
+              >
+                <option value="">-- Select a Task --</option>
+                {currentTaskOptions.map((tsk) => (
+                  <option key={tsk} value={tsk}>
+                    {tsk}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <div>
             <label>Pathology / Purpose</label>
