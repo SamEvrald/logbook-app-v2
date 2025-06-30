@@ -45,13 +45,15 @@ exports.createEntry = async (req, res) => {
       moodle_id,
       courseId,
       assignmentId,
-      type_of_work,
+      type_of_work, // This will now represent 'Activity'
+      task_type,    // ✅ NEW: This is the 'Task' field
       pathology,
       clinical_info,
       content,
       consentForm,
       work_completed_date,
       moodle_instance_id,
+      // isResubmission, // Handled separately in the `if` block, not directly in `req.body` destructured here
     } = req.body;
 
     const mediaFiles = req.files ? req.files.map(file => file.path) : [];
@@ -70,9 +72,10 @@ exports.createEntry = async (req, res) => {
       return res.status(404).json({ message: "❌ No user found with this Moodle ID." });
     }
     const studentId = userRows[0].id;
-    const studentName = userRows[0].username; // ✅ This line ensures studentName is defined here
+    const studentName = userRows[0].username; 
 
     // Prevent duplicate submissions unless resubmission is allowed
+    // This logic needs to consider the `isResubmission` flag from the frontend for proper overwrite handling
     const [existingEntries] = await db.promise().query(
       `SELECT * FROM logbook_entries
        WHERE student_id = ? AND assignment_id = ? AND moodle_instance_id = ?
@@ -80,16 +83,23 @@ exports.createEntry = async (req, res) => {
       [studentId, assignmentId, moodle_instance_id]
     );
 
-    if (existingEntries.length > 0) {
-      const latestEntry = existingEntries[0];
-
-      if (latestEntry.status === "graded" && !latestEntry.allow_resubmit) {
+    let allow_resubmit_flag = 0; // Default to 0 (false)
+    // Check if the current submission is marked as a resubmission from the frontend
+    // And if there's a previous entry that allows resubmission
+    if (req.body.isResubmission === 'true' && existingEntries.length > 0 && existingEntries[0].allow_resubmit) {
+        // If it's a resubmission for an allowed entry, delete the old one.
+        // This is necessary if resubmitting means overwriting the previous attempt.
+        await db.promise().query(
+            `DELETE FROM logbook_entries WHERE id = ?`,
+            [existingEntries[0].id]
+        );
+        console.log(`✅ Deleted previous entry ${existingEntries[0].id} for resubmission.`);
+    } else if (existingEntries.length > 0 && existingEntries[0].status === "submitted") {
+        // If there's an existing submitted entry and it's NOT a resubmission, prevent submission.
+        return res.status(400).json({ message: "❌ You already submitted this entry and it's awaiting grading. Cannot submit a new entry unless it's a resubmission." });
+    } else if (existingEntries.length > 0 && existingEntries[0].status === "graded" && !existingEntries[0].allow_resubmit) {
+        // If graded and resubmit not allowed, prevent submission.
         return res.status(400).json({ message: "❌ This entry is graded and locked. Resubmission is not allowed unless permitted by the teacher." });
-      }
-
-      if (latestEntry.status === "submitted") {
-        return res.status(400).json({ message: "❌ You already submitted this entry and it's awaiting grading." });
-      }
     }
 
 
@@ -160,7 +170,7 @@ exports.createEntry = async (req, res) => {
         // Fetch assignments from Moodle
         const moodleResponse = await axios.get(`${moodleInstance.base_url}/webservice/rest/server.php`, {
           params: {
-            wstoken: moodleInstance.api_token,
+            wstoken: moodleToken,
             wsfunction: "mod_assign_get_assignments",
             moodlewsrestformat: "json",
             [`courseids[0]`]: courseId,
@@ -193,46 +203,45 @@ exports.createEntry = async (req, res) => {
       }
     }
 
-    // Check if entry already exists for this student + course + assignment
-    const [existingRows] = await db.promise().query(
-      `SELECT * FROM logbook_entries
-       WHERE student_id = ? AND course_id = ? AND assignment_id = ?`,
-      [studentId, courseId, assignmentId]
-    );
-
-    if (existingRows.length > 0) {
-      const existingEntry = existingRows[0];
-      if (!existingEntry.allow_resubmit) {
-        return res.status(400).json({
-          message: "❌ You already submitted this entry. Wait for your teacher to allow a resubmission.",
-        });
-      } else {
-        // Optionally delete the previous entry if overwrite is expected
-        await db.promise().query(
-          `DELETE FROM logbook_entries
-           WHERE id = ?`,
-          [existingEntry.id]
-        );
-        console.log(`✅ Deleted previous entry ${existingEntry.id} to allow resubmission.`);
-      }
-    }
-
     // Generate Case Number
     const caseNumber = await generateCaseNumber(courseId, courseName);
 
-    // Insert Logbook Entry directly with 'submitted' status
-    await db.promise().query(
+    // Prepare values for insertion
+    const insertValues = [
+        caseNumber,
+        studentId,
+        courseId,
+        assignmentId,
+        type_of_work, // This is 'Activity'
+        task_type || null, // This is 'Task'
+        pathology || null,
+        clinical_info || null,
+        content,
+        consentForm,
+        work_completed_date,
+        JSON.stringify(mediaFiles),
+        parseInt(moodle_instance_id),
+        'submitted', // Status
+        0 // allow_resubmit (default to 0 for new submissions)
+    ];
+
+    // ✅ DEBUGGING: Log the values and SQL query right before the INSERT operation
+    console.log("DEBUG (createEntry): Prepared INSERT Values:", insertValues);
+    console.log("DEBUG (createEntry): INSERT SQL Columns Order:", "(case_number, student_id, course_id, assignment_id, type_of_work, task_type, pathology, clinical_info, content, consent_form, work_completed_date, media_link, moodle_instance_id, status, allow_resubmit)");
+    console.log("DEBUG (createEntry): INSERT SQL Placeholders:", "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+
+
+    // Insert Logbook Entry with all columns and corresponding placeholders
+    const [insertResult] = await db.promise().query(
       `INSERT INTO logbook_entries
-       (case_number, student_id, course_id, assignment_id, type_of_work, pathology, clinical_info, content, consent_form, work_completed_date, media_link, moodle_instance_id, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'submitted')`,
-      [
-        caseNumber, studentId, courseId, assignmentId, type_of_work, pathology || null,
-        clinical_info || null, content, consentForm, work_completed_date,
-        JSON.stringify(mediaFiles), parseInt(moodle_instance_id)
-      ]
+       (case_number, student_id, course_id, assignment_id, type_of_work, task_type, pathology, clinical_info, content, consent_form, work_completed_date, media_link, moodle_instance_id, status, allow_resubmit)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`, // ✅ 15 placeholders for 15 columns
+      insertValues // Pass the array with 15 values
     );
 
-    // ✅ NOTIFICATION: Notify student about their own submission
+    const newEntryId = insertResult.insertId;
+
+    // NOTIFICATION: Notify student about their own submission
     await notifyNewLogbookEntry(studentId, caseNumber);
 
     // ✅ NOTIFICATION: Notify teachers about student submission
@@ -361,6 +370,7 @@ exports.getStudentEntries = async (req, res) => {
       le.entry_date,
                     DATE_FORMAT(le.work_completed_date, '%d/%m/%y') AS work_completed_date,
                     le.type_of_work,
+                    le.task_type, 
                     le.pathology,
                     le.content AS task_description,
                     le.media_link,
@@ -455,11 +465,15 @@ exports.gradeEntry = async (req, res) => {
     const studentId = entry.student_id; // For notification
     const caseNumber = entry.case_number; // For notification
 
-    // ✅ Update entry in local database with grade, feedback, and teacher_media_link
+    //Update entry in local database with grade, feedback, and teacher_media_link
     await db.promise().query(
       `UPDATE logbook_entries SET grade = ?, feedback = ?, teacher_media_link = ?, status = 'graded' WHERE id = ?`,
       [grade, feedback, teacher_media_link, entryId]
     );
+    //  await db.promise().query(
+    //   `UPDATE logbook_entries SET grade = ?, feedback = ?, teacher_media_link = ?, status = 'graded', graded_by_teacher_id = ? WHERE id = ?`,
+    //   [grade, feedback, teacher_media_link, teacherId, entryId] // teacherId is correctly passed here
+    // );
 
     console.log(`✅ Entry updated in local DB (graded) for Entry ID: ${entryId}`);
 
@@ -654,7 +668,7 @@ exports.getTeacherDashboard = async (req, res) => {
 
     const [entries] = await db.promise().query(
       `SELECT l.id, l.case_number, l.student_id, u.username AS student_name, u.moodle_id,
-                  l.course_id, c.fullname AS course_name, l.type_of_work, l.pathology,
+                  l.course_id, c.fullname AS course_name, l.type_of_work, l.task_type, l.pathology,
                   l.content AS task_description, l.media_link, l.consent_form, l.clinical_info,
                   l.grade, l.feedback, l.status, l.work_completed_date,
                   l.entry_date,
@@ -668,6 +682,7 @@ exports.getTeacherDashboard = async (req, res) => {
       [courseIds]
     );
     console.log(`DEBUG (getTeacherDashboard) Entries fetched count: ${entries.length}`);
+    
 
 
     res.status(200).json({ teacherName, courses: courseRows, entries });
