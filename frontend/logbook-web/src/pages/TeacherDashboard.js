@@ -51,7 +51,8 @@ const TeacherDashboard = () => {
           entry.case_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
           entry.student_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           entry.course_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          entry.type_of_work.toLowerCase().includes(searchQuery.toLowerCase())
+          entry.type_of_work.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (entry.task_type && entry.task_type.toLowerCase().includes(searchQuery.toLowerCase()))
       );
     }
 
@@ -155,7 +156,43 @@ const TeacherDashboard = () => {
   // allowResubmission (existing code)
   const allowResubmission = async (entryId) => {
     try {
-      const confirmAllowance = window.confirm("Are you sure you want to allow resubmission for this entry?");
+      const confirmAllowance = await new Promise(resolve => {
+          const confirmationBox = document.createElement('div');
+          confirmationBox.style.cssText = `
+              position: fixed;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%);
+              background-color: white;
+              padding: 30px;
+              border: 1px solid #ccc;
+              border-radius: 8px;
+              box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+              z-index: 1000;
+              text-align: center;
+              font-size: 1.1em;
+              color: #333;
+              max-width: 400px;
+          `;
+          confirmationBox.innerHTML = `
+              <p>Are you sure you want to allow resubmission for this entry?</p>
+              <div style="margin-top: 20px;">
+                  <button id="confirmYes" style="background-color: #2c3e50; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin-right: 15px;">Yes</button>
+                  <button id="confirmNo" style="background-color: #e74c3c; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer;">No</button>
+              </div>
+          `;
+          document.body.appendChild(confirmationBox);
+
+          document.getElementById('confirmYes').onclick = () => {
+              document.body.removeChild(confirmationBox);
+              resolve(true);
+          };
+          document.getElementById('confirmNo').onclick = () => {
+              document.body.removeChild(confirmationBox);
+              resolve(false);
+          };
+      });
+
       if (!confirmAllowance) return;
 
       await API.put(`/teachers/entries/${entryId}/allow-resubmit`, null, {
@@ -266,7 +303,8 @@ const TeacherDashboard = () => {
       "Completion Date",
       "Student",
       "Course",
-      "Type Of Task/Device",
+      "Activity",
+      "Task",
       "Description",
       "Media Links",
       "Consent",
@@ -300,6 +338,7 @@ const TeacherDashboard = () => {
         `"${entry.student_name || 'Unknown'}"`,
         `"${entry.course_name || `Course ID ${entry.course_id}`}"`,
         `"${entry.type_of_work || ''}"`,
+        `"${entry.task_type || ''}"`, 
         `"${entry.task_description || 'No Description'}"`,
         formatMediaLinksForCsv(entry.media_link),
         `"${entry.consent_form === "yes" ? "Yes" : "No"}"`,
@@ -455,7 +494,8 @@ const TeacherDashboard = () => {
               <th>Completion Date</th>
               <th>Student</th>
               <th>Course</th>
-              <th>Type Of Task/Device</th>
+              <th>Activity</th>
+              <th>Task</th> 
               <th>Description</th>
               <th>Media</th>
               <th>Consent</th>
@@ -474,6 +514,7 @@ const TeacherDashboard = () => {
                 <td>{entry.student_name || "Unknown"}</td>
                 <td>{entry.course_name || `Course ID ${entry.course_id}`}</td>
                 <td>{entry.type_of_work}</td>
+                <td>{entry.task_type || "N/A"}</td> 
                 <td>{entry.task_description || "No Description"}</td>
                 <td>
                   {(() => {
