@@ -329,3 +329,110 @@ exports.getAllEntries = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch logbook entries", error: error.message });
   }
 };
+
+// ✅ NEW ANALYTICS CONTROLLERS START HERE (Adhering to your table structure)
+
+// Get Total Number of Students
+exports.getTotalStudents = async (req, res) => {
+    try {
+        // Assuming 'users' table contains student records with role 'student'
+        const [result] = await db.promise().query(
+            "SELECT COUNT(*) AS totalStudents FROM users WHERE role = 'student'"
+        );
+        res.json({ totalStudents: result[0].totalStudents });
+    } catch (error) {
+        console.error("Error fetching total students:", error);
+        res.status(500).json({ message: "Failed to fetch total students.", error: error.message });
+    }
+};
+
+// Get Number of Entries per Course
+exports.getEntriesPerCourse = async (req, res) => {
+    try {
+        const [results] = await db.promise().query(
+            `SELECT 
+                c.fullname AS courseName, 
+                COUNT(le.id) AS totalEntries
+             FROM logbook_entries le
+             JOIN courses c ON le.course_id = c.id
+             GROUP BY c.fullname
+             ORDER BY totalEntries DESC`
+        );
+        res.json({ entriesPerCourse: results });
+    } catch (error) {
+        console.error("Error fetching entries per course:", error);
+        res.status(500).json({ message: "Failed to fetch entries per course.", error: error.message });
+    }
+};
+
+// Get Number of Entries by Month (for a given year, or overall)
+exports.getEntriesByMonth = async (req, res) => {
+    // You can optionally add a 'year' query parameter: /api/admin/analytics/entries-by-month?year=2023
+    const year = req.query.year || new Date().getFullYear(); // Default to current year
+
+    try {
+        const [results] = await db.promise().query(
+            `SELECT
+                DATE_FORMAT(entry_date, '%Y-%m') AS monthYear,
+                COUNT(id) AS totalEntries
+             FROM logbook_entries
+             WHERE YEAR(entry_date) = ?
+             GROUP BY monthYear
+             ORDER BY monthYear ASC`,
+            [year]
+        );
+        // Ensure all months are present, even if no entries (for consistent charts)
+        const monthlyData = Array.from({ length: 12 }, (_, i) => {
+            const monthNum = i + 1;
+            const monthString = `${year}-${monthNum < 10 ? '0' : ''}${monthNum}`;
+            const existing = results.find(item => item.monthYear === monthString);
+            return { monthYear: monthString, totalEntries: existing ? existing.totalEntries : 0 };
+        });
+
+        res.json({ entriesByMonth: monthlyData });
+    } catch (error) {
+        console.error("Error fetching entries by month:", error);
+        res.status(500).json({ message: "Failed to fetch entries by month.", error: error.message });
+    }
+};
+
+// Get Summary of Entry Status (Submitted, Graded, Synced, Draft - though draft entries likely not saved)
+exports.getEntryStatusSummary = async (req, res) => {
+    try {
+        const [results] = await db.promise().query(
+            `SELECT 
+                status, 
+                COUNT(id) AS count
+             FROM logbook_entries
+             GROUP BY status`
+        );
+        // Map to a more readable format for frontend if needed, or ensure all statuses are represented
+        const statusSummary = {
+            submitted: 0,
+            //graded: 0,
+            synced: 0,
+            // Assuming 'draft' isn't a primary status stored in logbook_entries that would need explicit count
+        };
+        results.forEach(item => {
+            if (statusSummary.hasOwnProperty(item.status)) {
+                statusSummary[item.status] = item.count;
+            }
+        });
+
+        // Convert to array of objects for Recharts PieChart
+        const formattedResults = Object.keys(statusSummary).map(status => ({
+            name: status.charAt(0).toUpperCase() + status.slice(1), // Capitalize first letter
+            value: statusSummary[status]
+        }));
+
+
+        res.json({ entryStatusSummary: formattedResults });
+    } catch (error) {
+        console.error("Error fetching entry status summary:", error);
+        res.status(500).json({ message: "Failed to fetch entry status summary.", error: error.message });
+    }
+};
+
+// ✅ NEW ANALYTICS CONTROLLERS END HERE
+
+
