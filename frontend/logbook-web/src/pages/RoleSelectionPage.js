@@ -11,6 +11,9 @@ const RoleSelectionPage = () => {
   return (
     <div className="role-container">
        <TopBar /> {/* ✅ Add TopBar at the Top */}
+       <div className="main-content-wrapper">
+
+       
 
 
 <h2 class="heading-highlight h2">Welcome to The Logbook!</h2>
@@ -44,6 +47,7 @@ const RoleSelectionPage = () => {
 
       {/* ✅ Correct Footer Placement */}
       <Footer />
+    </div>
     </div>
   );
 };
