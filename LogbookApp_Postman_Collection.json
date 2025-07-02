@@ -1,0 +1,272 @@
+{
+  "info": {
+    "name": "Logbook App v2 API",
+    "_postman_id": "logbook-app-v2-collection",
+    "description": "Postman collection to test all major routes in Logbook App v2.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Student Login",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/login",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"student@example.com\",\n  \"password\": \"123456\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Teacher Login",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/teacher/login",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "teacher",
+            "login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"teacher@example.com\",\n  \"password\": \"123456\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Admin Login",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/admin/login",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "login"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"123456\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Get Student Courses",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/student/courses",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "student",
+            "courses"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Submit Logbook Entry",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/entry",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "entry"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get Student Entries",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/entry/student/12345",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "entry",
+            "student",
+            "12345"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get Assigned Courses",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/teacher/teacher@example.com/courses",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "teacher",
+            "teacher@example.com",
+            "courses"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Grade an Entry",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/entry/grade",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "entry",
+            "grade"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"entryId\": 1,\n  \"grade\": 90,\n  \"feedback\": \"Well done!\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Get All Courses",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/admin/courses",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "courses"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Assign Course",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/admin/assign-course",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "assign-course"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"teacherId\": 1,\n  \"courseId\": 2\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "Get Entry Status Summary",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/admin/analytics/entry-status-summary",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "admin",
+            "analytics",
+            "entry-status-summary"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get Moodle Instances",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/moodle/instances",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "moodle",
+            "instances"
+          ]
+        }
+      }
+    }
+  ]
+}
