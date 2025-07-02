@@ -356,7 +356,7 @@ const StudentDashboard = () => {
         <ul>
           {courses.map((course) => (
             <li key={course.id} style={{ marginBottom: "10px" }}>
-              <strong>{course.fullname}</strong> (ID: {course.id})
+              <strong>{course.fullname}</strong>
               <button
                 style={{ marginLeft: "10px" }}
                 onClick={() => handleCreateEntry(course)}
