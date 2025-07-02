@@ -1,31 +1,36 @@
-﻿# Logbook App v2
+﻿# Logbook App
 
 An advanced logbook system purpose-built for professional students in ISPO-accredited programs (Prosthetics & Orthotics) to track, submit, and sync their clinical activity logs with Moodle LMS — all within a responsive, secure, and intuitive web app.
 
 ---
 
-## 🚨 Problem Statement
+## Problem Statement
 
 Professional health students working in clinics often struggle to document and submit their daily clinical activities efficiently. Existing tools are either paper-based or lack Moodle integration, leading to inconsistent tracking, delayed grading, and student-teacher communication gaps.
 
 **This Logbook App solves this by enabling students to:**
 - Log clinical activities daily from any device
 - Upload up to 5 supporting media files (images/videos)
-- Submit logs per course for teacher grading
+- Submit entries per course for teacher grading
 - View grading status and feedback
 - Sync final grades directly to Moodle
+- Login using their Moodle credentials
 
 Meanwhile, **teachers** can:
 - View and filter entries by status (submitted, in progress, not submitted)
 - Grade, comment, and optionally allow re-submission
-- Upload feedback media (visible only to the student)
+- Upload feedback media (visible only to the student for better feedback to students for their work)
 - See all students per course linked with Moodle
 
 Admins manage the entire system — Moodle instances, teachers, students — all in one dashboard.
+- They can view all entries and their details
+- Assign courses to teachers
+- For easy maintenance they are the only ones to create Teacher accounts and other Admin if needed
+- View in graphical representations different activities accross the platform.
 
 ---
 
-## 🧠 Architecture Overview
+## Architecture Overview
 
 - **Backend**: Node.js + Express REST API
 - **Frontend**: React (with React Router DOM, Axios)
@@ -57,17 +62,18 @@ Admins manage the entire system — Moodle instances, teachers, students — all
 
 ---
 
-## 🚀 Key Features
+## Key Features
 
 | Feature                          | Description                                                                 |
 |----------------------------------|-----------------------------------------------------------------------------|
-| 🔐 Role-based Auth              | Separate login and dashboards for students, teachers, and admins           |
-| 🎓 Moodle Sync                  | Students select their Moodle course during login; grade push is automated |
-| 📝 Entry Logging                | Students can create, save, and submit clinical entries                     |
-| 📂 Media Upload                 | Up to 5 images/videos per entry using Cloudinary                          |
-| 📬 Feedback Loop                | Teachers can upload private feedback media, and allow re-submissions      |
-| 🧾 Grade Sync to Moodle         | Graded marks are automatically synced via Moodle’s API                    |
-| 📊 Admin Panel                  | Admin can manage Moodle instances, teachers, students                     |
+| Role-based Auth              | Separate login and dashboards for students, teachers, and admins           |
+| Moodle Sync                  | Students select their Moodle program course during login; grade push, course and entries pull is automated |
+| Entry Logging                | Students can create, save, and submit clinical entries                     |
+| Media Upload                 | Up to 5 images/videos per entry using Cloudinary                          |
+| Feedback Loop                | Teachers can upload private feedback media, and allow re-submissions      |
+| Grade Sync to Moodle         | Graded marks are automatically synced via Moodle’s API                    |
+| Admin Panel                  | Admin can manage Moodle instances, teachers, students                     |
+| Export Report                | Admin and Teachers can export csv report detailed for their role          |
 
 ---
 
@@ -77,7 +83,7 @@ Admins manage the entire system — Moodle instances, teachers, students — all
 |------------------|------------------------------------------------------------------------|
 | **Node.js**       | High-performance non-blocking API for real-time data interactions     |
 | **MySQL**         | Strong relational integrity, ideal for user-course-log relationships  |
-| **Cloudinary**    | Offloads media handling, reduces server load, supports transformations|
+| **Cloudinary**    | Offloads media handling, cost-effective, reduces server load, supports transformations|
 | **React**         | Component-driven, fast UI updates, responsive                         |
 | **JWT + Middleware** | Secure route protection for role-based authorization                |
 
@@ -116,46 +122,37 @@ Organized by role and function:
 
 ---
 
-## 🧪 Testing / Linting / CI
+## Testing / Linting / CI
 
 - Manual testing with Postman
-- Frontend tested via local browser
+- Frontend tested via local browser and Human Study e.V testing servers
 - JWT and file upload middleware tested in isolation
 - No automated tests (yet) — future roadmap includes unit tests (Jest) and CI setup via GitHub Actions
 
 ---
 
-## 📸 Screenshots
+## Demo Tour 
 
-Add screenshots or demo GIFs in `/demo` folder or README:
-
-```
-📁 demo/
-├── login.gif
-├── student-entry.png
-├── teacher-grade.png
-└── admin-dashboard.gif
-```
 
 ---
 
-## 🛠 Known Limitations
+## Known Limitations
 
-- No multi-language support
+- No multi-language support (Human Study works accross the Globe)
 
 ---
 
-## 🧭 Future Improvements
+## Future Improvements
 
 - Add ESLint + Prettier config and GitHub CI
 - Add unit tests and Cypress end-to-end tests
 - Add bulk CSV import for student registration
-- Add comments/feedback thread per entry
-- Add dark mode, table filters, pagination
+- Develop a mobile version
+- Add multi-language support
 
 ---
 
-## 📦 Local Setup
+## Local Setup
 
 ```bash
 git clone https://github.com/SamEvrald/logbook-app-v2.git
@@ -174,15 +171,11 @@ npm start
 
 ---
 
-## 📢 Demo Deployment (Optional)
 
-
----
-
-## 👨‍💻 Author
+## Author
 
 **Sam Evrald Muyango**  
-Full Stack Developer | Instructional Designer | Technical Problem-Solver  
+Software Engineer | Instructional Designer | Technical Problem-Solver  
 [GitHub Profile](https://github.com/SamEvrald)
 
 ---
