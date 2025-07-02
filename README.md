@@ -146,7 +146,6 @@ Organized by role and function:
 
 - Add ESLint + Prettier config and GitHub CI
 - Add unit tests and Cypress end-to-end tests
-- Add bulk CSV import for student registration
 - Develop a mobile version
 - Add multi-language support
 
