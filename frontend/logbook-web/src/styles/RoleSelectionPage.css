@@ -6,7 +6,7 @@
     min-height: 100vh; /* Make sure it takes full viewport height */
     display: flex; /* Use flexbox to center content */
     flex-direction: column;
-    justify-content: center; /* Center content vertically */
+    justify-content: space-between; /* Center content vertically */
     align-items: center; /* Center content horizontally */
     box-sizing: border-box; /* Include padding in height calculation */
     position: relative; /* Needed for background and overlay */
@@ -162,4 +162,16 @@ button:hover {
     .role-buttons {
         max-width: 90%; 
     }
+}
+.main-content-wrapper {
+    flex-grow: 1; /* Allow this wrapper to take up available space */
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Center its children vertically */
+    align-items: center; /* Center its children horizontally */
+    width: 100%; /* Take full width */
+    padding: 20px; /* Add padding back here for the main content */
+    box-sizing: border-box;
+    position: relative; /* For z-index */
+    z-index: 2; /* Ensure it's above the overlay */
 }
