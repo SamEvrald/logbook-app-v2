@@ -206,6 +206,7 @@ const TeacherDashboard = () => {
   //     alert("❌ Failed to allow resubmission.");
   //   }
   // };
+
   const allowResubmission = async (entryId) => {
     try {
       const confirmAllowance = await new Promise(resolve => {
@@ -644,33 +645,23 @@ const TeacherDashboard = () => {
                 <td>{entry.consent_form === "yes" ? "Yes" : "No"}</td>
                 <td>{entry.clinical_info || "No Info"}</td>
                 <td>{entry.grade !== null ? entry.grade : "-"}</td>
+               {/* ✅ START OF FEEDBACK COLUMN CHANGES */}
                 <td>
-                                <div>
-                                    {entry.feedback || "No feedback yet"} {/* Display text feedback */}
-                                    {entry.teacher_media_link && (
-                                        <div style={{ marginTop: "5px" }}>
-                                            <button
-                                                style={{
-                                                    padding: "5px 10px",
-                                                    fontSize: "0.9em",
-                                                    cursor: "pointer",
-                                                    backgroundColor: '#2980b9', // Blue for the button
-                                                    color: 'white',
-                                                    border: 'none',
-                                                    borderRadius: '5px',
-                                                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-                                                    transition: 'background-color 0.2s ease'
-                                                }}
-                                                onMouseOver={(e) => e.target.style.backgroundColor = '#2c3e50'}
-                                                onMouseOut={(e) => e.target.style.backgroundColor = '#27ae60'}
-                                                onClick={() => window.open(entry.teacher_media_link, "_blank")}
-                                            >
-                                                View File
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                            </td>
+                  <div className="feedback-content-wrapper">
+                    <div className="feedback-text-scroll">
+                      {entry.feedback || "No feedback yet"}
+                    </div>
+                    {entry.teacher_media_link && (
+                      <button
+                        className="view-file-btn" // Reusing or creating a specific class for this button
+                        onClick={() => window.open(entry.teacher_media_link, "_blank")}
+                      >
+                        View File
+                      </button>
+                    )}
+                  </div>
+                </td>
+                {/* ✅ END OF FEEDBACK COLUMN CHANGES */}
                 <td style={{ fontWeight: "bold", color:
                   entry.status === "graded" || entry.status === "synced" ? "green" :
                   entry.status === "submitted" ? "orange" :
@@ -682,19 +673,23 @@ const TeacherDashboard = () => {
                     entry.status // Display the actual status if it's not one of the main ones
                   }
                 </td>
-                <td>
-                  <div style={{ display: 'flex', flexDirection: 'row', gap: '10px', alignItems: 'center', justifyContent: 'center' }}>
-                    {/* The Grade button should always be there */}
-                    <button className="grade-btn" onClick={() => handleGradeEntry(entry.id)}>Grade</button>
+              {/* ✅ START OF CHANGES FOR ACTION COLUMN ALIGNMENT */}
+                <td style={{ textAlign: 'left' }}> {/* Align content of the cell to the left */}
+                  <div className="action-buttons-container"> {/* Use a class for the flex container */}
+                    {/* Grade Button: Always shown if entry is submitted, graded, or synced */}
+                    {(entry.status === "submitted" || entry.status === "graded" || entry.status === "synced") && (
+                      <button className="grade-btn" onClick={() => handleGradeEntry(entry.id)}>Grade</button>
+                    )}
 
-                    {/* Show Allow Resubmit button or "Resubmission Allowed" text if entry is graded/synced */}
+                    {/* Conditional Second Action */}
                     {(entry.status === "graded" || entry.status === "synced") && (
-                      entry.allow_resubmit ? ( // If allow_resubmit is true (1)
-                        <span style={{color: 'gray', fontSize: '0.9em', whiteSpace: 'nowrap' }}>Resubmission Allowed</span>
-                      ) : ( // If allow_resubmit is false (0)
+                      entry.allow_resubmit ? (
+                        // If resubmission is allowed, show the "Resubmission Allowed" text
+                        <span className="action-text-placeholder">Resubmission Allowed</span>
+                      ) : (
+                        // If resubmission is NOT allowed, show the "Allow Resubmit" button
                         <button
-                          className="grade-btn"
-                          style={{ backgroundColor: "#2980b9" }}
+                          className="grade-btn allow-resubmit-btn" // Add a specific class for styling
                           onClick={() => allowResubmission(entry.id)}
                         >
                           Allow Resubmit
@@ -703,6 +698,7 @@ const TeacherDashboard = () => {
                     )}
                   </div>
                 </td>
+                {/* ✅ END OF CHANGES FOR ACTION COLUMN ALIGNMENT */}
               </tr>
             ))}
           </tbody>
