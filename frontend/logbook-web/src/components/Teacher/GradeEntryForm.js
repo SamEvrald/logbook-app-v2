@@ -11,14 +11,19 @@ const GradeEntryForm = () => {
   const [feedback, setFeedback] = useState("");
   const [message, setMessage] = useState("");
   const [mediaFile, setMediaFile] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false); // ✅ NEW STATE for loading
+
 //   if (!entryId || !grade) {
 //   setMessage("❌ Entry ID and grade are required.");
 //   return;
 // }
 
 
+
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+     setIsSubmitting(true);
 
     try {
       const token = localStorage.getItem("token");
@@ -39,7 +44,7 @@ const GradeEntryForm = () => {
       });
 
       if (response.status === 200) {
-        setMessage("✅ Entry graded successfully!");
+        setMessage("Entry graded successfully!");
         setTimeout(() => navigate("/teacher"), 2000); // Redirect after grading
       } else {
         throw new Error("Unexpected response status");
@@ -47,7 +52,10 @@ const GradeEntryForm = () => {
     } catch (error) {
       console.error("❌ Failed to grade entry:", error.response?.data || error.message);
       setMessage("❌ Failed to submit grade.");
+    }finally {
+      setIsSubmitting(false); // ✅ Set back to false when submission ends (success or failure)
     }
+    
   };
 
   return (
@@ -71,7 +79,9 @@ const GradeEntryForm = () => {
           <input type="file" accept="image/*,video/*" onChange={(e) => setMediaFile(e.target.files[0])} />
         </div>
 
-        <button type="submit">Submit Grade</button>
+         <button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? 'Submitting...' : 'Submit Grade'} {/* ✅ Conditional text */}
+        </button>
       </form>
       <Footer />
     </div>
