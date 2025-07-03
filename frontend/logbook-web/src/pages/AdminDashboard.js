@@ -12,6 +12,8 @@ import {
   PieChart, Pie, Cell, LineChart, Line
 } from 'recharts';
 
+
+
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
@@ -65,6 +67,47 @@ const AdminDashboard = () => {
     } catch {
       return mediaLinkJson;
     }
+  };
+
+  // Function to display a custom message box (ADDED)
+  const showCustomMessageBox = (msg, type = 'success') => {
+    const messageBox = document.createElement('div');
+    messageBox.style.cssText = `
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: white;
+      padding: 20px 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      z-index: 1000;
+      text-align: center;
+      font-size: 1.1em;
+      font-weight: bold;
+      color: ${type === 'success' ? '#27ae60' : '#e74c3c'}; /* Green for success, Red for error */
+      border: 2px solid ${type === 'success' ? '#27ae60' : '#e74c3c'};
+      max-width: 350px;
+      opacity: 0; /* Start hidden for fade-in */
+      transition: opacity 0.3s ease-in-out;
+    `;
+    messageBox.textContent = msg;
+    document.body.appendChild(messageBox);
+
+    // Fade in
+    setTimeout(() => {
+      messageBox.style.opacity = 1;
+    }, 10); // Small delay to trigger transition
+
+    // Fade out and remove after a few seconds
+    setTimeout(() => {
+      messageBox.style.opacity = 0;
+      setTimeout(() => {
+        if (document.body.contains(messageBox)) {
+          document.body.removeChild(messageBox);
+        }
+      }, 300); // Wait for fade-out transition
+    }, 3000); // Display for 3 seconds
   };
 
   // Helper function to format feedback for CSV (modified to clean up UI elements as discussed previously)
@@ -358,7 +401,7 @@ const AdminDashboard = () => {
   // ✅ Assign Course to Teacher
   const handleAssignCourse = async () => {
     if (!selectedTeacher || !selectedCourse || !selectedMoodleInstance) {
-      setMessage("❌ Please select a teacher, course, and Moodle instance.");
+      showCustomMessageBox("❌ Please select a teacher, course, and Moodle instance.", 'error');
       return;
     }
 
@@ -369,7 +412,7 @@ const AdminDashboard = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      setMessage("✅ Course assigned successfully!");
+      showCustomMessageBox(" Course assigned successfully!");
 
       // ✅ Reset fields after success
       setSelectedTeacher("");
