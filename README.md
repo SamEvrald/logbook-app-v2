@@ -1,6 +1,6 @@
 ﻿# Logbook App
 
-An advanced logbook system purpose-built for professional students in ISPO-accredited programs (Prosthetics & Orthotics) to track, submit, and sync their clinical activity logs with Moodle LMS — all within a responsive, secure, and intuitive web app.
+An advanced logbook system purpose-built for professional students in ISPO-accredited programs (Prosthetics & Orthotics) to track, submit, and sync their clinical activity logs with Moodle LMS all within a responsive, secure, and intuitive web app.
 
 ---
 
@@ -22,7 +22,7 @@ Meanwhile, **teachers** can:
 - Upload feedback media (visible only to the student for better feedback to students for their work)
 - See all students per course linked with Moodle
 
-Admins manage the entire system — Moodle instances, teachers, students — all in one dashboard.
+Admins manage the entire system: Moodle instances, teachers, students all in one dashboard.
 - They can view all entries and their details
 - Assign courses to teachers
 - For easy maintenance they are the only ones to create Teacher accounts and other Admin if needed
@@ -220,7 +220,7 @@ npm start
 ## Author
 
 **Sam Evrald Muyango**  
-Software Engineer | Instructional Designer | Technical Problem-Solver  
+Software Engineer | Technical Problem-Solver  
 [GitHub Profile](https://github.com/SamEvrald)
 
 ---
