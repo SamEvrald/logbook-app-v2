@@ -133,14 +133,46 @@ Organized by role and function:
 
 ## View 
 
+- Home Page
 ![Home pag](https://github.com/user-attachments/assets/f3673415-7ea1-44d5-ab64-bda81e66f436)
+
+- Student Login
 ![Student Login](https://github.com/user-attachments/assets/a8be8a17-d2d6-41f1-af38-08ff4b635cc8)
-![Teacher Dashbord](https://github.com/user-attachments/assets/606e6e82-990e-432f-9e48-0ada14072627)
+
+-Student Dashboard
 ![Student Dashboard](https://github.com/user-attachments/assets/724ba622-3257-4f4a-b07c-54ad515a47f1)
-![Create Entry2](https://github.com/user-attachments/assets/39c4d707-985f-4953-bdee-e76305d88208)
-![Create Entry1](https://github.com/user-attachments/assets/10ceaf5c-b1f9-462e-a32d-5e9b87906ef4)
+
+- Student Create Entry
+- ![Create Entry1](https://github.com/user-attachments/assets/10ceaf5c-b1f9-462e-a32d-5e9b87906ef4)
+- ![Create Entry2](https://github.com/user-attachments/assets/39c4d707-985f-4953-bdee-e76305d88208)
+
+-Teacher Login
+![Teacher Login](https://github.com/user-attachments/assets/7b4ce49b-0b12-4d0d-ae54-b756733a8cb6)
+
+- Teacher Dashboard
+![Teacher Dashbord](https://github.com/user-attachments/assets/606e6e82-990e-432f-9e48-0ada14072627)
+
+- Teacher Grade Entry
+![Teacher Grading Form](https://github.com/user-attachments/assets/bfa2aa37-aed4-429c-aea2-7fe9fd9cd559)
+
+- Admin Login
 ![Admin Login](https://github.com/user-attachments/assets/ef19d1df-fb6e-4331-aeb2-efae5527a7b4)
 
+- Admin Dashboard
+![Admin Dashboard Entries](https://github.com/user-attachments/assets/1b619a17-7b54-4c04-947f-83a87b65b12a)
+
+- Admin Create Teacher
+![Admin create teacher](https://github.com/user-attachments/assets/d756b45d-2895-411f-b450-b3004a2812ae)
+
+- Admin Assign Course
+![Admin Assign Course](https://github.com/user-attachments/assets/08ab5a4b-1660-4b00-a76a-dcf75173afa3)
+
+- Admin Create Admin
+![Admin create admin](https://github.com/user-attachments/assets/6e615c0c-2a67-498e-9dad-7dba61b1a79f)
+
+- Admin Analytics
+![Admin analytics](https://github.com/user-attachments/assets/7fa0265e-a417-472f-828b-0bb0b94ac8e1)
+![Admin analytics 2](https://github.com/user-attachments/assets/579e2a4b-8fb8-4073-ac1a-ae0b02822a79)
 
 ---
 
@@ -153,13 +185,6 @@ Organized by role and function:
 
 
 - No multi-language support (Human Study works accross the Globe)
-![Admin Dashboard Entries](https://github.com/user-attachments/assets/ae7cc911-7a90-4595-84e8-9a1a8974583f)
-![Admin create teacher](https://github.com/user-attachments/assets/7dc3a604-303a-4f02-a3ec-a5555bb902c8)
-![Admin create admin](https://github.com/user-attachments/assets/56136fdb-d1d4-47f1-b7b1-1b9ded48952b)
-![Admin Assign Course](https://github.com/user-attachments/assets/3d1fccbc-1457-4ee8-9cf6-05a542d5dc57)
-![Admin analytics](https://github.com/user-attachments/assets/7e3370dc-3c22-40ff-aaad-901f51e6687d)
-![Admin analytics 2](https://github.com/user-attachments/assets/a8110c24-de3f-4b6a-84d9-300cd3960dc1)
-![Teacher Login](https://github.com/user-attachments/assets/550282e0-a3a8-41f1-bb77-df4bce1b4299)
 
 ---
 
