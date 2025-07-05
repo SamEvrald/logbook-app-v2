@@ -133,7 +133,14 @@ Organized by role and function:
 
 ## View 
 
-![Uploading Home pag.png…]()
+![Home pag](https://github.com/user-attachments/assets/f3673415-7ea1-44d5-ab64-bda81e66f436)
+![Student Login](https://github.com/user-attachments/assets/a8be8a17-d2d6-41f1-af38-08ff4b635cc8)
+![Teacher Dashbord](https://github.com/user-attachments/assets/606e6e82-990e-432f-9e48-0ada14072627)
+![Student Dashboard](https://github.com/user-attachments/assets/724ba622-3257-4f4a-b07c-54ad515a47f1)
+![Create Entry2](https://github.com/user-attachments/assets/39c4d707-985f-4953-bdee-e76305d88208)
+![Create Entry1](https://github.com/user-attachments/assets/10ceaf5c-b1f9-462e-a32d-5e9b87906ef4)
+![Admin Login](https://github.com/user-attachments/assets/ef19d1df-fb6e-4331-aeb2-efae5527a7b4)
+
 
 ---
 
@@ -142,9 +149,17 @@ Organized by role and function:
 
 ---
 
-## Known Limitations
+## Known Limitations![Teacher Grading Form](https://github.com/user-attachments/assets/a2046289-e514-4727-8699-5f2686cd4e38)
+
 
 - No multi-language support (Human Study works accross the Globe)
+![Admin Dashboard Entries](https://github.com/user-attachments/assets/ae7cc911-7a90-4595-84e8-9a1a8974583f)
+![Admin create teacher](https://github.com/user-attachments/assets/7dc3a604-303a-4f02-a3ec-a5555bb902c8)
+![Admin create admin](https://github.com/user-attachments/assets/56136fdb-d1d4-47f1-b7b1-1b9ded48952b)
+![Admin Assign Course](https://github.com/user-attachments/assets/3d1fccbc-1457-4ee8-9cf6-05a542d5dc57)
+![Admin analytics](https://github.com/user-attachments/assets/7e3370dc-3c22-40ff-aaad-901f51e6687d)
+![Admin analytics 2](https://github.com/user-attachments/assets/a8110c24-de3f-4b6a-84d9-300cd3960dc1)
+![Teacher Login](https://github.com/user-attachments/assets/550282e0-a3a8-41f1-bb77-df4bce1b4299)
 
 ---
 
