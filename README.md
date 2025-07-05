@@ -139,14 +139,14 @@ Organized by role and function:
 - Student Login
 ![Student Login](https://github.com/user-attachments/assets/a8be8a17-d2d6-41f1-af38-08ff4b635cc8)
 
--Student Dashboard
+- Student Dashboard
 ![Student Dashboard](https://github.com/user-attachments/assets/724ba622-3257-4f4a-b07c-54ad515a47f1)
 
 - Student Create Entry
 - ![Create Entry1](https://github.com/user-attachments/assets/10ceaf5c-b1f9-462e-a32d-5e9b87906ef4)
 - ![Create Entry2](https://github.com/user-attachments/assets/39c4d707-985f-4953-bdee-e76305d88208)
 
--Teacher Login
+- Teacher Login
 ![Teacher Login](https://github.com/user-attachments/assets/7b4ce49b-0b12-4d0d-ae54-b756733a8cb6)
 
 - Teacher Dashboard
@@ -181,8 +181,7 @@ Organized by role and function:
 
 ---
 
-## Known Limitations![Teacher Grading Form](https://github.com/user-attachments/assets/a2046289-e514-4727-8699-5f2686cd4e38)
-
+## Known Limitations
 
 - No multi-language support (Human Study works accross the Globe)
 
