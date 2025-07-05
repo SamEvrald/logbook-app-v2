@@ -77,7 +77,7 @@ Admins manage the entire system — Moodle instances, teachers, students — all
 
 ---
 
-## ⚙️ Technology Justification
+## Technology Justification
 
 | Stack Element     | Reason                                                                 |
 |------------------|------------------------------------------------------------------------|
@@ -89,7 +89,7 @@ Admins manage the entire system — Moodle instances, teachers, students — all
 
 ---
 
-## 🔌 API Structure
+## API Structure
 
 Organized by role and function:
 
@@ -128,6 +128,11 @@ Organized by role and function:
 - Frontend tested via local browser and Human Study e.V testing servers
 - JWT and file upload middleware tested in isolation
 - No automated tests (yet) — future roadmap includes unit tests (Jest) and CI setup via GitHub Actions
+
+---
+
+## View 
+
 
 ---
 
