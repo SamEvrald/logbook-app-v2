@@ -435,4 +435,84 @@ exports.getEntryStatusSummary = async (req, res) => {
 
 // ✅ NEW ANALYTICS CONTROLLERS END HERE
 
+// ✅ NEW ANALYTICS CONTROLLERS (Student-Specific) START HERE
 
+// Get All Students (for dropdown)
+exports.getAllStudents = async (req, res) => {
+    try {
+        const [students] = await db.promise().query(
+            "SELECT id, username, email FROM users WHERE role = 'student' ORDER BY username ASC"
+        );
+        res.json({ students });
+    } catch (error) {
+        console.error("Error fetching all students:", error);
+        res.status(500).json({ message: "Failed to fetch students.", error: error.message });
+    }
+};
+
+// Get Number of Entries by Month for a specific student
+exports.getStudentEntriesByMonth = async (req, res) => {
+    const { studentId } = req.params;
+    const year = req.query.year || new Date().getFullYear();
+
+    try {
+        const [results] = await db.promise().query(
+            `SELECT
+                DATE_FORMAT(entry_date, '%Y-%m') AS monthYear,
+                COUNT(id) AS totalEntries
+             FROM logbook_entries
+             WHERE student_id = ? AND YEAR(entry_date) = ?
+             GROUP BY monthYear
+             ORDER BY monthYear ASC`,
+            [studentId, year]
+        );
+        const monthlyData = Array.from({ length: 12 }, (_, i) => {
+            const monthNum = i + 1;
+            const monthString = `${year}-${monthNum < 10 ? '0' : ''}${monthNum}`;
+            const existing = results.find(item => item.monthYear === monthString);
+            return { monthYear: monthString, totalEntries: existing ? existing.totalEntries : 0 };
+        });
+
+        res.json({ studentEntriesByMonth: monthlyData });
+    } catch (error) {
+        console.error(`Error fetching entries by month for student ${studentId}:`, error);
+        res.status(500).json({ message: `Failed to fetch entries by month for student ${studentId}.`, error: error.message });
+    }
+};
+
+// Get Summary of Entry Status for a specific student
+exports.getStudentEntryStatusSummary = async (req, res) => {
+    const { studentId } = req.params;
+
+    try {
+        const [results] = await db.promise().query(
+            `SELECT 
+                status, 
+                COUNT(id) AS count
+             FROM logbook_entries
+             WHERE student_id = ?
+             GROUP BY status`,
+            [studentId]
+        );
+        const statusSummary = {
+            submitted: 0,
+            graded: 0,
+            synced: 0,
+        };
+        results.forEach(item => {
+            if (statusSummary.hasOwnProperty(item.status)) {
+                statusSummary[item.status] = item.count;
+            }
+        });
+        const formattedResults = Object.keys(statusSummary).map(status => ({
+            name: status.charAt(0).toUpperCase() + status.slice(1),
+            value: statusSummary[status]
+        }));
+        res.json({ studentEntryStatusSummary: formattedResults });
+    } catch (error) {
+        console.error(`Error fetching entry status summary for student ${studentId}:`, error);
+        res.status(500).json({ message: `Failed to fetch entry status summary for student ${studentId}.`, error: error.message });
+    }
+};
+
+// ✅ NEW ANALYTICS CONTROLLERS (Student-Specific) END HERE
