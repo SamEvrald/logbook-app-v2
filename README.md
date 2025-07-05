@@ -86,6 +86,7 @@ Admins manage the entire system — Moodle instances, teachers, students — all
 | **Cloudinary**    | Offloads media handling, cost-effective, reduces server load, supports transformations|
 | **React**         | Component-driven, fast UI updates, responsive                         |
 | **JWT + Middleware** | Secure route protection for role-based authorization                |
+| **NGINX + PM2** | Managing Production Deployment              |
 
 ---
 
@@ -177,7 +178,7 @@ Organized by role and function:
 ---
 
 ## Demo Tour 
-
+[video.zip](https://github.com/user-attachments/files/21075746/video.zip)
 
 ---
 
