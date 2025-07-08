@@ -11,13 +11,7 @@ const GradeEntryForm = () => {
   const [feedback, setFeedback] = useState("");
   const [message, setMessage] = useState("");
   const [mediaFile, setMediaFile] = useState(null);
-  const [isSubmitting, setIsSubmitting] = useState(false); // ✅ NEW STATE for loading
-
-//   if (!entryId || !grade) {
-//   setMessage("❌ Entry ID and grade are required.");
-//   return;
-// }
-
+  const [isSubmitting, setIsSubmitting] = useState(false); 
 
 
 
@@ -53,7 +47,7 @@ const GradeEntryForm = () => {
       console.error("❌ Failed to grade entry:", error.response?.data || error.message);
       setMessage("❌ Failed to submit grade.");
     }finally {
-      setIsSubmitting(false); // ✅ Set back to false when submission ends (success or failure)
+      setIsSubmitting(false); 
     }
     
   };
@@ -80,7 +74,7 @@ const GradeEntryForm = () => {
         </div>
 
          <button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Submitting...' : 'Submit Grade'} {/* ✅ Conditional text */}
+          {isSubmitting ? 'Submitting...' : 'Submit Grade'} 
         </button>
       </form>
       <Footer />
