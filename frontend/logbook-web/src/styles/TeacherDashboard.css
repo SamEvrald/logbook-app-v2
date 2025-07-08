@@ -1,295 +1,265 @@
-/* ✅ General Styles */
 .teacher-dashboard {
-    max-width: 90%;
-    margin: 50px auto;
-    padding: 20px;
-    font-family: "Arial", sans-serif;
-    background: #f9f9f9;
-    border-radius: 10px;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  max-width: 90%;
+  margin: 50px auto;
+  padding: 20px;
+  font-family: "Arial", sans-serif;
+  background: #f9f9f9;
+  border-radius: 10px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* ✅ Page Title */
 .teacher-dashboard h2 {
-    text-align: center;
-    color: #2c3e50;
-    font-size: 28px;
-    margin-bottom: 20px;
+  text-align: center;
+  color: #2c3e50;
+  font-size: 28px;
+  margin-bottom: 20px;
 }
 
-/* ✅ Logout Button */
 .teacher-dashboard .logout-btn {
-    float: right;
-    padding: 8px 15px;
-    background-color: #e74c3c;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: 0.3s ease-in-out;
+  float: right;
+  padding: 8px 15px;
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.3s ease-in-out;
 }
 
 .teacher-dashboard .logout-btn:hover {
-    background-color: #c0392b;
+  background-color: #c0392b;
 }
 
-/* ✅ Courses Section */
 .teacher-dashboard .courses-container {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: white;
-    padding: 15px;
-    border-radius: 8px;
-    box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
-    margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
 }
 
 .teacher-dashboard select {
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    width: 200px;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  width: 200px;
 }
 
-/* ✅ Search Box */
 .teacher-dashboard .search-box {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
 }
 
 .teacher-dashboard input[type="text"] {
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    width: 250px;
-    margin-right: 10px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  width: 250px;
+  margin-right: 10px;
 }
 
-/* ✅ Logbook Table */
 .teacher-dashboard table {
-    width: 100%;
-    border-collapse: collapse;
-    background: white;
-    border-radius: 8px;
-    overflow: visible;
-    box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 8px;
+  overflow: visible;
+  box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.1);
 }
 
 .teacher-dashboard th,
 .teacher-dashboard td {
-    padding: 12px;
-    text-align: left;
-    border-bottom: 1px solid #ddd;
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
 }
 
 .teacher-dashboard th {
-    background: #2c3e50;
-    color: white;
-    font-weight: bold;
-    text-transform: uppercase;
+  background: #2c3e50;
+  color: white;
+  font-weight: bold;
+  text-transform: uppercase;
 }
 
 .teacher-dashboard td {
-    color: #333;
+  color: #333;
 }
 
 .teacher-dashboard tr:hover {
-    background: #f1f1f1;
+  background: #f1f1f1;
 }
 
-/* ✅ Grade & View Buttons */
 .teacher-dashboard button {
-    padding: 6px 12px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: 0.3s ease-in-out;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.3s ease-in-out;
 }
 
 .teacher-dashboard .grade-btn {
-    background-color: #27ae60;
-    color: white;
+  background-color: #27ae60;
+  color: white;
 }
 
 .teacher-dashboard .grade-btn:hover {
-    background-color: #219150;
+  background-color: #219150;
 }
 
-/* ✅ Status Colors */
 .teacher-dashboard .status {
-    font-weight: bold;
-    text-transform: uppercase;
+  font-weight: bold;
+  text-transform: uppercase;
 }
 
 .teacher-dashboard .status-graded {
-    color: green;
+  color: green;
 }
 
 .teacher-dashboard .status-pending {
-    color: orange;
+  color: orange;
 }
 
-/* ✅ Pagination */
 .pagination {
-    display: flex;
-    justify-content: center;
-    margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
 }
 
 .pagination button {
-    padding: 8px 12px;
-    margin: 3px;
-    border: none;
-    border-radius: 5px;
-    background: #27ae60;
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
-    transition: 0.3s ease-in-out;
+  padding: 8px 12px;
+  margin: 3px;
+  border: none;
+  border-radius: 5px;
+  background: #27ae60;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s ease-in-out;
 }
 
 .pagination button:hover {
-    background: #2980b9;
+  background: #2980b9;
 }
 
 .pagination .active {
-    background: #27ae60;
-    color: white;
+  background: #27ae60;
+  color: white;
 }
-/* ✅ Top Bar */
-/* .top-bar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: white;
-    padding: 10px 20px;
-    border-bottom: 3px solid #2980b9;
-    width: 100%;
-    max-width: 1000px;
-    margin: 0 auto;
-} */
 
-/* ✅ Right Section (Profile & Notifications) */
 .top-right {
-    display: flex;
-    align-items: center;
-    gap: 15px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
 }
 
-/* ✅ Notifications Icon */
 .bell-icon {
-    font-size: 22px;
-    cursor: pointer;
-    color: #2c3e50;
-    transition: 0.3s;
+  font-size: 22px;
+  cursor: pointer;
+  color: #2c3e50;
+  transition: 0.3s;
 }
 
 .bell-icon:hover {
-    color: #2c3e50;
+  color: #2c3e50;
 }
 
-/* ✅ Profile Icon */
 .profile-container {
-    position: relative;
-    cursor: pointer;
+  position: relative;
+  cursor: pointer;
 }
 
 .profile-icon {
-    width: 40px;
-    height: 40px;
-    background-color: #2c3e50;
-    color: white;
-    font-size: 18px;
-    font-weight: bold;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  width: 40px;
+  height: 40px;
+  background-color: #2c3e50;
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* ✅ Profile Dropdown */
 .profile-dropdown {
-    position: absolute;
-    top: 50px;
-    right: 0;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-    padding: 10px;
-    text-align: center;
-    min-width: 150px;
+  position: absolute;
+  top: 50px;
+  right: 0;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 10px;
+  text-align: center;
+  min-width: 150px;
 }
 
 .profile-dropdown button {
-    background: #e74c3c;
-    color: white;
-    padding: 6px;
-    border: none;
-    width: 100%;
-    margin-top: 5px;
-    cursor: pointer;
-    border-radius: 5px;
+  background: #e74c3c;
+  color: white;
+  padding: 6px;
+  border: none;
+  width: 100%;
+  margin-top: 5px;
+  cursor: pointer;
+  border-radius: 5px;
 }
 
 .profile-dropdown button:hover {
-    background: #c0392b;
+  background: #c0392b;
 }
 
-/* ✅ Standard Dropdown Container */
 .dropdown-container {
-    position: relative;
-    display: inline-block;
-  }
-  
-  /* ✅ Dropdown Button */
-  .dropdown-button {
-    background-color: #27ae60;
-    color: white;
-    border: none;
-    padding: 6px 10px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 13px;
-    line-height: 1;
-    min-width: 90px;
-  }
-  
-  /* ✅ Default (downward) */
-  .dropdown-content {
-    display: none;
-    position: absolute;
-    background-color: white;
-    border-radius: 6px;
-    min-width: 150px;
-    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.1);
-    padding: 8px 12px;
-    z-index: 10;
-    top: 100%;
-    left: 0;
-  }
-  
-  /* ✅ Upward version (when near bottom) */
-  .dropdown-container.upward .dropdown-content {
-    bottom: 100%;
-    top: auto;
-  }
-  /* Table styling */
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-button {
+  background-color: #27ae60;
+  color: white;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+  min-width: 90px;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: white;
+  border-radius: 6px;
+  min-width: 150px;
+  box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.1);
+  padding: 8px 12px;
+  z-index: 10;
+  top: 100%;
+  left: 0;
+}
+
+.dropdown-container.upward .dropdown-content {
+  bottom: 100%;
+  top: auto;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
   background-color: #fff;
   font-size: 14px;
   border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  overflow: visible;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
-/* Header row */
 th {
   background-color: #2c3e50;
   color: #ecf0f1;
@@ -297,19 +267,16 @@ th {
   text-align: left;
 }
 
-/* Table cells */
 td {
   padding: 10px 12px;
   border-bottom: 1px solid #ecf0f1;
   vertical-align: middle;
 }
 
-/* Highlighted Status */
 td:last-child {
   white-space: nowrap;
 }
 
-/* View File / Grade buttons */
 .grade-btn, .resubmit-btn, .view-file-btn {
   padding: 6px 12px;
   margin: 2px;
@@ -324,6 +291,7 @@ td:last-child {
   background-color: #2ecc71;
   color: #fff;
 }
+
 .grade-btn:hover {
   background-color: #27ae60;
 }
@@ -332,6 +300,7 @@ td:last-child {
   background-color: #3498db;
   color: #fff;
 }
+
 .resubmit-btn:hover {
   background-color: #2980b9;
 }
@@ -340,11 +309,11 @@ td:last-child {
   background-color: #f39c12;
   color: white;
 }
+
 .view-file-btn:hover {
   background-color: #e67e22;
 }
 
-/* Feedback cell handling */
 .feedback-cell {
   max-width: 200px;
   white-space: normal;
@@ -352,108 +321,89 @@ td:last-child {
   line-height: 1.4;
 }
 
-/* START OF NEW ADDITIONS FOR ACTION COLUMN ALIGNMENT */
-
-/* Action column header and cells - Ensure enough width and left alignment */
 .teacher-dashboard table th:nth-child(14),
 .teacher-dashboard table td:nth-child(14) {
-  width: 18%; /* Increased width to accommodate two buttons horizontally */
-  text-align: left; /* Align content to the left within the cell */
+  width: 18%;
+  text-align: left;
 }
 
-/* Container inside the Action column TD */
 .teacher-dashboard table td .action-buttons-container {
   display: flex;
-  flex-direction: row; /* Keep horizontal */
-  align-items: center; /* Vertically align buttons/text in the row */
-  justify-content: flex-start; /* Align items to the left */
-  gap: 8px; /* Space between buttons/text */
-  height: 100%; /* Ensure the div takes full height of the cell */
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  height: 100%;
 }
 
-/* Specific style for the "Allow Resubmit" button */
 .teacher-dashboard table button.allow-resubmit-btn {
-  background-color: #2980b9; /* Blue color for Allow Resubmit button */
-  color: #fff; /* Ensure text is white */
+  background-color: #2980b9;
+  color: #fff;
 }
 
 .teacher-dashboard table button.allow-resubmit-btn:hover {
-  background-color: #216a94; /* Darker blue on hover */
+  background-color: #216a94;
 }
 
-/* Style for the "Resubmission Allowed" text span */
 .action-text-placeholder {
   color: gray;
   font-size: 0.9em;
   white-space: nowrap;
-  padding: 8px 15px; /* Match button padding for consistent vertical alignment */
-  display: inline-flex; /* Use inline-flex to allow it to sit next to button and center text */
-  align-items: center; /* Vertically center text within its own padding */
-  justify-content: flex-start; /* Ensure text aligns to the left within its own space */
+  padding: 8px 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
   box-sizing: border-box;
 }
 
-/* Re-applying nowrap for specific columns if they were overridden by general td styles */
-/* This is important to ensure consistency with previous behavior if needed */
-.teacher-dashboard table td:nth-child(1),  /* Case # */
-.teacher-dashboard table td:nth-child(2),  /* Completion Date */
-.teacher-dashboard table td:nth-child(8),  /* Media */
-.teacher-dashboard table td:nth-child(11), /* Grade */
-.teacher-dashboard table td:nth-child(13) /* Status */ {
+.teacher-dashboard table td:nth-child(1),
+.teacher-dashboard table td:nth-child(2),
+.teacher-dashboard table td:nth-child(8),
+.teacher-dashboard table td:nth-child(11),
+.teacher-dashboard table td:nth-child(13) {
   white-space: nowrap;
-  overflow: hidden;
+  overflow: visible;
   text-overflow: ellipsis;
 }
 
-/* END OF NEW ADDITIONS FOR ACTION COLUMN ALIGNMENT */
-
-
-/* ✅ START OF NEW ADDITIONS FOR FEEDBACK COLUMN STYLING */
-
-/* Feedback Column (12th child) width adjustment */
 .teacher-dashboard table th:nth-child(12),
 .teacher-dashboard table td:nth-child(12) {
-  width: 12%; /* Adjust width as needed to fit content and scrollbar */
+  width: 12%;
   text-align: left;
-  vertical-align: top; /* Align content to the top of the cell */
+  vertical-align: top;
 }
 
-/* Wrapper for feedback text and button */
 .feedback-content-wrapper {
   display: flex;
-  flex-direction: column; /* Stack text and button vertically */
-  align-items: flex-start; /* Align items to the left */
-  gap: 5px; /* Small gap between text and button */
-  height: 100%; /* Take full height of the cell */
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  height: 100%;
 }
 
-/* Feedback text container with scrollbar */
 .feedback-text-scroll {
-  max-height: 40px; /* Adjust this height to control how many lines are visible before scroll */
-  overflow-y: auto; /* Enable vertical scrollbar */
-  white-space: normal; /* Allow text to wrap within its own container */
-  word-wrap: break-word; /* Break long words */
+  max-height: 40px;
+  overflow-y: auto;
+  white-space: normal;
+  word-wrap: break-word;
   font-size: 0.9em;
   line-height: 1.3;
-  padding-right: 5px; /* Space for scrollbar */
-  box-sizing: border-box; /* Include padding in height/width */
+  padding-right: 5px;
+  box-sizing: border-box;
 }
 
-/* Style for the "View File" button within the feedback column */
 .teacher-dashboard table button.view-file-btn {
-    background-color: #2980b9; /* Blue color for View File button */
-    color: white;
-    padding: 5px 10px;
-    font-size: 0.8em; /* Slightly smaller font for compactness */
-    border-radius: 5px;
-    cursor: pointer;
-    white-space: nowrap;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    transition: background-color 0.2s ease;
+  background-color: #2980b9;
+  color: white;
+  padding: 5px 10px;
+  font-size: 0.8em;
+  border-radius: 5px;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.2s ease;
 }
 
 .teacher-dashboard table button.view-file-btn:hover {
-    background-color: #216a94; /* Darker blue on hover */
+  background-color: #216a94;
 }
-
-/* END OF NEW ADDITIONS FOR FEEDBACK COLUMN STYLING */
