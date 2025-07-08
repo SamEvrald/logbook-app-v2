@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const db = require("../models/db"); // Ensure this is your database connection
+const db = require("../models/db"); 
 
-// ✅ Fetch all Moodle instances
+//  Fetch all Moodle instances
 router.get("/instances", async (req, res) => {
   try {
     const [instances] = await db.promise().query("SELECT id, name, base_url FROM moodle_instances");
