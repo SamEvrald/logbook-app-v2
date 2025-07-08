@@ -9,14 +9,14 @@ import { FaBell } from "react-icons/fa";
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
-  // ✅ Use useMemo with try...catch for safer localStorage parsing
+  
   const storedUser = useMemo(() => {
     try {
       const user = localStorage.getItem("user");
       return user ? JSON.parse(user) : null;
     } catch (e) {
       console.error("❌ Error parsing user from localStorage in StudentDashboard:", e);
-      localStorage.removeItem("user"); // Clear corrupted item
+      localStorage.removeItem("user"); 
       return null;
     }
   }, []);
@@ -24,18 +24,18 @@ const StudentDashboard = () => {
     try {
       const courses = localStorage.getItem("courses");
       const parsedCourses = courses ? JSON.parse(courses) : null;
-      return Array.isArray(parsedCourses) ? parsedCourses : []; // Ensure it's an array
+      return Array.isArray(parsedCourses) ? parsedCourses : []; 
     } catch (e) {
       console.error("❌ Error parsing courses from localStorage in StudentDashboard:", e);
-      localStorage.removeItem("courses"); // Clear corrupted item
+      localStorage.removeItem("courses"); 
       return [];
     }
   }, []);
-  // Use useMemo for token as well
+  
   const token = useMemo(() => localStorage.getItem("token"), []);
 
   const [user, setUser] = useState(storedUser);
-  const [courses, setCourses] = useState(storedCourses); // Initialize with parsed storedCourses
+  const [courses, setCourses] = useState(storedCourses); 
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -48,11 +48,9 @@ const StudentDashboard = () => {
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
 
-
-  // Memoize fetchCourses for useCallback dependencies
   const fetchCourses = useCallback(async () => {
-    // Add checks before API call (user.moodle_instance_id should be present now)
-    if (!token || !user?.moodle_id || !user?.moodle_instance_id) { // ✅ Added user?.moodle_instance_id
+    
+    if (!token || !user?.moodle_id || !user?.moodle_instance_id) { 
       console.warn("Skipping fetchCourses: Token or User Moodle IDs not fully available.");
       return;
     }
@@ -71,7 +69,7 @@ const StudentDashboard = () => {
     } catch (error) {
         console.error("❌ Failed to fetch student courses:", error);
         setCourses([]);
-        if (error.response?.status === 401) { // Explicit 401 handling
+        if (error.response?.status === 401) { 
             console.error("🔴 fetchCourses: Received 401. Clearing local storage and redirecting.");
             localStorage.clear();
             navigate("/login");
@@ -82,21 +80,19 @@ const StudentDashboard = () => {
 
   // Memoize fetchEntries for useCallback dependencies
   const fetchEntries = useCallback(async () => {
-    if (!user?.moodle_id || !token) { // Ensure user.moodle_id and token exist
+    if (!user?.moodle_id || !token) { 
       console.warn("Skipping fetchEntries: Moodle ID or Token not available for student entries.");
       return;
     }
     try {
-      // IMPORTANT: Ensure your backend's getStudentEntries query (in entryController.js)
-      // returns 'allow_resubmit', 'status', 'assignment_id', 'course_id', AND 'course_name'
-      // These fields are crucial for the Resubmit button logic and NewEntryForm pre-filling.
+     
       const response = await API.get(`/entries/student/${user.moodle_id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setEntries(response.data);
     } catch (error) {
       console.error("❌ Failed to fetch entries:", error.response?.data || error.message);
-      if (error.response?.status === 401) { // Explicit 401 handling
+      if (error.response?.status === 401) { 
         console.error("🔴 fetchEntries: Received 401. Clearing local storage and redirecting.");
         localStorage.clear();
         navigate("/login");
@@ -106,9 +102,9 @@ const StudentDashboard = () => {
     }
   }, [user, token, navigate]);
 
-  // Memoize fetchNotifications for useCallback dependencies
+  
   const fetchNotifications = useCallback(async () => {
-    if (!user?.moodle_id || !token) { // Ensure user.moodle_id and token exist
+    if (!user?.moodle_id || !token) { 
       console.warn("Skipping fetchNotifications: User or Moodle ID/Token not available for notifications.");
       return;
     }
@@ -119,7 +115,7 @@ const StudentDashboard = () => {
       setNotifications(response.data);
     } catch (error) {
       console.error("❌ Failed to fetch notifications:", error.response?.data || error.message);
-      if (error.response?.status === 401) { // Explicit 401 handling
+      if (error.response?.status === 401) { 
         console.error("🔴 fetchNotifications: Received 401. Clearing local storage and redirecting.");
         localStorage.clear();
         navigate("/login");
@@ -129,15 +125,15 @@ const StudentDashboard = () => {
 
 
   useEffect(() => {
-    // ✅ Add debugging logs to see the state at useEffect start
-    console.group("🟢 StudentDashboard useEffect Triggered (Main)");
+    
+    console.group(" StudentDashboard useEffect Triggered (Main)");
     console.log("   Current user state:", user);
     console.log("   Current token state:", token);
     console.log("   user.moodle_id:", user?.moodle_id);
-    console.log("   user.moodle_instance_id:", user?.moodle_instance_id); // ✅ This check is critical
+    console.log("   user.moodle_instance_id:", user?.moodle_instance_id); 
     console.groupEnd();
 
-    // Primary authentication and data presence checks
+    
     let shouldRedirect = false;
     let redirectReason = "";
 
@@ -147,7 +143,7 @@ const StudentDashboard = () => {
     } else if (!user.moodle_id) {
       shouldRedirect = true;
       redirectReason = "User Moodle ID is missing.";
-    } else if (!user.moodle_instance_id) { // ✅ This is the check that will now pass after backend fix
+    } else if (!user.moodle_instance_id) { 
       shouldRedirect = true;
       redirectReason = "User Moodle Instance ID is missing.";
     } else if (!token) {
@@ -157,7 +153,7 @@ const StudentDashboard = () => {
 
     if (shouldRedirect) {
       console.error(`🔴 StudentDashboard: Critical authentication data missing. Redirecting to login. Reason: ${redirectReason}`);
-      localStorage.clear(); // Clear all if fundamental auth data is missing
+      localStorage.clear(); 
       navigate("/login");
       return;
     }
@@ -176,17 +172,17 @@ const StudentDashboard = () => {
 
     localStorage.setItem("user", JSON.stringify(user));
     localStorage.setItem("selectedCourse", JSON.stringify(course));
-    localStorage.removeItem("resubmitEntryData"); // Clear any pending resubmit data for a new entry
+    localStorage.removeItem("resubmitEntryData"); 
     navigate("/student/new-entry");
   };
 
   const handleLogout = () => {
-    localStorage.clear(); // ✅ Use localStorage.clear() for a thorough logout
+    localStorage.clear(); 
     navigate("/login");
   };
 
   const getProfileInitials = () => {
-    const currentUser = user || storedUser; // Use current state first, then fallback
+    const currentUser = user || storedUser; 
     if (!currentUser || !currentUser.username) return "U";
     const names = currentUser.username.split(" ");
     return names.length > 1 ? `${names[0][0]}${names[1][0]}`.toUpperCase() : currentUser.username[0].toUpperCase();
@@ -199,7 +195,7 @@ const StudentDashboard = () => {
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-  // Mark notification as read - your original, fixed version
+  
   const markAsRead = useCallback(async (notificationId) => {
     try {
         await API.put(`/notifications/${notificationId}/read`, {}, {
@@ -223,34 +219,33 @@ const StudentDashboard = () => {
 
   const unreadNotificationsCount = notifications.filter(n => !n.is_read).length;
 
-  // ✅ New: handleResubmit function - to store minimal data for NewEntryForm and navigate
+  
   const handleResubmit = useCallback((entry) => {
-    // Store only the assignment_id, case_number, course_id, and course_name for NewEntryForm
+    
     localStorage.setItem("resubmitEntryData", JSON.stringify({
         assignment_id: entry.assignment_id,
-        case_number: entry.case_number, // For display in NewEntryForm
+        case_number: entry.case_number, 
         course_id: entry.course_id, 
-        type_of_work: entry.type_of_work, // Pass Activity
-        task_type: entry.task_type,     // For NewEntryForm to fetch assignments for correct course
-        course_name: entry.course_name  // Pass course_name for NewEntryForm's title
+        type_of_work: entry.type_of_work,
+        task_type: entry.task_type,   
+        course_name: entry.course_name  
         
     }));
 
-    // Ensure selectedCourse is set correctly for NewEntryForm.
+    
     const selectedCourseData = { id: entry.course_id, fullname: entry.course_name || 'Unknown Course' };
     localStorage.setItem("selectedCourse", JSON.stringify(selectedCourseData));
 
-    // Also ensure user and token are current in localStorage, as NewEntryForm reads them directly on mount
+    
     localStorage.setItem("user", JSON.stringify(user));
     localStorage.setItem("token", token);
-    // Removed specific moodle_instance_id localStorage.setItem as it's part of `user` now.
-    // if (user?.moodle_instance_id) { localStorage.setItem("moodle_instance_id", user.moodle_instance_id); }
+   
 
     navigate("/student/new-entry");
-  }, [navigate, user, token]); // Add user and token to dependencies as they are used in localStorage.setItem
+  }, [navigate, user, token]); 
 
   // Helper function to map database status to display text
-  const getDisplayStatus = useCallback((status, allowResubmit) => { // Kept allowResubmit as param as per your original code
+  const getDisplayStatus = useCallback((status, allowResubmit) => { 
     switch (status) {
         case 'submitted':
             return 'Waiting for Grading';
@@ -263,7 +258,7 @@ const StudentDashboard = () => {
     }
   }, []);
 
-  // ✅ New function to render the action button based on entry state
+  // function to render the action button based on entry state
   const renderActionButton = useCallback((entry) => {
     if (entry.allow_resubmit === 1 && (entry.status === 'graded' || entry.status === 'synced')) {
         return (
