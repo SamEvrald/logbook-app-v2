@@ -45,8 +45,8 @@ exports.createEntry = async (req, res) => {
       moodle_id,
       courseId,
       assignmentId,
-      type_of_work, // This will now represent 'Activity'
-      task_type,    // ✅ NEW: This is the 'Task' field
+      type_of_work, 
+      task_type,    
       pathology,
       clinical_info,
       content,
@@ -57,14 +57,14 @@ exports.createEntry = async (req, res) => {
     } = req.body;
 
     const mediaFiles = req.files ? req.files.map(file => file.path) : [];
-    console.log("📁 Uploaded files info:", req.files);
+    console.log("Uploaded files info:", req.files);
 
     if (!moodle_id || !courseId || !assignmentId || !work_completed_date || !moodle_instance_id) {
       console.error("❌ Missing required fields:", { moodle_id, courseId, assignmentId, work_completed_date, moodle_instance_id });
       return res.status(400).json({ message: "❌ Required fields are missing." });
     }
 
-    console.log("✅ All required fields received.");
+    console.log("All required fields received.");
 
     // Ensure student exists AND fetch studentName
     const [userRows] = await db.promise().query("SELECT id, username FROM users WHERE moodle_id = ?", [moodle_id]);
@@ -93,7 +93,7 @@ exports.createEntry = async (req, res) => {
             `DELETE FROM logbook_entries WHERE id = ?`,
             [existingEntries[0].id]
         );
-        console.log(`✅ Deleted previous entry ${existingEntries[0].id} for resubmission.`);
+        console.log(`Deleted previous entry ${existingEntries[0].id} for resubmission.`);
     } else if (existingEntries.length > 0 && existingEntries[0].status === "submitted") {
         // If there's an existing submitted entry and it's NOT a resubmission, prevent submission.
         return res.status(400).json({ message: "❌ You already submitted this entry and it's awaiting grading. Cannot submit a new entry unless it's a resubmission." });
@@ -107,7 +107,7 @@ exports.createEntry = async (req, res) => {
     let [courseRows] = await db.promise().query("SELECT * FROM courses WHERE id = ? AND moodle_instance_id = ?", [courseId, moodle_instance_id]);
 
     if (courseRows.length === 0) {
-      console.log(`⚠️ Course ID ${courseId} not found locally. Fetching from Moodle...`);
+      console.log(` Course ID ${courseId} not found locally. Fetching from Moodle...`);
 
       try {
         const [instanceRows] = await db.promise().query("SELECT * FROM moodle_instances WHERE id = ?", [moodle_instance_id]);
@@ -131,7 +131,7 @@ exports.createEntry = async (req, res) => {
           return res.status(400).json({ message: `❌ Course ID ${courseId} does not exist in Moodle.` });
         }
 
-        console.log(`✅ Course Found in Moodle: ${foundCourse.fullname}`);
+        console.log(` Course Found in Moodle: ${foundCourse.fullname}`);
 
         // Insert course into local database
         await db.promise().query(
@@ -139,7 +139,7 @@ exports.createEntry = async (req, res) => {
           [foundCourse.id, foundCourse.fullname, foundCourse.shortname, moodle_instance_id]
         );
 
-        console.log(`✅ Course ${foundCourse.fullname} inserted into local database.`);
+        console.log(`Course ${foundCourse.fullname} inserted into local database.`);
         courseRows = [{ fullname: foundCourse.fullname }];
       } catch (error) {
         console.error("❌ Moodle API Fetch Error:", error.response?.data || error.message);
@@ -156,7 +156,7 @@ exports.createEntry = async (req, res) => {
     );
 
     if (assignmentRows.length === 0) {
-      console.log(`⚠️ Assignment ID ${assignmentId} not found locally. Fetching from Moodle...`);
+      console.log(`Assignment ID ${assignmentId} not found locally. Fetching from Moodle...`);
 
       try {
         // Get Moodle instance
@@ -188,7 +188,7 @@ exports.createEntry = async (req, res) => {
           return res.status(400).json({ message: "❌ Selected assignment does not exist in Moodle." });
         }
 
-        console.log(`✅ Moodle Assignment Found: ${foundAssignment.name} (ID: ${foundAssignment.id})`);
+        console.log(` Moodle Assignment Found: ${foundAssignment.name} (ID: ${foundAssignment.id})`);
 
         // Insert assignment into local database
         await db.promise().query(
@@ -197,7 +197,7 @@ exports.createEntry = async (req, res) => {
           [courseId, foundAssignment.name, foundAssignment.id, moodle_instance_id]
         );
 
-        console.log(`✅ Assignment ${foundAssignment.name} inserted into local database.`);
+        console.log(` Assignment ${foundAssignment.name} inserted into local database.`);
       } catch (error) {
         return res.status(500).json({ message: "❌ Failed to fetch assignments from Moodle.", error: error.message });
       }
@@ -225,7 +225,7 @@ exports.createEntry = async (req, res) => {
         0 // allow_resubmit (default to 0 for new submissions)
     ];
 
-    // ✅ DEBUGGING: Log the values and SQL query right before the INSERT operation
+    //  DEBUGGING: Log the values and SQL query right before the INSERT operation
     console.log("DEBUG (createEntry): Prepared INSERT Values:", insertValues);
     console.log("DEBUG (createEntry): INSERT SQL Columns Order:", "(case_number, student_id, course_id, assignment_id, type_of_work, task_type, pathology, clinical_info, content, consent_form, work_completed_date, media_link, moodle_instance_id, status, allow_resubmit)");
     console.log("DEBUG (createEntry): INSERT SQL Placeholders:", "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
@@ -244,11 +244,11 @@ exports.createEntry = async (req, res) => {
     // NOTIFICATION: Notify student about their own submission
     await notifyNewLogbookEntry(studentId, caseNumber);
 
-    // ✅ NOTIFICATION: Notify teachers about student submission
+    // NOTIFICATION: Notify teachers about student submission
     await notifyTeacherOnStudentSubmission(courseId, studentName, caseNumber); // studentName is now correctly defined
 
 
-    res.status(201).json({ message: "✅ Logbook entry submitted successfully.", case_number: caseNumber, mediaFiles });
+    res.status(201).json({ message: " Logbook entry submitted successfully.", case_number: caseNumber, mediaFiles });
   } catch (error) {
     console.error("❌ Database error:", error);
     res.status(500).json({ message: "Failed to create entry", error: error.message });
@@ -273,84 +273,6 @@ exports.allowResubmit = async (req, res) => {
     res.status(500).json({ error: "Failed to allow resubmission." });
   }
 };
-// exports.allowResubmit = async (req, res) => {
-//     try {
-//         const entryId = req.params.id; // Get entry ID from URL parameter
-
-//         // 1. Fetch current entry details (especially student_id and case_number)
-//         const [entryRows] = await db.promise().query(
-//             "SELECT student_id, case_number FROM logbook_entries WHERE id = ?",
-//             [entryId]
-//         );
-
-//         if (entryRows.length === 0) {
-//             return res.status(404).json({ message: "Entry not found." });
-//         }
-
-//         const studentId = entryRows[0].student_id;
-//         const caseNumber = entryRows[0].case_number;
-
-//         // 2. Update entry: ONLY set allow_resubmit to 1 (status remains unchanged)
-//         const [result] = await db.promise().query(
-//             "UPDATE logbook_entries SET allow_resubmit = 1 WHERE id = ?",
-//             [entryId]
-//         );
-
-//         if (result.affectedRows === 0) {
-//             return res.status(404).json({ message: "Entry not found or no changes made." });
-//         }
-
-//         // 3. Notify the student about resubmission being allowed
-//         await notifyResubmissionAllowed(studentId, caseNumber);
-//         console.log(`✅ Resubmission allowed and student ${studentId} notified for entry ${caseNumber}.`);
-
-//         res.json({ message: "Resubmission allowed and student notified." });
-//     } catch (err) {
-//         console.error("❌ Error in allowResubmit:", err);
-//         res.status(500).json({ error: "Failed to allow resubmission." });
-//     }
-// };
-
-
-// exports.getStudentEntries = async (req, res) => {
-//   const { moodle_id } = req.params;
-
-//   try {
-//     const [userRows] = await db.promise().query("SELECT id FROM users WHERE moodle_id = ?", [moodle_id]);
-
-//     if (userRows.length === 0) {
-//       return res.status(404).json({ message: "User with this Moodle ID not found." });
-//     }
-
-//     const studentId = userRows[0].id;
-
-//     // FIX: Removed the JavaScript comment inside the SQL query string
-//     const [entries] = await db.promise().query(
-//       `SELECT id, case_number,
-//                     DATE_FORMAT(work_completed_date, '%d/%m/%y') AS work_completed_date,
-//                     type_of_work,
-//                     pathology,
-//                     content AS task_description,
-//                     media_link,
-//                     consent_form,
-//                     clinical_info,
-//                     grade,
-//                     feedback,
-//                     status
-//              FROM logbook_entries
-//              WHERE student_id = ?
-//              ORDER BY work_completed_date DESC`,
-//       [studentId]
-//     );
-
-//     res.status(200).json(entries);
-//   } catch (error) {
-//     console.error("❌ Database error:", error);
-//     res.status(500).json({ message: "Failed to fetch student logbook entries.", error: error.message });
-//   }
-// };
-
-// Inside your entryController.js file
 
 exports.getStudentEntries = async (req, res) => {
   const { moodle_id } = req.params;
@@ -379,18 +301,18 @@ exports.getStudentEntries = async (req, res) => {
                     le.grade,
                     le.feedback,
                     le.status,
-                    le.allow_resubmit,   -- <--- ENSURE THIS LINE IS PRESENT
-                    le.assignment_id,    -- Needed for pre-filling NewEntryForm
-                    le.course_id,        -- Needed for pre-filling NewEntryForm
-                    c.fullname AS course_name, -- <--- ENSURE THIS LINE IS PRESENT AND JOIN IS CORRECT
+                    le.allow_resubmit,   
+                    le.assignment_id,    
+                    le.course_id,        
+                    c.fullname AS course_name, 
                     le.teacher_media_link
              FROM logbook_entries le
-             JOIN courses c ON le.course_id = c.id -- <--- ENSURE THIS JOIN IS PRESENT
+             JOIN courses c ON le.course_id = c.id 
              WHERE le.student_id = ?
              ORDER BY le.work_completed_date DESC`,
       [studentId]
     );
-    // >>>>> END CRITICAL PART <<<<<
+ 
 
     res.status(200).json(entries);
   } catch (error) {
@@ -427,7 +349,7 @@ exports.gradeEntry = async (req, res) => {
     }
 
     // --- Start: Handle Teacher Media Upload ---
-    // Make sure 'cloudinary' is imported at the top of this file if not already.
+    
     if (req.file) {
       try {
         const result = await cloudinary.uploader.upload(req.file.path, {
@@ -435,7 +357,7 @@ exports.gradeEntry = async (req, res) => {
           folder: "logbook/teacher_feedback",
         });
         teacher_media_link = result.secure_url;
-        console.log("✅ Teacher media uploaded to Cloudinary:", teacher_media_link);
+        console.log(" Teacher media uploaded to Cloudinary:", teacher_media_link);
       } catch (uploadError) {
         console.error("❌ Cloudinary Upload Error for teacher media:", uploadError);
         // Log the error but continue; grade can still be saved without media.
@@ -444,7 +366,7 @@ exports.gradeEntry = async (req, res) => {
     // --- End: Handle Teacher Media Upload ---
 
 
-    // 🔍 Fetch entry details (student_id, assignment_id, moodle_instance_id, moodle_id, case_number)
+    //  Fetch entry details (student_id, assignment_id, moodle_instance_id, moodle_id, case_number)
     const [entryRows] = await db.promise().query(
       `SELECT le.student_id, le.assignment_id, le.moodle_instance_id, le.case_number, u.moodle_id
        FROM logbook_entries le
@@ -470,17 +392,14 @@ exports.gradeEntry = async (req, res) => {
       `UPDATE logbook_entries SET grade = ?, feedback = ?, teacher_media_link = ?, status = 'graded' WHERE id = ?`,
       [grade, feedback, teacher_media_link, entryId]
     );
-    //  await db.promise().query(
-    //   `UPDATE logbook_entries SET grade = ?, feedback = ?, teacher_media_link = ?, status = 'graded', graded_by_teacher_id = ? WHERE id = ?`,
-    //   [grade, feedback, teacher_media_link, teacherId, entryId] // teacherId is correctly passed here
-    // );
+  
 
-    console.log(`✅ Entry updated in local DB (graded) for Entry ID: ${entryId}`);
+    console.log(`Entry updated in local DB (graded) for Entry ID: ${entryId}`);
 
     // NOTIFICATION: Notify the student about the graded entry
     try {
       await notifyEntryGraded(studentId, caseNumber, grade, feedback); // Pass finalFeedback
-      console.log(`✅ Notification sent to student ${studentId} for graded entry ${caseNumber}`);
+      console.log(`Notification sent to student ${studentId} for graded entry ${caseNumber}`);
     } catch (notificationError) {
       console.error("❌ Error sending grade notification:", notificationError);
     }
@@ -500,10 +419,10 @@ exports.gradeEntry = async (req, res) => {
     const moodleUrl = moodleInstance.base_url;
     const moodleToken = moodleInstance.api_token;
 
-    console.log(`🌍 Moodle URL: ${moodleUrl}`);
-    // console.log(`🔑 Moodle API Token: ${moodleToken}`); // Avoid logging sensitive tokens in production
+    console.log(` Moodle URL: ${moodleUrl}`);
+    
 
-    console.log(`🚀 Sending grade ${grade} to Moodle for Moodle User ID: ${moodleUserId} | Assignment ID: ${assignmentId}`);
+    console.log(`Sending grade ${grade} to Moodle for Moodle User ID: ${moodleUserId} | Assignment ID: ${assignmentId}`);
 
     let moodleGradeResponse; // Declare outside try for scope
     try {
@@ -513,7 +432,7 @@ exports.gradeEntry = async (req, res) => {
             {
                 params: { // All parameters go in the URL query string for mod_assign_save_grade (singular)
                     wstoken: moodleToken,
-                    wsfunction: "mod_assign_save_grade", // ✅ Use singular 'save_grade' as confirmed
+                    wsfunction: "mod_assign_save_grade", 
                     moodlewsrestformat: "json", // Request JSON response
                     assignmentid: assignmentId,
                     userid: moodleUserId,
@@ -526,7 +445,7 @@ exports.gradeEntry = async (req, res) => {
             }
         );
 
-        console.log("✅ Moodle Grade Response (Full):", JSON.stringify(moodleGradeResponse.data, null, 2));
+        console.log("Moodle Grade Response (Full):", JSON.stringify(moodleGradeResponse.data, null, 2));
 
         if (moodleGradeResponse.data?.exception) {
             const moodleErrorMessage = moodleGradeResponse.data.message || "Unknown Moodle API Error.";
@@ -539,10 +458,10 @@ exports.gradeEntry = async (req, res) => {
             `UPDATE logbook_entries SET status = 'synced' WHERE id = ?`,
             [entryId]
         );
-        console.log(`✅ Entry ${entryId} status updated to 'synced' after successful Moodle sync.`);
+        console.log(`Entry ${entryId} status updated to 'synced' after successful Moodle sync.`);
 
 
-        res.status(200).json({ message: "✅ Entry graded and media (if any) added successfully." });
+        res.status(200).json({ message: "Entry graded and media (if any) added successfully." });
 
     } catch (axiosError) {
         console.error("❌ Axios Error during Moodle sync:", axiosError.message);
@@ -624,7 +543,7 @@ exports.getTeacherDashboard = async (req, res) => {
 
   console.log(`DEBUG (getTeacherDashboard) Start: req.user.id = ${req.user.id} (Type: ${typeof req.user.id}), req.user.role = ${req.user.role}`);
 
-  // Adding a check for req.user.id directly
+  
   if (!teacherId) {
       console.error(`❌ getTeacherDashboard: req.user.id is missing or null. Cannot proceed.`);
       return res.status(400).json({ message: "User ID missing from token. Please re-login." });
@@ -635,8 +554,7 @@ exports.getTeacherDashboard = async (req, res) => {
   }
 
   try {
-    // Re-verify the teacher's role and existence in the DB for security/robustness
-    // Using CAST to ensure the ID is treated as INT in the query for robustness
+   
     const [teacherRows] = await db.promise().query(
       "SELECT username FROM users WHERE id = CAST(? AS UNSIGNED) AND role = 'teacher'", 
       [teacherId]
@@ -660,7 +578,7 @@ exports.getTeacherDashboard = async (req, res) => {
 
 
     if (courseRows.length === 0) {
-      console.log(`ℹ️ Teacher ${teacherId} is not assigned to any courses.`);
+      console.log(`Teacher ${teacherId} is not assigned to any courses.`);
       return res.status(200).json({ teacherName, courses: [], entries: [] });
     }
 
@@ -696,8 +614,8 @@ exports.getStudentCourses = async (req, res) => {
   try {
     const { moodle_id, moodle_instance_id } = req.user;
 
-    console.log(`🔍 Fetching courses for Student ID: ${moodle_id}`);
-    console.log(`🌍 Moodle Instance ID from Token: ${moodle_instance_id}`);
+    console.log(`Fetching courses for Student ID: ${moodle_id}`);
+    console.log(`Moodle Instance ID from Token: ${moodle_instance_id}`);
 
     if (!moodle_instance_id) {
       console.error("❌ moodle_instance_id is missing in JWT token.");
@@ -716,9 +634,9 @@ exports.getStudentCourses = async (req, res) => {
 
     const moodleInstance = instanceRows[0];
 
-    console.log(`✅ Using Moodle Instance:`, moodleInstance);
-    console.log(`🌍 Moodle Base URL: ${moodleInstance.base_url}`);
-    console.log(`🔑 Moodle API Token: ${moodleInstance.api_token}`);
+    console.log(`Using Moodle Instance:`, moodleInstance);
+    console.log(`Moodle Base URL: ${moodleInstance.base_url}`);
+    console.log(`Moodle API Token: ${moodleInstance.api_token}`);
 
     if (!moodleInstance.base_url || !moodleInstance.api_token) {
       console.error("❌ Moodle instance data is incomplete.");
@@ -734,7 +652,7 @@ exports.getStudentCourses = async (req, res) => {
       },
     });
 
-    console.log(`📚 Moodle Response:`, moodleResponse.data);
+    console.log(`Moodle Response:`, moodleResponse.data);
 
     res.json(moodleResponse.data);
   } catch (error) {
@@ -753,7 +671,7 @@ exports.getAssignmentsFromMoodle = async (req, res) => {
     return res.status(400).json({ message: "Course ID and Moodle Instance ID are required." });
   }
 
-  console.log(`📡 Fetching assignments from Moodle for Course ID: ${courseId}`);
+  console.log(`Fetching assignments from Moodle for Course ID: ${courseId}`);
 
   try {
     const [instanceRows] = await db.promise().query(
@@ -776,17 +694,17 @@ exports.getAssignmentsFromMoodle = async (req, res) => {
       },
     });
 
-    console.log("📩 Moodle API Response:", moodleResponse.data);
+    console.log(" Moodle API Response:", moodleResponse.data);
 
     if (!moodleResponse.data.courses || moodleResponse.data.courses.length === 0) {
-      console.warn(`⚠️ No assignments found in Moodle for Course ID: ${courseId}`);
+      console.warn(`No assignments found in Moodle for Course ID: ${courseId}`);
       return res.status(404).json({ message: "No assignments found for this course." });
     }
 
     const assignments = moodleResponse.data.courses[0].assignments;
 
     if (!assignments || assignments.length === 0) {
-      console.warn(`⚠️ No assignments available for Course ID: ${courseId}`);
+      console.warn(` No assignments available for Course ID: ${courseId}`);
       return res.status(404).json({ message: "No assignments available for this course." });
     }
 
@@ -796,7 +714,7 @@ exports.getAssignmentsFromMoodle = async (req, res) => {
     );
 
     if (courseRows.length === 0) {
-      console.log(`⚠️ Course ID ${courseId} not found locally. Fetching from Moodle...`);
+      console.log(`Course ID ${courseId} not found locally. Fetching from Moodle...`);
 
       const courseResponse = await axios.get(`${moodleInstance.base_url}/webservice/rest/server.php`, {
         params: {
@@ -812,14 +730,14 @@ exports.getAssignmentsFromMoodle = async (req, res) => {
         return res.status(400).json({ message: `❌ Course ID ${courseId} does not exist in Moodle.` });
       }
 
-      console.log(`✅ Course Found in Moodle: ${foundCourse.fullname}`);
+      console.log(`Course Found in Moodle: ${foundCourse.fullname}`);
 
       await db.promise().query(
         `INSERT INTO courses (id, fullname, shortname, moodle_instance_id) VALUES (?, ?, ?, ?)`,
         [foundCourse.id, foundCourse.fullname, foundCourse.shortname, moodle_instance_id]
       );
 
-      console.log(`✅ Course ${foundCourse.fullname} inserted into local database.`);
+      console.log(`Course ${foundCourse.fullname} inserted into local database.`);
     }
 
     for (const assignment of assignments) {
@@ -835,13 +753,13 @@ exports.getAssignmentsFromMoodle = async (req, res) => {
           [courseId, assignment.name, assignment.id, moodle_instance_id]
         );
 
-        console.log(`✅ Saved assignment: ${assignment.name} (ID: ${assignment.id})`);
+        console.log(`Saved assignment: ${assignment.name} (ID: ${assignment.id})`);
       } else {
-        console.log(`⚠️ Assignment already exists: ${assignment.name} (ID: ${assignment.id})`);
+        console.log(` Assignment already exists: ${assignment.name} (ID: ${assignment.id})`);
       }
     }
 
-    console.log(`✅ Found and processed ${assignments.length} assignments.`);
+    console.log(` Found and processed ${assignments.length} assignments.`);
     res.json(assignments);
   } catch (error) {
     console.error("❌ Moodle API Fetch Error:", error.response?.data || error.message);
