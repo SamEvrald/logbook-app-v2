@@ -1,8 +1,8 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import "../styles/RoleSelectionPage.css"; // ✅ Import CSS
-import Footer from "../components/Footer"; // ✅ Correctly import Footer component
-import TopBar from "../components/Shared/TopBar"; // ✅ Import TopBar
+import "../styles/RoleSelectionPage.css"; 
+import Footer from "../components/Footer"; 
+import TopBar from "../components/Shared/TopBar"; 
 
 
 const RoleSelectionPage = () => {
@@ -10,7 +10,7 @@ const RoleSelectionPage = () => {
 
   return (
     <div className="role-container">
-       <TopBar /> {/* ✅ Add TopBar at the Top */}
+       <TopBar /> 
        <div className="main-content-wrapper">
 
        
@@ -30,22 +30,16 @@ const RoleSelectionPage = () => {
         </button>
       </div>
 
-      {/* <div className="role-buttons">
-        <button onClick={() => navigate("/signup/teacher")} className="btn signup">
-          Signup as Teacher
-        </button>
-      </div> */}
+     
 
       <div className="role-buttons">
         <button onClick={() => navigate("/login/admin")} className="btn admin">
           Admin Login
         </button>
-        {/* <button onClick={() => navigate("/signup/admin")} className="btn green">
-          Signup as Admin
-        </button> */}
+      
       </div>
 
-      {/* ✅ Correct Footer Placement */}
+     
       <Footer />
     </div>
     </div>
