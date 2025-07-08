@@ -4,15 +4,15 @@ import RoleSelectionPage from "./pages/RoleSelectionPage";
 import StudentLoginPage from "./pages/StudentLoginPage";
 import TeacherLoginPage from "./pages/TeacherLoginPage";
 import TeacherSignupPage from "./pages/TeacherSignupPage";
-import AdminLoginPage from "./pages/AdminLoginPage"; // ✅ Ensure Admin Login is imported
-import AdminSignupPage from "./pages/AdminSignupPage"; // ✅ Ensure Admin Signup is imported
-import AdminDashboard from "./pages/AdminDashboard"; // ✅ Ensure Admin Dashboard is imported
+import AdminLoginPage from "./pages/AdminLoginPage"; 
+import AdminSignupPage from "./pages/AdminSignupPage"; 
+import AdminDashboard from "./pages/AdminDashboard"; 
 import StudentDashboard from "./pages/StudentDashboard";
 import TeacherDashboard from "./pages/TeacherDashboard";
 import NewEntryForm from "./components/Student/NewEntryForm";
 import GradeEntryForm from "./components/Teacher/GradeEntryForm";
 import PrivateRoute from "./components/Shared/PrivateRoute";
-import Footer from "./components/Footer"; // Import Footer component
+import Footer from "./components/Footer"; 
 
 function App() {
   return (
