@@ -4,12 +4,12 @@ const {
     getAllCourses,
     assignCourseToTeacher,
     removeCourseFromTeacher,
-    getAllTeachers, // Using this existing one for teacher fetching
+    getAllTeachers, 
     signupAdmin,
     loginAdmin,
     getAdminProfile,
-    getAllEntries, // ✅ Added
-    // ✅ NEW: Import analytics controllers
+    getAllEntries, 
+   
     getTotalStudents,
     getEntriesPerCourse,
     getEntriesByMonth,
@@ -19,31 +19,31 @@ const {
 const authMiddleware = require("../middleware/authMiddleware");
 const roleMiddleware = require("../middleware/roleMiddleware");
 
-// ✅ Admin Profile
+//  Admin Profile
 router.get("/profile", authMiddleware, roleMiddleware("admin"), getAdminProfile);
 
-// ✅ Fetch all Moodle courses
+//  Fetch all Moodle courses
 router.get("/courses", authMiddleware, roleMiddleware("admin"), getAllCourses);
 
-// ✅ Fetch all teachers
+//  Fetch all teachers
 router.get("/teachers", authMiddleware, roleMiddleware("admin"), getAllTeachers);
 
-// ✅ Fetch all logbook entries (🔄 FIXED)
+//  Fetch all logbook entries 
 router.get("/entries", authMiddleware, roleMiddleware("admin"), getAllEntries);
 
-// ✅ Assign course to teacher
+//  Assign course to teacher
 router.post("/assign-course", authMiddleware, roleMiddleware("admin"), assignCourseToTeacher);
 
-// ✅ Remove course from teacher
+//  Remove course from teacher
 router.post("/remove-course", authMiddleware, roleMiddleware("admin"), removeCourseFromTeacher);
 
-// ✅ Admin Signup
+//  Admin Signup
 router.post("/signup", signupAdmin);
 
-// ✅ Admin Login
+//  Admin Login
 router.post("/login", loginAdmin);
 
-// ✅ NEW ANALYTICS ROUTES:
+//  ANALYTICS ROUTES:
 router.get("/analytics/total-students", authMiddleware, roleMiddleware("admin"), getTotalStudents);
 router.get("/analytics/entries-per-course", authMiddleware, roleMiddleware("admin"), getEntriesPerCourse);
 router.get("/analytics/entries-by-month", authMiddleware, roleMiddleware("admin"), getEntriesByMonth);
