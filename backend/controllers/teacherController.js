@@ -2,7 +2,7 @@ const db = require("../models/db");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const axios = require("axios");
-const { notifyEntryGraded, notifyResubmissionAllowed } = require("../controllers/notificationController"); // ✅ Import new notification function
+const { notifyEntryGraded, notifyResubmissionAllowed } = require("../controllers/notificationController"); 
 const qs = require('qs');
 
 
@@ -61,7 +61,7 @@ const loginTeacher = async (req, res) => {
     let moodleId = null; 
     let moodleInstanceIdForUser = null; 
 
-    // ✅ Automatic Upsert into 'users' table
+    // Automatic Upsert into 'users' table
     const [existingUserRows] = await db.promise().query(
         "SELECT id FROM users WHERE id = ? AND role = 'teacher'", 
         [teacherInternalId] 
@@ -74,7 +74,7 @@ const loginTeacher = async (req, res) => {
                  VALUES (?, ?, ?, ?, ?, ?, NOW())`,
                 [teacherInternalId, teacherUsername, teacherRows[0].password, 'teacher', moodleId, moodleInstanceIdForUser ]
             );
-            console.log(`✅ Created new entry for teacher '${teacherUsername}' (ID: ${teacherInternalId}) in 'users' table.`);
+            console.log(`Created new entry for teacher '${teacherUsername}' (ID: ${teacherInternalId}) in 'users' table.`);
         } catch (insertError) {
             console.error(`❌ Error inserting teacher '${teacherUsername}' into 'users' table:`, insertError.message);
             await db.promise().query(
@@ -83,7 +83,7 @@ const loginTeacher = async (req, res) => {
                  ON DUPLICATE KEY UPDATE password = VALUES(password), role = VALUES(role), moodle_id = VALUES(moodle_id), moodle_instance_id = VALUES(moodle_instance_id), updated_at = NOW()`, 
                 [teacherUsername, teacherRows[0].password, 'teacher', moodleId, moodleInstanceIdForUser]
             );
-            console.log(`✅ Upserted teacher '${teacherUsername}' into 'users' table (handling potential existing entry).`);
+            console.log(` Upserted teacher '${teacherUsername}' into 'users' table (handling potential existing entry).`);
         }
     } else {
         await db.promise().query(
@@ -91,7 +91,7 @@ const loginTeacher = async (req, res) => {
              WHERE id = ?`, 
             [teacherUsername, teacherRows[0].password, 'teacher', moodleId, moodleInstanceIdForUser, teacherInternalId]
         );
-        console.log(`✅ Updated existing entry for teacher '${teacherUsername}' (ID: ${teacherInternalId}) in 'users' table.`);
+        console.log(` Updated existing entry for teacher '${teacherUsername}' (ID: ${teacherInternalId}) in 'users' table.`);
     }
 
     const token = jwt.sign(
@@ -208,7 +208,7 @@ const gradeEntry = async (req, res) => {
         }
 
         // --- Start: Handle Teacher Media Upload ---
-        // Make sure 'cloudinary' is imported at the top of this file if not already.
+       
         if (req.file) {
             try {
                 const result = await cloudinary.uploader.upload(req.file.path, {
@@ -219,13 +219,13 @@ const gradeEntry = async (req, res) => {
                 console.log("✅ Teacher media uploaded to Cloudinary:", teacher_media_link);
             } catch (uploadError) {
                 console.error("❌ Cloudinary Upload Error for teacher media:", uploadError);
-                // Log the error but continue; grade can still be saved without media.
+                
             }
         }
         // --- End: Handle Teacher Media Upload ---
 
 
-        // 🔍 Fetch entry details (student_id, assignment_id, moodle_instance_id, moodle_id, case_number)
+        // Fetch entry details (student_id, assignment_id, moodle_instance_id, moodle_id, case_number)
         const [entryRows] = await db.promise().query(
             `SELECT le.student_id, le.assignment_id, le.moodle_instance_id, le.case_number, u.moodle_id
              FROM logbook_entries le
@@ -235,7 +235,7 @@ const gradeEntry = async (req, res) => {
         );
 
         if (entryRows.length === 0) {
-            console.warn(`⚠️ Logbook entry ${entryId} not found after grading.`);
+            console.warn(` Logbook entry ${entryId} not found after grading.`);
             return res.status(404).json({ message: "Logbook entry not found." });
         }
 
@@ -246,18 +246,18 @@ const gradeEntry = async (req, res) => {
         const studentId = entry.student_id; // For notification
         const caseNumber = entry.case_number; // For notification
 
-        // ✅ Update entry in local database with grade, feedback, and teacher_media_link
+        //  Update entry in local database with grade, feedback, and teacher_media_link
         await db.promise().query(
             `UPDATE logbook_entries SET grade = ?, feedback = ?, teacher_media_link = ?, status = 'graded' WHERE id = ?`,
             [grade, feedback, teacher_media_link, entryId]
         );
 
-        console.log(`✅ Entry updated in local DB (graded) for Entry ID: ${entryId}`);
+        console.log(` Entry updated in local DB (graded) for Entry ID: ${entryId}`);
 
         // NOTIFICATION: Notify the student about the graded entry
         try {
             await notifyEntryGraded(studentId, caseNumber, grade, feedback); // Pass finalFeedback
-            console.log(`✅ Notification sent to student ${studentId} for graded entry ${caseNumber}`);
+            console.log(` Notification sent to student ${studentId} for graded entry ${caseNumber}`);
         } catch (notificationError) {
             console.error("❌ Error sending grade notification:", notificationError);
         }
@@ -269,8 +269,8 @@ const gradeEntry = async (req, res) => {
         );
 
         if (instanceRows.length === 0) {
-            console.warn(`⚠️ Moodle instance not found for ID: ${moodleInstanceId}. Skipping Moodle sync.`);
-            return res.status(200).json({ message: "✅ Grade successfully saved locally. Moodle sync skipped (instance not found)." });
+            console.warn(` Moodle instance not found for ID: ${moodleInstanceId}. Skipping Moodle sync.`);
+            return res.status(200).json({ message: " Grade successfully saved locally. Moodle sync skipped (instance not found)." });
         }
 
   
@@ -279,33 +279,33 @@ const gradeEntry = async (req, res) => {
         const moodleUrl = moodleInstance.base_url;
         const moodleToken = moodleInstance.api_token;
 
-        console.log(`🌍 Moodle URL: ${moodleUrl}`);
-        // console.log(`🔑 Moodle API Token: ${moodleToken}`); // Avoid logging sensitive tokens in production
+        console.log(` Moodle URL: ${moodleUrl}`);
+       
 
-        console.log(`🚀 Sending grade ${grade} to Moodle for Moodle User ID: ${moodleUserId} | Assignment ID: ${assignmentId}`);
+        console.log(` Sending grade ${grade} to Moodle for Moodle User ID: ${moodleUserId} | Assignment ID: ${assignmentId}`);
 
-        let moodleGradeResponse; // Declare outside try for scope
+        let moodleGradeResponse; 
         try {
             moodleGradeResponse = await axios.post(
                 `${moodleUrl}/webservice/rest/server.php`,
-                null, // No request body for this specific Moodle function
+                null,
                 {
-                    params: { // All parameters go in the URL query string for mod_assign_save_grade (singular)
+                    params: { 
                         wstoken: moodleToken,
-                        wsfunction: "mod_assign_save_grade", // ✅ Use singular 'save_grade' as confirmed
-                        moodlewsrestformat: "json", // Request JSON response
+                        wsfunction: "mod_assign_save_grade", 
+                        moodlewsrestformat: "json", 
                         assignmentid: assignmentId,
                         userid: moodleUserId,
                         grade: parseFloat(grade),
                         attemptnumber: -1,
-                        addattempt: 0, // Keep as integer 0 as per working version and Moodle docs
+                        addattempt: 0, 
                         workflowstate: "graded",
                         applytoall: 0,
                     },
                 }
             );
 
-            console.log("✅ Moodle Grade Response (Full):", JSON.stringify(moodleGradeResponse.data, null, 2));
+            console.log(" Moodle Grade Response (Full):", JSON.stringify(moodleGradeResponse.data, null, 2));
 
             if (moodleGradeResponse.data?.exception) {
                 const moodleErrorMessage = moodleGradeResponse.data.message || "Unknown Moodle API Error.";
@@ -318,10 +318,10 @@ const gradeEntry = async (req, res) => {
                 `UPDATE logbook_entries SET status = 'synced' WHERE id = ?`,
                 [entryId]
             );
-            console.log(`✅ Entry ${entryId} status updated to 'synced' after successful Moodle sync.`);
+            console.log(` Entry ${entryId} status updated to 'synced' after successful Moodle sync.`);
 
 
-            res.status(200).json({ message: "✅ Entry graded and media (if any) added successfully." });
+            res.status(200).json({ message: " Entry graded and media (if any) added successfully." });
 
         } catch (axiosError) {
             console.error("❌ Axios Error during Moodle sync:", axiosError.message);
@@ -342,51 +342,13 @@ const gradeEntry = async (req, res) => {
     }
 };
 
-// ✅ ALLOW RESUBMIT (Updated)
-// const allowResubmit = async (req, res) => { // Defined as const
-//     try {
-//         const entryId = req.params.id; // Get entry ID from URL parameter
 
-//         // 1. Fetch current entry details (especially student_id and case_number)
-//         const [entryRows] = await db.promise().query(
-//             "SELECT student_id, case_number FROM logbook_entries WHERE id = ?",
-//             [entryId]
-//         );
 
-//         if (entryRows.length === 0) {
-//             return res.status(404).json({ message: "Entry not found." });
-//         }
-
-//         const studentId = entryRows[0].student_id;
-//         const caseNumber = entryRows[0].case_number;
-
-//         // 2. Update entry: Set allow_resubmit to 1 AND update status to 'resubmitted'
-//         const [result] = await db.promise().query(
-//             "UPDATE logbook_entries SET allow_resubmit = 1, status = 'resubmitted' WHERE id = ?",
-//             [entryId]
-//         );
-
-//         if (result.affectedRows === 0) {
-//             return res.status(404).json({ message: "Entry not found or no changes made." });
-//         }
-
-//         // 3. Notify the student about resubmission being allowed
-//         await notifyResubmissionAllowed(studentId, caseNumber);
-//         console.log(`✅ Resubmission allowed and student ${studentId} notified for entry ${caseNumber}.`);
-
-//         res.json({ message: "Resubmission allowed and student notified." });
-//     } catch (err) {
-//         console.error("❌ Error in allowResubmit:", err);
-//         res.status(500).json({ error: "Failed to allow resubmission." });
-//     }
-// };
-
-// Export All Functions (ensure new functions are exported)
 module.exports = {
     signupTeacher,
     loginTeacher,
     getTeacherCourses,
     getSubmittedEntries,
     gradeEntry,
-    //allowResubmit // ✅ Export allowResubmit
+    
 };
