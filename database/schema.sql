@@ -1,7 +1,7 @@
 -- CREATE DATABASE logbook_db;
 -- USE logbook_db;
 
--- -- ✅ Admins Table
+-- --  Admins Table
 -- CREATE TABLE admins (
 --     id INT PRIMARY KEY AUTO_INCREMENT,
 --     username VARCHAR(255) NOT NULL,
@@ -10,7 +10,7 @@
 --     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 -- );
 
--- -- ✅ Teachers Table
+-- --  Teachers Table
 -- CREATE TABLE teachers (
 --     id INT PRIMARY KEY AUTO_INCREMENT,
 --     username VARCHAR(255) NOT NULL,
@@ -19,7 +19,7 @@
 --     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 -- );
 
--- -- ✅ Users Table (For Students)
+-- --  Users Table (For Students)
 -- CREATE TABLE users (
 --     id INT PRIMARY KEY AUTO_INCREMENT,
 --     username VARCHAR(255) NOT NULL,
@@ -29,14 +29,14 @@
 --     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 -- );
 
--- -- ✅ Courses Table (Pulled from Moodle)
+-- --  Courses Table (Pulled from Moodle)
 -- CREATE TABLE courses (
 --     id INT PRIMARY KEY,
 --     fullname VARCHAR(255) NOT NULL,
 --     shortname VARCHAR(50) NOT NULL
 -- );
 
--- -- ✅ Teacher Courses Table (Mapping Teachers to Courses)
+-- --  Teacher Courses Table (Mapping Teachers to Courses)
 -- CREATE TABLE teacher_courses (
 --     id INT PRIMARY KEY AUTO_INCREMENT,
 --     teacher_id INT NOT NULL,
@@ -45,7 +45,7 @@
 --     FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE
 -- );
 
--- -- ✅ Logbook Entries Table (Student Submissions)
+-- --  Logbook Entries Table (Student Submissions)
 -- CREATE TABLE logbook_entries (
 --     id INT PRIMARY KEY AUTO_INCREMENT,
 --     case_number VARCHAR(50) UNIQUE,
@@ -68,7 +68,7 @@
 --     FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE
 -- );
 
--- -- ✅ Entry Files Table (For Storing File Paths)
+-- --  Entry Files Table (For Storing File Paths)
 -- CREATE TABLE entry_files (
 --     id INT PRIMARY KEY AUTO_INCREMENT,
 --     entry_id INT NOT NULL,
