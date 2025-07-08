@@ -8,7 +8,7 @@ import { FaBell } from "react-icons/fa";
 const NewEntryForm = () => {
   const navigate = useNavigate();
 
-  // ✅ Initializing state from localStorage synchronously using useMemo for initial render
+  // Initializing state from localStorage synchronously using useMemo for initial render
   const initialResubmitData = useMemo(() => {
     try {
       const data = localStorage.getItem('resubmitEntryData');
@@ -54,7 +54,7 @@ const NewEntryForm = () => {
     return token;
   }, []);
 
-  // Use the memoized initial values for useState
+
   const [user] = useState(storedUser);
   const [course] = useState(storedSelectedCourse);
   const [token] = useState(storedToken);
@@ -63,9 +63,9 @@ const NewEntryForm = () => {
   const [isResubmission, setIsResubmission] = useState(!!initialResubmitData);
   const [assignments, setAssignments] = useState([]);
 
-  // ✅ NEW STATE FOR ACTIVITY AND TASK
-  const [activity, setActivity] = useState(initialResubmitData?.type_of_work || ""); // `type_of_work` now maps to Activity
-  const [task, setTask] = useState(initialResubmitData?.task_type || "");           // New state for Task
+
+  const [activity, setActivity] = useState(initialResubmitData?.type_of_work || ""); 
+  const [task, setTask] = useState(initialResubmitData?.task_type || "");          
 
   const [clinicalInfo, setClinicalInfo] = useState("");
   const [pathology, setPathology] = useState("");
@@ -80,7 +80,6 @@ const NewEntryForm = () => {
 
   const [originalCaseNumber, setOriginalCaseNumber] = useState(initialResubmitData?.case_number || null);
 
-  // ✅ Define the Activity-Task mapping data structure
   const activityTaskMap = useMemo(() => ({
     "Lower Limb Prostheses": [
       "Partial foot (PF)",
@@ -141,12 +140,12 @@ const NewEntryForm = () => {
       "Lecturing Orthotics (Theoretical)",
       "Lecturing Prosthetics Workshop",
       "Lecturing Orthotics Workshop",
-      "Cat I| Practical examination", // Changed from 'Cat I|' to 'Cat II|' assuming it's a typo from user, but keeping exact if not.
+      "Cat I| Practical examination", 
       "Supervision of Prosthetics Activities",
       "Supervision of Orthotics Activities",
       "Patient Assessment/Prescription",
       "Other activities with patients",
-      "P&O Educational Material Preparation", // Changed '&' from user to '&' for consistency
+      "P&O Educational Material Preparation", 
       "Patient check-up/follow-up",
       "Other practical activities"
     ],
@@ -186,7 +185,7 @@ const NewEntryForm = () => {
   }, [course, user, token]);
 
   useEffect(() => {
-    console.group("🟢 NewEntryForm useEffect Triggered");
+    console.group("NewEntryForm useEffect Triggered");
     console.log("   Current user state (in useEffect):", user);
     console.log("   Current token state (in useEffect):", token);
     console.log("   Current course state (in useEffect):", course);
@@ -221,7 +220,7 @@ const NewEntryForm = () => {
       return;
     }
 
-    // ✅ Clear resubmit data from localStorage once it's been used to initialize state
+    //  Clear resubmit data from localStorage once it's been used to initialize state
     if (initialResubmitData) {
       localStorage.removeItem('resubmitEntryData');
       // For resubmission, populate other fields from initialResubmitData if they exist
@@ -229,7 +228,7 @@ const NewEntryForm = () => {
       setPathology(initialResubmitData.pathology || '');
       setClinicalInfo(initialResubmitData.clinical_info || '');
       setContent(initialResubmitData.content || '');
-      setConsentForm(initialResubmitData.consent_form || 'no'); // Ensure default if not present
+      setConsentForm(initialResubmitData.consent_form || 'no'); 
       // Format work_completed_date for input type="date"
       setWorkCompletedDate(initialResubmitData.work_completed_date ? new Date(initialResubmitData.work_completed_date).toISOString().split('T')[0] : '');
       setMediaFiles([]); // Clear existing media files on resubmit
@@ -238,7 +237,7 @@ const NewEntryForm = () => {
     fetchAssignments();
   }, [user, course, token, navigate, fetchAssignments, initialResubmitData]);
 
-  // ✅ New useEffect to set default assignment if it's a new entry and assignments are loaded
+  // useEffect to set default assignment if it's a new entry and assignments are loaded
   useEffect(() => {
     if (!isResubmission && !selectedAssignment && assignments.length > 0) {
       console.log("DEBUG: Setting default assignment:", assignments[0].id);
@@ -247,7 +246,7 @@ const NewEntryForm = () => {
   }, [assignments, isResubmission, selectedAssignment]);
 
 
-  // ✅ Handle Activity change: Reset Task when Activity changes
+  // Handle Activity change: Reset Task when Activity changes
   const handleActivityChange = (e) => {
     setActivity(e.target.value);
     setTask(""); // Reset task when activity changes
@@ -265,18 +264,18 @@ const NewEntryForm = () => {
     setError("");
     setLoading(true);
 
-     // --- START DEBUGGING LOGS FOR ACTIVITY AND TASK ---
+ 
     console.log("DEBUG: Submitting form...");
     console.log("DEBUG: Activity (typeOfWork) value:", activity);
     console.log("DEBUG: Task (task) value:", task);
-    // --- END DEBUGGING LOGS FOR ACTIVITY AND TASK ---
+ 
 
     if (!selectedAssignment) {
       setError("Please select an entry assignment.");
       setLoading(false);
       return;
     }
-    // ✅ Updated validation for Activity and Task
+    //  Updated validation for Activity and Task
     if (!activity) {
         setError("Please select an Activity.");
         setLoading(false);
@@ -303,15 +302,15 @@ const NewEntryForm = () => {
     formData.append("moodle_id", studentMoodleId);
     formData.append("courseId", courseId);
     formData.append("assignmentId", selectedAssignment);
-    formData.append("type_of_work", activity); // ✅ Send 'activity' as 'type_of_work'
-    formData.append("task_type", task);         // ✅ Send 'task' as 'task_type'
+    formData.append("type_of_work", activity); 
+    formData.append("task_type", task);         
     formData.append("pathology", pathology);
     formData.append("clinical_info", clinicalInfo);
     formData.append("content", content);
     formData.append("consentForm", consentForm);
     formData.append("work_completed_date", workCompletedDate);
     formData.append("moodle_instance_id", moodleInstanceId);
-    formData.append("isResubmission", isResubmission ? "true" : "false"); // Ensure this is sent as a string
+    formData.append("isResubmission", isResubmission ? "true" : "false"); 
 
 
     if (mediaFiles.length > 0) {
@@ -353,7 +352,7 @@ const NewEntryForm = () => {
       setTimeout(() => {
         document.body.removeChild(messageBox);
         navigate("/student");
-      }, 3000); // Show for 2 seconds then navigate
+      }, 3000); 
 
     } catch (err) {
       console.error("❌ NewEntryForm Submission error:", err.response?.data || err.message);
@@ -430,7 +429,7 @@ const NewEntryForm = () => {
             {isResubmission && <p style={{fontSize: '0.8em', color: '#555'}}>You are resubmitting for this specific entry.</p>}
           </div>
 
-          {/* ✅ Activity Dropdown (formerly Type of Task/Device) */}
+         
           <div>
             <label htmlFor="activity-select">Activity:</label>
             <select
@@ -448,15 +447,15 @@ const NewEntryForm = () => {
             </select>
           </div>
 
-          {/* ✅ Task Dropdown (conditionally rendered) */}
-          {activity && ( // Only show Task dropdown if an Activity is selected
+         
+          {activity && ( 
             <div>
               <label htmlFor="task-select">Task:</label>
               <select
                 id="task-select"
                 value={task}
                 onChange={(e) => setTask(e.target.value)}
-                required={currentTaskOptions.length > 0} // Required only if options exist
+                required={currentTaskOptions.length > 0} 
               >
                 <option value="">-- Select a Task --</option>
                 {currentTaskOptions.map((tsk) => (
