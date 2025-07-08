@@ -1,7 +1,7 @@
 const db = require("../models/db");
 const axios = require("axios");
 
-// ✅ Get Moodle API details dynamically
+//  Get Moodle API details dynamically
 async function getMoodleAPIForStudent(studentId) {
     const [rows] = await db.promise().query(
         `SELECT moodle_instances.base_url, moodle_instances.api_token 
@@ -21,7 +21,7 @@ async function getMoodleAPIForStudent(studentId) {
     };
 }
 
-// ✅ Fetch assignments from the correct Moodle platform
+// Fetch assignments from the correct Moodle platform
 async function fetchStudentAssignments(studentId) {
     try {
         const moodleDetails = await getMoodleAPIForStudent(studentId);
