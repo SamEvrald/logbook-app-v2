@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import API from "../api/api";
 import { useNavigate } from "react-router-dom";
-import Footer from "../components/Footer"; // ✅ Correctly import Footer component
-import TopBar from "../components/Shared/TopBar"; // ✅ Import TopBar
+import Footer from "../components/Footer"; 
+import TopBar from "../components/Shared/TopBar"; 
 
 const TeacherSignupPage = () => {
   const [formData, setFormData] = useState({ username: "", email: "", password: "" });
@@ -11,7 +11,7 @@ const TeacherSignupPage = () => {
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
-  // ✅ Function to display a custom message box (ADDED)
+  // Function to display a custom message box
   const showCustomMessageBox = (msg, type = 'success') => {
     const messageBox = document.createElement('div');
     messageBox.style.cssText = `
@@ -59,14 +59,14 @@ const TeacherSignupPage = () => {
 
     try {
       await API.post("/teachers/signup", formData);
-      // ✅ Replaced alert with custom message box for success
+      
       showCustomMessageBox("Teacher Created successfully.", 'success');
-      // Original navigation remains as is, no delay added per strict instruction
+      
       navigate("/admin"); 
     } catch (err) {
-      // ✅ Replaced alert with custom message box for error, while keeping setError
+      
       setError("Signup failed. Try again.");
-      showCustomMessageBox("❌ Signup failed. Try again.", 'error'); // Display custom error popup
+      showCustomMessageBox("❌ Signup failed. Try again.", 'error'); 
     }
   };
 
@@ -74,7 +74,7 @@ const TeacherSignupPage = () => {
     
       <div style={{ maxWidth: "400px", margin: "50px auto" }}>
       <h2>Create Teacher Account</h2>
-      <TopBar /> {/* ✅ Add TopBar at the Top */}
+      <TopBar /> 
       <form onSubmit={handleSubmit}>
         {error && <p style={{ color: "red" }}>{error}</p>}
         <input type="text" name="username" value={formData.username} onChange={handleChange} placeholder="Username" required />
@@ -82,7 +82,7 @@ const TeacherSignupPage = () => {
         <input type="password" name="password" value={formData.password} onChange={handleChange} placeholder="Password" required />
         <button type="submit">Sign Up</button>
       </form>
-      {/* ✅ Correct Footer Placement */}
+     
       <Footer />
     </div>
   );
