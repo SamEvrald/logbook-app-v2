@@ -3,12 +3,12 @@
 const db = require("../models/db");
 
 
-// ✅ Fetch Notifications for Logged-in Student
+//  Fetch Notifications for Logged-in Student
 exports.getStudentNotifications = async (req, res) => {
     try {
-        const moodleId = req.user.moodle_id; // ✅ Get moodle_id from token
+        const moodleId = req.user.moodle_id; //  Get moodle_id from token
 
-        // 🔍 Find `user_id` using `moodle_id`
+        //  Find `user_id` using `moodle_id`
         const [userRows] = await db.promise().query(
             "SELECT id FROM users WHERE moodle_id = ?",
             [moodleId]
@@ -19,10 +19,10 @@ exports.getStudentNotifications = async (req, res) => {
             return res.status(404).json({ message: "User not found." });
         }
 
-        const userId = userRows[0].id; // ✅ Get the correct `user_id`
+        const userId = userRows[0].id; //  Get the correct `user_id`
 
-        // ✅ Fetch notifications for `user_id`
-        // Ensure you are fetching the `is_read` column as well
+        // Fetch notifications for `user_id`
+        
         const [notifications] = await db.promise().query(
             "SELECT id, user_id, message, timestamp, is_read FROM notifications WHERE user_id = ? ORDER BY timestamp DESC", // ✅ Added is_read to select
             [userId]
@@ -36,12 +36,12 @@ exports.getStudentNotifications = async (req, res) => {
 };
 
 
-// ✅ NEW: Fetch Notifications for Logged-in Teacher (using internal ID)
+// Fetch Notifications for Logged-in Teacher (using internal ID)
 exports.getTeacherNotifications = async (req, res) => {
     try {
         const teacherInternalUserId = req.params.userId; // Get internal user ID from URL params
 
-        // 🔍 Find the teacher's actual user_id in the users table by their internal ID and role
+        //  Find the teacher's actual user_id in the users table by their internal ID and role
         const [userRows] = await db.promise().query(
             "SELECT id FROM users WHERE id = ? AND role = 'teacher'",
             [teacherInternalUserId]
@@ -54,7 +54,7 @@ exports.getTeacherNotifications = async (req, res) => {
 
         const userId = userRows[0].id; // This is the confirmed internal user_id for the teacher
 
-        // ✅ Fetch notifications for this teacher's internal `user_id`
+        //  Fetch notifications for this teacher's internal `user_id`
         const [notifications] = await db.promise().query(
             "SELECT id, user_id, message, timestamp, is_read FROM notifications WHERE user_id = ? ORDER BY timestamp DESC",
             [userId]
@@ -68,7 +68,7 @@ exports.getTeacherNotifications = async (req, res) => {
 };
 
 
-// ✅ Robust Mark Notification as Read for both Students and Teachers
+// Robust Mark Notification as Read for both Students and Teachers
 exports.markNotificationAsRead = async (req, res) => {
     try {
         const { id } = req.params; // Notification ID
@@ -76,8 +76,7 @@ exports.markNotificationAsRead = async (req, res) => {
 
         // Determine the authenticated user's internal ID based on role
         if (req.user.role === 'student') {
-            // For students, find their internal 'id' from 'users' table using their 'moodle_id'
-            // This is necessary because req.user.id might not always be the internal user_id directly
+           
             const [userRows] = await db.promise().query(
                 "SELECT id FROM users WHERE moodle_id = ?",
                 [req.user.moodle_id]
@@ -88,8 +87,7 @@ exports.markNotificationAsRead = async (req, res) => {
             }
             authenticatedUserId = userRows[0].id;
         } else if (req.user.role === 'teacher') {
-            // For teachers, their 'id' from the 'teachers' table is already synced to 'users.id'
-            // and should be directly available in req.user.id or req.user.internal_user_id
+            
             authenticatedUserId = req.user.internal_user_id || req.user.id;
             if (!authenticatedUserId) {
                 console.error("❌ Teacher internal user ID not found in token for marking notification.", req.user);
@@ -109,7 +107,7 @@ exports.markNotificationAsRead = async (req, res) => {
 
         if (result.affectedRows === 0) {
             // This means either the notification ID was wrong, or it didn't belong to the `authenticatedUserId`
-            console.warn(`⚠️ Notification ${id} not found or not owned by user ${authenticatedUserId}.`);
+            console.warn(`Notification ${id} not found or not owned by user ${authenticatedUserId}.`);
             return res.status(404).json({ message: "Notification not found or unauthorized" });
         }
 
@@ -120,7 +118,7 @@ exports.markNotificationAsRead = async (req, res) => {
     }
 };
 
-// ✅ Notify Students in a Course when Assignment is Created
+//  Notify Students in a Course when Assignment is Created
 exports.createAssignmentNotification = async (course_id, assignment_name, moodle_instance_id) => {
     try {
         const [students] = await db.promise().query(
@@ -139,22 +137,22 @@ exports.createAssignmentNotification = async (course_id, assignment_name, moodle
     }
 };
 
-// ✅ Notify Student when Logbook Entry is Graded
+//  Notify Student when Logbook Entry is Graded
 exports.notifyEntryGraded = async (studentId, caseNumber, grade, feedback) => {
     try {
-        const message = `✅ Your logbook entry #${caseNumber} has been graded. Grade: ${grade}.`;
+        const message = ` Your logbook entry #${caseNumber} has been graded. Grade: ${grade}.`;
         await db.promise().query(
             "INSERT INTO notifications (user_id, message, is_read) VALUES (?, ?, FALSE)",
             [studentId, message]
         );
 
-        console.log(`✅ Notified student ${studentId} about graded logbook entry: ${caseNumber}`);
+        console.log(` Notified student ${studentId} about graded logbook entry: ${caseNumber}`);
     } catch (error) {
         console.error("❌ Error sending grade notification:", error);
     }
 };
 
-// ✅ NEW: Notify Student when a New Logbook Entry is Created
+//  NEW: Notify Student when a New Logbook Entry is Created
 exports.notifyNewLogbookEntry = async (studentUserId, caseNumber) => {
     try {
          console.log(`Inside notifyNewLogbookEntry for student ${studentUserId}, case ${caseNumber}`);
@@ -163,13 +161,13 @@ exports.notifyNewLogbookEntry = async (studentUserId, caseNumber) => {
             "INSERT INTO notifications (user_id, message, is_read) VALUES (?, ?, FALSE)",
             [studentUserId, `✍️ Your new logbook entry #${caseNumber} has been successfully created.`]
         );
-        console.log(`✅ Notified student ${studentUserId} about new logbook entry: ${caseNumber}`);
+        console.log(` Notified student ${studentUserId} about new logbook entry: ${caseNumber}`);
     } catch (error) {
         console.error("❌ Error notifying student about new entry:", error);
     }
 };
 
-// ✅ NEW FUNCTION: Notify Teacher when a student submits an entry (uses internal user ID for teacher)
+//  NEW FUNCTION: Notify Teacher when a student submits an entry (uses internal user ID for teacher)
 exports.notifyTeacherOnStudentSubmission = async (courseId, studentName, caseNumber) => {
     try {
         // Find all teachers associated with this course from the 'users' table (where they are now synced)
@@ -182,33 +180,33 @@ exports.notifyTeacherOnStudentSubmission = async (courseId, studentName, caseNum
         );
 
         if (teacherUsers.length === 0) {
-            console.log(`ℹ️ No teachers found in 'users' table for course ID ${courseId}. No notification sent.`);
+            console.log(` No teachers found in 'users' table for course ID ${courseId}. No notification sent.`);
             return;
         }
 
-        const message = `🔔 Student ${studentName} has submitted a new logbook entry #${caseNumber} for grading.`; 
+        const message = ` Student ${studentName} has submitted a new logbook entry #${caseNumber} for grading.`; 
 
         for (const teacher of teacherUsers) {
             await db.promise().query(
                 "INSERT INTO notifications (user_id, message, is_read) VALUES (?, ?, FALSE)",
                 [teacher.id, message] // Use the internal teacher.id from the 'users' table
             );
-            console.log(`✅ Notified teacher ${teacher.id} about student submission: ${studentName}, entry #${caseNumber}`);
+            console.log(` Notified teacher ${teacher.id} about student submission: ${studentName}, entry #${caseNumber}`);
         }
     } catch (error) {
         console.error("❌ Error notifying teachers about student submission:", error);
     }
 };
 
-// ✅ NEW FUNCTION: Notify Student when Resubmission is Allowed
+//  NEW FUNCTION: Notify Student when Resubmission is Allowed
 exports.notifyResubmissionAllowed = async (studentId, caseNumber) => {
     try {
-        const message = `📝 Your logbook entry #${caseNumber} is now open for resubmission!`;
+        const message = ` Your logbook entry #${caseNumber} is now open for resubmission!`;
         await db.promise().query(
             "INSERT INTO notifications (user_id, message, is_read) VALUES (?, ?, FALSE)",
             [studentId, message]
         );
-        console.log(`✅ Notified student ${studentId} about resubmission allowed for entry ${caseNumber}`);
+        console.log(` Notified student ${studentId} about resubmission allowed for entry ${caseNumber}`);
     } catch (error) {
         console.error("❌ Error notifying student about resubmission allowed:", error);
     }
