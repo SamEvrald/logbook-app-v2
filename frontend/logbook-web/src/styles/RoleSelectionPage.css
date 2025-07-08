@@ -1,26 +1,21 @@
-/* src/styles/RoleSelectionPage.css */
-
 .role-container {
-    text-align: center;
-    padding: 20px;
-    min-height: 100vh; /* Make sure it takes full viewport height */
-    display: flex; /* Use flexbox to center content */
-    flex-direction: column;
-    justify-content: space-between; /* Center content vertically */
-    align-items: center; /* Center content horizontally */
-    box-sizing: border-box; /* Include padding in height calculation */
-    position: relative; /* Needed for background and overlay */
-    overflow: hidden; /* Hide any overflow from background-size: cover */
-
-    /* ✅ Using the relative path that successfully resolved the image during compilation */
-    background-image: url('../../public/bg3.jpg'); 
-    background-size: cover; 
-    background-position: center;
-    background-repeat: no-repeat; 
-    background-attachment: fixed; 
+  text-align: center;
+  padding: 20px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+  background-image: url('../../public/bg3.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 
-/* ✅ Dark Overlay for Readability */
 .role-container::before {
   content: "";
   position: absolute;
@@ -28,150 +23,127 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.4); /* Semi-transparent dark overlay */
-  z-index: 1; /* Place overlay behind content but above background image */
+  background-color: rgba(0, 0, 0, 0.4);
+  z-index: 1;
 }
-  
-/* Ensure headings are above the overlay and are white for contrast */
-/* h2, h4 {
-    position: relative; 
-    z-index: 2; 
-    color: #27ae60; 
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7); 
-}
-
-h2 {
-    font-size: 24px;
-    font-weight: bold;
-    margin-bottom: 10px; 
-}
-
-h4 {
-    font-size: 18px; 
-    margin-top: 0; 
-    margin-bottom: 20px; 
-} */
 
 .heading-highlight {
-    position: relative; 
-    z-index: 2; 
-    color: #27ae60; 
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7); 
+  position: relative;
+  z-index: 2;
+  color: #27ae60;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
 }
 
 .heading-highlight.h2 {
-    font-size: 24px;
-    font-weight: bold;
-    margin-bottom: 10px; 
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 10px;
 }
 
 .heading-highlight.h4 {
-    font-size: 18px; 
-    margin-top: 0; 
-    margin-bottom: 20px; 
-}
-  
-.role-buttons {
-    margin-bottom: 15px;
-    display: flex; 
-    flex-direction: column; 
-    gap: 10px; 
-    position: relative; 
-    z-index: 2; 
-    width: 100%; 
-    max-width: 250px; 
+  font-size: 18px;
+  margin-top: 0;
+  margin-bottom: 20px;
 }
 
-/* Individual button styles (preserved from your original CSS) */
+.role-buttons {
+  margin-bottom: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 250px;
+}
+
 button {
-    padding: 12px 20px;
-    border-radius: 5px;
-    font-size: 16px;
-    border: none;
-    cursor: pointer;
-    transition: 0.3s;
-    font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  padding: 12px 20px;
+  border-radius: 5px;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+  transition: 0.3s;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 button:hover {
-    transform: translateY(-1px); 
-    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
-  
-.btn.student { 
-    background-color: #27ae60;
-    color: white;
+
+.btn.student {
+  background-color: #27ae60;
+  color: white;
 }
-  
+
 .btn.student:hover {
-    background-color: #219150;
+  background-color: #219150;
 }
-  
-.btn.teacher { 
-    background-color: #2980b9;
-    color: white;
+
+.btn.teacher {
+  background-color: #2980b9;
+  color: white;
 }
-  
+
 .btn.teacher:hover {
-    background-color: #216a94;
+  background-color: #216a94;
 }
-  
-.btn.signup { 
-    background-color: #f1c40f;
-    color: white;
+
+.btn.signup {
+  background-color: #f1c40f;
+  color: white;
 }
-  
+
 .btn.signup:hover {
-    background-color: #d4ac0d;
+  background-color: #d4ac0d;
 }
-  
-.btn.admin { 
-    background-color: #e74c3c;
-    color: white;
+
+.btn.admin {
+  background-color: #e74c3c;
+  color: white;
 }
-  
+
 .btn.admin:hover {
-    background-color: #c0392b;
+  background-color: #c0392b;
 }
-  
-.btn.admin-signup { 
-    background-color: #8e44ad;
-    color: white;
+
+.btn.admin-signup {
+  background-color: #8e44ad;
+  color: white;
 }
-  
+
 .btn.admin-signup:hover {
-    background-color: #732d91;
+  background-color: #732d91;
 }
 
-/* Footer specific adjustments for this page */
 .role-container .footer-container {
-  margin-top: auto; 
-  position: relative; 
+  margin-top: auto;
+  position: relative;
   z-index: 2;
-  color: white; 
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-  background: none; 
-  border-top: none; 
+  color: white;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  background: none;
+  border-top: none;
 }
 
-/* Basic responsive adjustments if needed, though fullscreen is quite adaptable */
 @media (max-width: 768px) {
-    .role-buttons {
-        max-width: 90%; 
-    }
+  .role-buttons {
+    max-width: 90%;
+  }
 }
 .main-content-wrapper {
-    flex-grow: 1; /* Allow this wrapper to take up available space */
-    display: flex;
-    flex-direction: column;
-    justify-content: center; /* Center its children vertically */
-    align-items: center; /* Center its children horizontally */
-    width: 100%; /* Take full width */
-    padding: 20px; /* Add padding back here for the main content */
-    box-sizing: border-box;
-    position: relative; /* For z-index */
-    z-index: 2; /* Ensure it's above the overlay */
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 2;
 }
