@@ -4,12 +4,12 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
 
-// ✅ Fetch Admin Profile
+// Fetch Admin Profile
 exports.getAdminProfile = async (req, res) => {
   res.status(200).json({ username: req.user.username, email: req.user.email });
 };
 
-// ✅ Remove a course from a teacher
+// Remove a course from a teacher
 exports.removeCourseFromTeacher = async (req, res) => {
   const { teacher_id, course_id } = req.body;
 
@@ -26,10 +26,10 @@ exports.removeCourseFromTeacher = async (req, res) => {
   }
 };
 
-// ✅ Fetch all courses from Moodle
+// Fetch all courses from Moodle
 exports.getAllCourses = async (req, res) => {
   try {
-    const { moodle_instance_id } = req.query; // ✅ Get moodle_instance_id from request
+    const { moodle_instance_id } = req.query; // Get moodle_instance_id from request
 
     let query = `
       SELECT c.id, c.fullname, c.shortname, c.moodle_instance_id, m.name AS moodle_instance_name
@@ -57,7 +57,7 @@ exports.getAllCourses = async (req, res) => {
 
 
 
-// ✅ Assign a course to a teacher
+// Assign a course to a teacher
 exports.assignCourseToTeacher = async (req, res) => {
   const { teacher_id, course_id, moodle_instance_id } = req.body;
 
@@ -69,7 +69,7 @@ exports.assignCourseToTeacher = async (req, res) => {
   }
 
   try {
-    // ✅ Check if the teacher exists
+    // Check if the teacher exists
     const [teacherRows] = await db.promise().query(
       "SELECT id, username, moodle_instance_id FROM teachers WHERE id = ?",
       [teacher_id]
@@ -81,7 +81,7 @@ exports.assignCourseToTeacher = async (req, res) => {
 
     const teacher = teacherRows[0];
 
-    // ✅ Ensure the course exists in the local database
+    // Ensure the course exists in the local database
     let [courseRows] = await db.promise().query(
       "SELECT id, moodle_instance_id FROM courses WHERE id = ?",
       [course_id]
@@ -90,7 +90,7 @@ exports.assignCourseToTeacher = async (req, res) => {
     if (courseRows.length === 0) {
       console.log(`⚠️ Course ID ${course_id} not found locally. Fetching from Moodle...`);
 
-      // ✅ Get Moodle instance details
+      // Get Moodle instance details
       const [instanceRows] = await db.promise().query("SELECT * FROM moodle_instances WHERE id = ?", [moodle_instance_id]);
 
       if (instanceRows.length === 0) {
@@ -99,7 +99,7 @@ exports.assignCourseToTeacher = async (req, res) => {
 
       const moodleInstance = instanceRows[0];
 
-      // ✅ Fetch course from Moodle
+      // Fetch course from Moodle
       const moodleResponse = await axios.get(`${moodleInstance.base_url}/webservice/rest/server.php`, {
         params: {
           wstoken: moodleInstance.api_token,
@@ -115,21 +115,21 @@ exports.assignCourseToTeacher = async (req, res) => {
         return res.status(400).json({ message: `Course ID ${course_id} does not exist in Moodle.` });
       }
 
-      console.log(`✅ Course Found in Moodle: ${foundCourse.fullname}`);
+      console.log(` Course Found in Moodle: ${foundCourse.fullname}`);
 
-      // ✅ Insert course into the local database
+      // Insert course into the local database
       await db.promise().query(
         `INSERT INTO courses (id, fullname, shortname, moodle_instance_id) VALUES (?, ?, ?, ?)`,
         [foundCourse.id, foundCourse.fullname, foundCourse.shortname, moodle_instance_id]
       );
 
-      console.log(`✅ Course ${foundCourse.fullname} inserted into local database.`);
+      console.log(`Course ${foundCourse.fullname} inserted into local database.`);
       
-      // ✅ Fetch the inserted course data again
+      // Fetch the inserted course data again
       courseRows = [{ id: foundCourse.id, moodle_instance_id }];
     }
 
-    // ✅ Allow teachers to be assigned to courses from ANY Moodle instance
+    // Allow teachers to be assigned to courses from ANY Moodle instance
     await db.promise().query(
       `INSERT INTO teacher_courses (teacher_id, course_id, moodle_instance_id) 
        VALUES (?, ?, ?) 
@@ -137,8 +137,8 @@ exports.assignCourseToTeacher = async (req, res) => {
       [teacher_id, course_id, moodle_instance_id]
     );
 
-    console.log("✅ Course assigned successfully! Notify the frontend.");
-    res.status(200).json({ message: "✅ Course assigned successfully! You can now log in." });
+    console.log("Course assigned successfully! Notify the frontend.");
+    res.status(200).json({ message: "Course assigned successfully! You can now log in." });
 
   } catch (error) {
     console.error("❌ Database error:", error);
@@ -165,7 +165,7 @@ exports.assignCourseToTeacher = async (req, res) => {
 };
   
 
-// ✅ Get all courses assigned to a specific teacher
+// Get all courses assigned to a specific teacher
 exports.getTeacherCourses = async (req, res) => {
   const { teacher_id } = req.params;
 
@@ -184,7 +184,7 @@ exports.getTeacherCourses = async (req, res) => {
   }
 };
 
-// ✅ Get all teachers and their assigned courses
+// Get all teachers and their assigned courses
 exports.getTeachersWithCourses = async (req, res) => {
   try {
     const [results] = await db.promise().query(
@@ -200,7 +200,7 @@ exports.getTeachersWithCourses = async (req, res) => {
   }
 };
 
-// ✅ Admin Signup
+// Admin Signup
 exports.signupAdmin = async (req, res) => {
   const { username, email, password } = req.body;
 
@@ -222,7 +222,7 @@ exports.signupAdmin = async (req, res) => {
   }
 };
 
-// ✅ Admin Login
+// Admin Login
 exports.loginAdmin = async (req, res) => {
   const { email, password } = req.body;
 
@@ -255,7 +255,7 @@ exports.loginAdmin = async (req, res) => {
   }
 };
 
-// ✅ Get All Teachers (For Dropdown in Admin Panel)
+// Get All Teachers (For Dropdown in Admin Panel)
 exports.getAllTeachers = async (req, res) => {
     try {
       const [teachers] = await db.promise().query(
@@ -267,31 +267,8 @@ exports.getAllTeachers = async (req, res) => {
       res.status(500).json({ message: "Failed to fetch teachers", error: error.message });
     }
   };
-  // ✅ Get all logbook entries
-  // exports.getAllEntries = async (req, res) => {
-  //   try {
-  //       const [entries] = await db.promise().query(
-  //           `SELECT le.id, le.case_number, le.entry_date, 
-  //                   s.username AS student, c.fullname AS course, 
-  //                   le.type_of_work, le.grade, le.feedback, le.status, 
-  //                   le.media_link  -- ✅ Include media_link field
-  //            FROM logbook_entries le
-  //            JOIN users s ON le.student_id = s.id
-  //            JOIN courses c ON le.course_id = c.id
-  //            ORDER BY le.entry_date DESC`
-  //       );
-  
-  //       res.json(entries);
-  //   } catch (error) {
-  //       console.error("❌ Database error:", error);
-  //       res.status(500).json({ message: "Failed to fetch logbook entries", error: error.message });
-  //   }
-  // };
-  
-  
-// ... (Your existing imports at the top of the file) ...
 
-// ✅ Get all logbook entries (CORRECTED - Removed non-existent teacher_id join)
+// Get all logbook entries (CORRECTED - Removed non-existent teacher_id join)
 exports.getAllEntries = async (req, res) => {
   try {
     const [entries] = await db.promise().query(
@@ -330,8 +307,6 @@ exports.getAllEntries = async (req, res) => {
   }
 };
 
-// ✅ NEW ANALYTICS CONTROLLERS START HERE (Adhering to your table structure)
-
 // Get Total Number of Students
 exports.getTotalStudents = async (req, res) => {
     try {
@@ -367,7 +342,7 @@ exports.getEntriesPerCourse = async (req, res) => {
 
 // Get Number of Entries by Month (for a given year, or overall)
 exports.getEntriesByMonth = async (req, res) => {
-    // You can optionally add a 'year' query parameter: /api/admin/analytics/entries-by-month?year=2023
+  
     const year = req.query.year || new Date().getFullYear(); // Default to current year
 
     try {
@@ -396,7 +371,6 @@ exports.getEntriesByMonth = async (req, res) => {
     }
 };
 
-// Get Summary of Entry Status (Submitted, Graded, Synced, Draft - though draft entries likely not saved)
 exports.getEntryStatusSummary = async (req, res) => {
     try {
         const [results] = await db.promise().query(
@@ -406,12 +380,12 @@ exports.getEntryStatusSummary = async (req, res) => {
              FROM logbook_entries
              GROUP BY status`
         );
-        // Map to a more readable format for frontend if needed, or ensure all statuses are represented
+       
         const statusSummary = {
             submitted: 0,
             //graded: 0,
             synced: 0,
-            // Assuming 'draft' isn't a primary status stored in logbook_entries that would need explicit count
+           
         };
         results.forEach(item => {
             if (statusSummary.hasOwnProperty(item.status)) {
@@ -433,9 +407,7 @@ exports.getEntryStatusSummary = async (req, res) => {
     }
 };
 
-// ✅ NEW ANALYTICS CONTROLLERS END HERE
 
-// ✅ NEW ANALYTICS CONTROLLERS (Student-Specific) START HERE
 
 // Get All Students (for dropdown)
 exports.getAllStudents = async (req, res) => {
@@ -515,4 +487,4 @@ exports.getStudentEntryStatusSummary = async (req, res) => {
     }
 };
 
-// ✅ NEW ANALYTICS CONTROLLERS (Student-Specific) END HERE
+
