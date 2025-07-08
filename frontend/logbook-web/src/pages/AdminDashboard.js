@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import API from "../api/api";
-import { FaBell, FaBars, FaTimes } from "react-icons/fa"; // ✅ Import FaBars and FaTimes
-import "../styles/AdminDashboard.css"; // ✅ Import CSS
-import Footer from "../components/Footer"; // ✅ Import Footer
-import TopBar from "../components/Shared/TopBar"; // ✅ Import TopBar
+import { FaBell, FaBars, FaTimes } from "react-icons/fa"; 
+import "../styles/AdminDashboard.css"; 
+import Footer from "../components/Footer"; 
+import TopBar from "../components/Shared/TopBar"; 
 
-// ✅ Import Recharts components
+
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   PieChart, Pie, Cell, LineChart, Line
@@ -28,16 +28,15 @@ const AdminDashboard = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("entry_date");
   const [message, setMessage] = useState("");
-  const [moodleInstances, setMoodleInstances] = useState([]); // ✅ Store Moodle instances
-  const [selectedMoodleInstance, setSelectedMoodleInstance] = useState(""); // ✅ Track selected Moodle instance
+  const [moodleInstances, setMoodleInstances] = useState([]); 
+  const [selectedMoodleInstance, setSelectedMoodleInstance] = useState(""); 
 
-  // These seem redundant if `teachers` and `courses` are used directly
-  // Consider removing if not explicitly used, or clarify their purpose.
-  const [allStudents, setAllStudents] = useState([]); // This is not being fetched in your current code. You would need a fetchAllStudents function.
-  const [allTeachers, setAllTeachers] = useState([]); // This is similar to `teachers` state, potential redundancy.
-  const [allCourses, setAllCourses] = useState([]);   // This is similar to `courses` state, potential redundancy.
+  
+  const [allStudents, setAllStudents] = useState([]); 
+  const [allTeachers, setAllTeachers] = useState([]); 
+  const [allCourses, setAllCourses] = useState([]);   
 
-    // ✅ NEW ANALYTICS STATES
+    //ANALYTICS STATES
   const [totalStudents, setTotalStudents] = useState(0);
   const [entriesPerCourseData, setEntriesPerCourseData] = useState([]);
   const [entriesByMonthData, setEntriesByMonthData] = useState([]);
@@ -46,16 +45,16 @@ const AdminDashboard = () => {
   // Colors for Pie Chart
   const PIE_COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF'];
 
-   // ✅ NEW STATE: To control panel visibility
+   //  NEW STATE: To control panel visibility
   const [isPanelHidden, setIsPanelHidden] = useState(false); // true to hide by default
 
   
-  // ✅ Pagination state
+  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const entriesPerPage = 5;
-  const [showProfileMenu, setShowProfileMenu] = useState(false); // ✅ Profile Dropdown
+  const [showProfileMenu, setShowProfileMenu] = useState(false); 
 
-  // ✅ NEW STATE: To control which view is displayed
+  
   const [currentView, setCurrentView] = useState("logbookEntries"); // Default view: Logbook Entries
 
   // Helper function to format media links for CSV (same as before)
@@ -113,15 +112,15 @@ const AdminDashboard = () => {
   // Helper function to format feedback for CSV (modified to clean up UI elements as discussed previously)
   const formatFeedbackForCsv = (feedbackText) => {
     if (!feedbackText) return "No feedback yet";
-    // Remove the "📎 [View Teacher Media](URL)" part
+    
     let cleanedFeedback = feedbackText;
     const linkPattern = /📎\s*\[View Teacher Media\]\s*\([^)]+\)/;
     if (linkPattern.test(feedbackText)) {
       cleanedFeedback = feedbackText.replace(linkPattern, "").trim();
     }
-    // Escape double quotes by replacing them with two double quotes, and wrap in quotes if contains commas or newlines
+    
     const escapedFeedback = cleanedFeedback.replace(/"/g, '""');
-    return `"${escapedFeedback}"`; // Ensure the whole string is quoted
+    return `"${escapedFeedback}"`; 
   };
 
   // Helper function to format status for CSV (same as before)
@@ -136,7 +135,7 @@ const AdminDashboard = () => {
     return status;
   };
 
-  // ✅ Handle Export to CSV for Admin Dashboard
+  // Handle Export to CSV for Admin Dashboard
   const handleExportCsv = () => {
     if (filteredEntries.length === 0) {
       setMessage("No entries to export.");
@@ -154,7 +153,7 @@ const AdminDashboard = () => {
       "Student ID",
       "Course Name",
       "Course ID",
-      "Assigned Teacher", // This refers to the teacher associated with *this specific entry*
+      "Assigned Teacher", 
       "Teacher ID",
       "Activity",
       "Task",
@@ -173,12 +172,10 @@ const AdminDashboard = () => {
     csvRows.push(headers.map((header) => `"${header}"`).join(",")); // Add header row, quoted
 
     filteredEntries.forEach((entry) => {
-      // Find full student and teacher details if necessary, using IDs
-      // Note: allStudents and allTeachers are not currently fetched in your useEffects.
-      // If you want accurate names from these lists, you'll need to fetch them.
+    
       const studentInfo = allStudents.find((s) => s.id === entry.student_id);
       const teacherInfo = allTeachers.find((t) => t.id === entry.teacher_id);
-      const courseInfo = allCourses.find((c) => c.id === entry.course_id); // Assuming allCourses is populated
+      const courseInfo = allCourses.find((c) => c.id === entry.course_id); 
 
       const row = [
         `"${entry.id || ""}"`,
@@ -189,11 +186,11 @@ const AdminDashboard = () => {
             ? new Date(entry.work_completed_date).toLocaleDateString("en-GB")
             : "Not Provided"
         }"`,
-        `"${studentInfo?.username || entry.student || "Unknown"}"`, // Use studentInfo if available, fallback to entry.student
+        `"${studentInfo?.username || entry.student || "Unknown"}"`, 
         `"${entry.student_id || ""}"`,
-        `"${courseInfo?.fullname || entry.course || "Unknown"}"`, // Use courseInfo if available, fallback to entry.course
+        `"${courseInfo?.fullname || entry.course || "Unknown"}"`, 
         `"${entry.course_id || ""}"`,
-        `"${teacherInfo?.username || entry.teacher_name || "Unknown"}"`, // Use teacherInfo if available, fallback to entry.teacher_name
+        `"${teacherInfo?.username || entry.teacher_name || "Unknown"}"`, 
         `"${entry.teacher_id || ""}"`,
         `"${entry.type_of_work || ""}"`,
         `"${entry.task_type || ''}"`,
@@ -202,7 +199,7 @@ const AdminDashboard = () => {
         `"${entry.consent_form === "yes" ? "Yes" : "No"}"`,
         `"${entry.clinical_info || "No Info"}"`,
         `"${entry.grade !== null ? entry.grade : "N/A"}"`,
-        formatFeedbackForCsv(entry.feedback), // Includes full feedback text with potential URLs
+        formatFeedbackForCsv(entry.feedback), 
         `"${formatStatusForCsv(entry.status)}"`,
         `"${entry.allow_resubmit ? "Yes" : "No"}"`,
       ];
@@ -214,14 +211,14 @@ const AdminDashboard = () => {
 
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.setAttribute("download", "admin_logbook_entries_detailed.csv"); // Distinct filename
+    link.setAttribute("download", "admin_logbook_entries_detailed.csv"); 
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(link.href);
   };
 
-  // ✅ Handle Search
+  // Handle Search
   const handleSearch = (query) => {
     setSearchQuery(query);
     const filtered = entries.filter(
@@ -234,7 +231,7 @@ const AdminDashboard = () => {
     setFilteredEntries(filtered);
   };
 
-  // ✅ Handle Sorting
+  //  Handle Sorting
   const handleSort = (criteria) => {
     setSortBy(criteria);
 
@@ -269,7 +266,7 @@ const AdminDashboard = () => {
     setFilteredEntries(sorted);
   };
 
-  // // ✅ Logout Function
+  //  Logout Function
   const handleLogout = () => {
     localStorage.removeItem("user");
     localStorage.removeItem("courses");
@@ -277,11 +274,11 @@ const AdminDashboard = () => {
     navigate("/login");
   };
 
-  // ✅ NEW: Toggle function for the left panel
+  // Toggle function for the left panel
   const togglePanel = () => {
     setIsPanelHidden(!isPanelHidden);
   };
-  // ✅ Pagination Logic
+  // Pagination Logic
   const indexOfLastEntry = currentPage * entriesPerPage;
   const indexOfFirstEntry = indexOfLastEntry - entriesPerPage;
   const currentEntries = Array.isArray(filteredEntries)
@@ -300,12 +297,12 @@ const AdminDashboard = () => {
 
   const fetchMoodleInstances = async () => {
     try {
-      console.log("🔍 Fetching Moodle instances...");
+      console.log(" Fetching Moodle instances...");
       const response = await API.get("/moodle/instances", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      console.log("✅ Moodle Instances Fetched:", response.data);
+      console.log(" Moodle Instances Fetched:", response.data);
       setMoodleInstances(response.data);
     } catch (error) {
       console.error(
@@ -315,18 +312,18 @@ const AdminDashboard = () => {
     }
   };
 
-  // ✅ Fetch Logbook Entries (MODIFIED to run only when needed)
+  // Fetch Logbook Entries (MODIFIED to run only when needed)
   const fetchEntries = async () => {
     try {
       const response = await API.get("/admin/entries", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      // ✅ CORRECTED LINE: Access the 'entries' array from response.data
+      
       const fetchedEntries = response.data.entries || [];
 
       setEntries(fetchedEntries);
-      setFilteredEntries(fetchedEntries); // This will now correctly be an array
+      setFilteredEntries(fetchedEntries);
     } catch (error) {
       console.error(
         "❌ Failed to fetch entries:",
@@ -336,7 +333,7 @@ const AdminDashboard = () => {
     }
   };
 
-  // ✅ Fetch Teachers
+  //  Fetch Teachers
   const fetchTeachers = async () => {
     try {
       const response = await API.get("/admin/teachers", {
@@ -344,7 +341,7 @@ const AdminDashboard = () => {
       });
 
       setTeachers(Array.isArray(response.data) ? response.data : []);
-      setAllTeachers(Array.isArray(response.data) ? response.data : []); // Populate allTeachers for export
+      setAllTeachers(Array.isArray(response.data) ? response.data : []); 
     } catch (error) {
       console.error("Failed to fetch teachers:", error);
       setTeachers([]);
@@ -352,17 +349,17 @@ const AdminDashboard = () => {
     }
   };
 
-  // ✅ Fetch Courses
+  // Fetch Courses
   const fetchCourses = async (moodleInstanceId) => {
     if (!moodleInstanceId) {
       console.warn("⚠️ No Moodle instance selected. Skipping course fetch.");
       setCourses([]);
-      setAllCourses([]); // Clear allCourses as well
+      setAllCourses([]); 
       return;
     }
 
     try {
-      console.log(`🔍 Fetching courses for Moodle Instance ID: ${moodleInstanceId}`);
+      console.log(` Fetching courses for Moodle Instance ID: ${moodleInstanceId}`);
 
       const response = await API.get(
         `/admin/courses?moodle_instance_id=${moodleInstanceId}`,
@@ -378,7 +375,7 @@ const AdminDashboard = () => {
         return;
       }
 
-      // ✅ Extract courses from response (check if API is returning a nested structure)
+      // Extract courses from response (check if API is returning a nested structure)
       const extractedCourses = Object.values(response.data).flat();
 
       if (!Array.isArray(extractedCourses) || extractedCourses.length === 0) {
@@ -390,7 +387,7 @@ const AdminDashboard = () => {
 
       setCourses(extractedCourses);
       setAllCourses(extractedCourses); // Populate allCourses for export
-      console.log(`✅ Courses fetched successfully:`, extractedCourses);
+      console.log(` Courses fetched successfully:`, extractedCourses);
     } catch (error) {
       console.error("❌ Failed to fetch courses:", error.response?.data || error.message);
       setCourses([]);
@@ -398,7 +395,7 @@ const AdminDashboard = () => {
     }
   };
 
-  // ✅ Assign Course to Teacher
+  //  Assign Course to Teacher
   const handleAssignCourse = async () => {
     if (!selectedTeacher || !selectedCourse || !selectedMoodleInstance) {
       showCustomMessageBox("❌ Please select a teacher, course, and Moodle instance.", 'error');
@@ -414,26 +411,26 @@ const AdminDashboard = () => {
 
       showCustomMessageBox(" Course assigned successfully!");
 
-      // ✅ Reset fields after success
+      //  Reset fields after success
       setSelectedTeacher("");
       setSelectedCourse("");
       setSelectedMoodleInstance("");
 
-      // ✅ Refresh the teacher list
+      //  Refresh the teacher list
       fetchTeachers();
 
-      // ✅ Automatically clear the message after 3 seconds
+      //  Automatically clear the message after 3 seconds
       setTimeout(() => setMessage(""), 3000);
     } catch (error) {
       console.error("❌ Failed to assign course:", error);
       setMessage("❌ Failed to assign course. Please try again.");
 
-      // ✅ Automatically clear the message after 3 seconds
+      //  Automatically clear the message after 3 seconds
       setTimeout(() => setMessage(""), 3000);
     }
   };
 
-  // ✅ NEW: Fetch Analytics Data
+  // Fetch Analytics Data
   const fetchAnalyticsData = useCallback(async () => {
     try {
       setMessage("Loading analytics...");
@@ -473,14 +470,14 @@ const AdminDashboard = () => {
     // Fetch entries only when the logbookEntries view is active
     if (currentView === "logbookEntries") {
       fetchEntries();
-    } else if (currentView === "analytics") { // ✅ Fetch analytics when this view is active
+    } else if (currentView === "analytics") { 
       fetchAnalyticsData();
     }
     // Fetch teachers and moodle instances once on component mount,
     // as they are needed for the "Assign Courses" section regardless of initial view.
     fetchTeachers();
     fetchMoodleInstances();
-  }, [token, navigate, currentView]); // Added currentView to dependencies to re-fetch entries when switching to it
+  }, [token, navigate, currentView]); 
 
   // Fetch courses whenever selected Moodle instance changes
   useEffect(() => {
@@ -523,14 +520,13 @@ const AdminDashboard = () => {
 
       {/* Main Container for Panels - Apply class based on panel state */}
       <div className={`dashboard-panels-container ${isPanelHidden ? "panel-hidden" : ""}`}>
-         {/* ✅ NEW LOCATION FOR PANEL TOGGLE ICON */}
-        {/* This wrapper will be positioned to appear next to 'Admin Actions' */}
+        
         <div className="panel-toggle-wrapper">
           <div className="panel-toggle-icon" onClick={togglePanel}>
             {isPanelHidden ? <FaBars title="Show Menu" /> : <FaTimes title="Hide Menu" />}
           </div>
         </div>
-        {/* Left Navigation Panel - Conditionally render */}
+        
         {!isPanelHidden && (
           <div className="left-panel">
             <h3>Admin Actions</h3>
@@ -548,18 +544,18 @@ const AdminDashboard = () => {
             </button>
             <button
               className={currentView === "createTeacher" ? "active" : ""}
-              onClick={() => navigate("/signup/teacher")} /* Direct navigation from here */
+              onClick={() => navigate("/signup/teacher")} 
             >
               Create Teacher
             </button>
             <button
               className={currentView === "createAdmin" ? "active" : ""}
-              onClick={() => navigate("/signup/admin")} /* Direct navigation from here */
+              onClick={() => navigate("/signup/admin")} 
             >
               Create Admin
             </button>
 
-            {/* ✅ NEW: Analytics Button */}
+           
             <button
               className={currentView === "analytics" ? "active" : ""}
               onClick={() => setCurrentView("analytics")}
@@ -569,9 +565,9 @@ const AdminDashboard = () => {
           </div>
         )}
 
-        {/* Main Content Area - Expands when panel is hidden */}
+       
         <div className="main-content-panel">
-          {/* Your existing conditional rendering for currentView */}
+          
           {currentView === "logbookEntries" && (
             <>
               <h3>    Logbook Entries</h3>
@@ -700,10 +696,7 @@ const AdminDashboard = () => {
             </>
           )}
 
-          {/* Moved direct navigation to buttons, so removed these divs */}
-          {/* The createTeacher/createAdmin buttons in the left panel now directly navigate */}
-
-           {/* ✅ NEW: Analytics View */}
+     
           {currentView === "analytics" && (
             <div className="analytics-section">
               <h3>Dashboard Analytics</h3>
