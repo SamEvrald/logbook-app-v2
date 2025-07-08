@@ -14,7 +14,7 @@ exports.login = async (req, res) => {
       return res.status(400).json({ message: "Moodle instance ID is required." });
     }
 
-    // ✅ Fetch the correct Moodle instance from the database
+    //  Fetch the correct Moodle instance from the database
     const [instanceRows] = await db.promise().query("SELECT * FROM moodle_instances WHERE id = ?", [moodle_instance_id]);
 
     if (instanceRows.length === 0) {
@@ -24,10 +24,10 @@ exports.login = async (req, res) => {
 
     const moodleInstance = instanceRows[0];
 
-    console.log(`🌍 Moodle Base URL: ${moodleInstance.base_url}`);
-    console.log(`🔑 Moodle API Token: ${moodleInstance.api_token}`);
+    console.log(`Moodle Base URL: ${moodleInstance.base_url}`);
+    console.log(`Moodle API Token: ${moodleInstance.api_token}`);
 
-    // ✅ Authenticate with Moodle
+    //  Authenticate with Moodle
     const tokenResponse = await axios.get(`${moodleInstance.base_url}/login/token.php`, {
       params: { username, password, service: "moodle_mobile_app" },
     });
@@ -39,7 +39,7 @@ exports.login = async (req, res) => {
 
     const moodleToken = tokenResponse.data.token;
 
-    // ✅ Fetch User Info from Moodle
+    // Fetch User Info from Moodle
     const userInfoResponse = await axios.get(`${moodleInstance.base_url}/webservice/rest/server.php`, {
       params: {
         wstoken: moodleToken,
@@ -54,10 +54,10 @@ exports.login = async (req, res) => {
       return res.status(400).json({ message: "Student ID (Moodle ID) is missing." });
     }
 
-    console.log(`✅ Moodle User ID: ${userInfo.userid}`);
+    console.log(` Moodle User ID: ${userInfo.userid}`);
 
-    // ✅ Save/Update User in Database (ensure moodle_instance_id is saved here too)
-    // Make sure your 'users' table has `moodle_id` and `moodle_instance_id` columns.
+    //  Save/Update User in Database (ensure moodle_instance_id is saved here too)
+  
     const user = {
       username: userInfo.username,
       fullname: userInfo.fullname,
@@ -75,7 +75,7 @@ exports.login = async (req, res) => {
       [user.username, user.role, user.moodle_id, moodle_instance_id]
     );
 
-    // ✅ Generate JWT Token (Your original payload was correct)
+    //  Generate JWT Token (Your original payload was correct)
     const tokenPayload = { 
       moodle_id: user.moodle_id, 
       username: user.username, 
@@ -87,7 +87,7 @@ exports.login = async (req, res) => {
 
     const token = jwt.sign(tokenPayload, process.env.JWT_SECRET, { expiresIn: "1d" });
 
-    // ✅ Send Response - FIX IS HERE: Include moodle_instance_id in the 'user' object
+   
     res.status(200).json({
       message: "Login successful",
       user: { // This 'user' object is what gets stored in localStorage on the frontend
@@ -95,11 +95,9 @@ exports.login = async (req, res) => {
         fullname: user.fullname,
         moodle_id: user.moodle_id,
         role: "student",
-        moodle_instance_id: moodle_instance_id, // ✅ ADDED THIS LINE
+        moodle_instance_id: moodle_instance_id, 
       },
       token,
-      // courses: [], // You can remove this or keep it based on your actual API design
-      // moodle_instance_id, // This top-level return is now redundant as it's in `user` object
     });
 
   } catch (err) {
@@ -109,7 +107,7 @@ exports.login = async (req, res) => {
 };
 
 
-// ✅ Teacher Login via Manual Credentials (No changes needed here based on the student login issue)
+// Teacher Login via Manual Credentials 
 exports.teacherLogin = async (req, res) => {
   const { username, password } = req.body;
 
@@ -125,12 +123,12 @@ exports.teacherLogin = async (req, res) => {
 
     const user = results[0];
 
-    // ✅ Validate password (You should hash and compare passwords if stored securely)
+    // Validate password
     if (user.password !== password) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // ✅ Generate JWT Token
+    //  Generate JWT Token
     const token = jwt.sign(
       { userId: user.id, username: user.username, role: "teacher" },
       process.env.JWT_SECRET,
