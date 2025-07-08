@@ -6,8 +6,8 @@ exports.getStudentCourses = async (req, res) => {
   try {
     const { moodle_id, moodle_instance_id } = req.user; 
 
-    console.log(`🔍 Fetching courses for Student ID: ${moodle_id}`);
-    console.log(`🌍 Moodle Instance ID from Token: ${moodle_instance_id}`);
+    console.log(` Fetching courses for Student ID: ${moodle_id}`);
+    console.log(` Moodle Instance ID from Token: ${moodle_instance_id}`);
 
     if (!moodle_instance_id) {
       console.error("❌ moodle_instance_id is missing in JWT token.");
