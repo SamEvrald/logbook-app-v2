@@ -7,19 +7,19 @@ import TopBar from "../components/Shared/TopBar";
 const StudentLoginPage = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [moodleInstances, setMoodleInstances] = useState([]); // ✅ Store Moodle instances
-  const [selectedInstance, setSelectedInstance] = useState(""); // ✅ Track selected instance
+  const [moodleInstances, setMoodleInstances] = useState([]); 
+  const [selectedInstance, setSelectedInstance] = useState(""); 
   const [error, setError] = useState("");
 
   const navigate = useNavigate();
 
-  // ✅ Fetch Moodle instances from backend
+  // Fetch Moodle instances from backend
   useEffect(() => {
     const fetchMoodleInstances = async () => {
       try {
-        console.log("🔍 Fetching Moodle instances...");
+        console.log(" Fetching Moodle instances...");
         const response = await API.get("/moodle/instances");
-        console.log("✅ Moodle Instances Fetched:", response.data);
+        console.log(" Moodle Instances Fetched:", response.data);
         setMoodleInstances(response.data);
       } catch (error) {
         console.error("❌ Failed to fetch Moodle instances:", error.response?.data || error.message);
@@ -38,7 +38,7 @@ const StudentLoginPage = () => {
       return;
     }
   
-    // ✅ Find the selected Moodle instance ID based on its URL
+    
     const selectedInstanceObj = moodleInstances.find(instance => instance.base_url === selectedInstance);
     if (!selectedInstanceObj) {
       setError("❌ Selected Moodle instance not found.");
@@ -51,10 +51,10 @@ const StudentLoginPage = () => {
       const response = await API.post("/auth/login", {
         username,
         password,
-        moodle_instance_id: selectedInstanceObj.id,  // ✅ Send the correct moodle_instance_id
+        moodle_instance_id: selectedInstanceObj.id,  
       });
   
-      console.log("🔍 Received Backend Response:", response.data);
+      console.log(" Received Backend Response:", response.data);
   
       const { token, user, courses, moodle_instance_id } = response.data;
   
@@ -62,19 +62,19 @@ const StudentLoginPage = () => {
         throw new Error("Invalid login response: Moodle ID is missing.");
       }
   
-      // ✅ Store data in localStorage
+      // Store data in localStorage
       localStorage.setItem("token", token);
       localStorage.setItem("user", JSON.stringify(user));
       localStorage.setItem("courses", JSON.stringify(courses));
   
       if (moodle_instance_id) {
-        localStorage.setItem("moodle_instance_id", moodle_instance_id.toString());  // ✅ Store correct moodle_instance_id
-        console.log("✅ Stored Moodle Instance ID:", moodle_instance_id);
+        localStorage.setItem("moodle_instance_id", moodle_instance_id.toString()); 
+        console.log(" Stored Moodle Instance ID:", moodle_instance_id);
       } else {
-        console.warn("⚠️ Moodle Instance ID not found in response.");
+        console.warn(" Moodle Instance ID not found in response.");
       }
   
-      console.log("✅ Login successful:", user);
+      console.log(" Login successful:", user);
       navigate("/student");
     } catch (err) {
       console.error("❌ Login error:", err.response?.data || err.message);
@@ -92,7 +92,7 @@ const StudentLoginPage = () => {
       <form onSubmit={handleLogin}>
         {error && <p style={{ color: "red" }}>{error}</p>}
 
-        {/* ✅ Moodle Instance Selection */}
+      
         <div>
           <label>Select Program:</label>
           <select value={selectedInstance} onChange={(e) => setSelectedInstance(e.target.value)} required>
