@@ -1,18 +1,18 @@
 const db = require("../models/db");
 const axios = require("axios");
 
-// ✅ Function to Fetch Moodle Assignments and Notify Students
+// Function to Fetch Moodle Assignments and Notify Students
 async function checkNewAssignments() {
     try {
         console.log("🔍 Checking for new assignments...");
 
-        // ✅ Get all Moodle instances
+        //  Get all Moodle instances
         const [moodleInstances] = await db.promise().query("SELECT * FROM moodle_instances");
 
         for (const moodle of moodleInstances) {
             console.log(`🔹 Checking Moodle instance: ${moodle.name}`);
 
-            // ✅ Fetch assignments from Moodle
+            //  Fetch assignments from Moodle
             const response = await axios.get(`${moodle.base_url}/webservice/rest/server.php`, {
                 params: {
                     wstoken: moodle.api_token,
@@ -22,28 +22,28 @@ async function checkNewAssignments() {
             });
 
             if (!response.data.courses || response.data.courses.length === 0) {
-                console.log(`⚠️ No assignments found for Moodle instance: ${moodle.name}`);
+                console.log(` No assignments found for Moodle instance: ${moodle.name}`);
                 continue;
             }
 
             for (const course of response.data.courses) {
                 for (const assignment of course.assignments) {
-                    // ✅ Check if assignment already exists in the database
+                    //  Check if assignment already exists in the database
                     const [existingAssignments] = await db.promise().query(
                         "SELECT id FROM assignments WHERE moodle_assignment_id = ?",
                         [assignment.id]
                     );
 
                     if (existingAssignments.length === 0) {
-                        // ✅ New assignment detected - Insert it into the database
+                        //  New assignment detected - Insert it into the database
                         await db.promise().query(
                             "INSERT INTO assignments (course_id, assignment_name, moodle_assignment_id) VALUES (?, ?, ?)",
                             [course.id, assignment.name, assignment.id]
                         );
 
-                        console.log(`✅ New assignment added: ${assignment.name}`);
+                        console.log(` New assignment added: ${assignment.name}`);
 
-                        // ✅ Notify students enrolled in this course
+                        //  Notify students enrolled in this course
                         const [students] = await db.promise().query(
                             "SELECT id FROM users WHERE moodle_instance_id = ? AND role = 'student'",
                             [moodle.id]
@@ -52,11 +52,11 @@ async function checkNewAssignments() {
                         for (const student of students) {
                             await db.promise().query(
                                 "INSERT INTO notifications (user_id, message, is_read) VALUES (?, ?, false)",
-                                [student.id, `📢 New assignment '${assignment.name}' has been added to ${course.fullname}.`]
+                                [student.id, ` New assignment '${assignment.name}' has been added to ${course.fullname}.`]
                             );
                         }
 
-                        console.log(`📨 Notifications sent to enrolled students.`);
+                        console.log(` Notifications sent to enrolled students.`);
                     }
                 }
             }
@@ -66,7 +66,7 @@ async function checkNewAssignments() {
     }
 }
 
-// ✅ Run this function every 5 minutes
+
 setInterval(checkNewAssignments, 5 * 60 * 1000);
 
 module.exports = { checkNewAssignments };
