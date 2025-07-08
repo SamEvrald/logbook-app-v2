@@ -18,9 +18,9 @@ module.exports = (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded;
 
-    console.log("✅ Decoded Token:", decoded);
+    console.log(" Decoded Token:", decoded);
 
-    // ✅ Differentiate between admin, teacher & student
+    // Differentiate between admin, teacher & student
     if (decoded.role === "admin") {
       req.adminId = decoded.adminId;
       req.email = decoded.email;
